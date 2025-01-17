@@ -1,0 +1,3 @@
+name.zicat.astatine.streaming.sql.runtime.map.Row2PojoMapFunctionFactory
+name.zicat.astatine.streaming.sql.runtime.process.TemporalJoinConnectionFunctionFactory
+name.zicat.astatine.streaming.sql.runtime.process.FieldValueWatchChangedEmitterFunctionFactory

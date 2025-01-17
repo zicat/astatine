@@ -1,0 +1,16 @@
+name.zicat.astatine.streaming.sql.parser.test.function.NameScoreFilterFunctionFactory
+name.zicat.astatine.streaming.sql.parser.test.function.Row2NameScoreMapFunctionFactory
+name.zicat.astatine.streaming.sql.parser.test.function.ScoreDoubleMapFunctionFactory
+name.zicat.astatine.streaming.sql.parser.test.function.NameScoreFlatMapFunctionFactory
+name.zicat.astatine.streaming.sql.parser.test.function.NameScoreKeySelectorFactory
+name.zicat.astatine.streaming.sql.parser.test.function.NameScoreKeyedProcessFunctionFactory
+name.zicat.astatine.streaming.sql.parser.test.function.NameScoreProcessFunctionFactory
+name.zicat.astatine.streaming.sql.parser.test.function.NameScoreReduceFunctionFactory
+name.zicat.astatine.streaming.sql.parser.test.function.Row2NameScorePayloadMapFunctionFactory
+name.zicat.astatine.streaming.sql.parser.test.function.NameScoreKeyPayloadSelectorFactory
+name.zicat.astatine.streaming.sql.parser.test.function.TupleNameScorePayloadMapFunctionFactory
+name.zicat.astatine.streaming.sql.parser.test.function.NameSexScoreTransformFunctionFactory
+name.zicat.astatine.streaming.sql.parser.test.function.NameSexScoreJoinFunctionFactory
+name.zicat.astatine.streaming.sql.parser.test.function.NameSexScoreIntervalJoinFunctionFactory
+name.zicat.astatine.streaming.sql.parser.test.function.NameScoreSexTsConnectFactionFactory
+name.zicat.astatine.streaming.sql.parser.test.function.NameScore2StringScoreMapFunctionFactory
