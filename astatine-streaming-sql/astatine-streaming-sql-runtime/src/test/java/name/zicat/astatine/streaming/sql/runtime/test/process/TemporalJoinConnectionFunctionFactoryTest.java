@@ -41,6 +41,7 @@ import org.junit.Test;
 
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Comparator;
 
 import static name.zicat.astatine.streaming.sql.runtime.process.TemporalJoinConnectionFunctionFactory.*;
 
@@ -124,6 +125,9 @@ public class TemporalJoinConnectionFunctionFactoryTest extends TransformFactoryT
     TransformFactoryTestBase.execAndAssert(
         resultStream,
         data -> {
+          Assert.assertEquals(3, data.size());
+          data.sort(
+              Comparator.comparingLong(o -> ((RowData) o).getTimestamp(1, 3).getMillisecond()));
           for (int i = 0; i < data.size(); i++) {
             final var rowData = (RowData) data.get(i);
             Assert.assertEquals(rowData.getString(0).toString(), "name1");

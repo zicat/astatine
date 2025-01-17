@@ -10,6 +10,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>astatine-streaming-sql</module>
+        <module>astatine-sql-client</module>
     </modules>
 
     <properties>
@@ -21,6 +22,11 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <antlr4.version>4.9.3</antlr4.version>
+        <hadoop.version>3.1.1</hadoop.version>
+        <jdbc.mysql.version>8.0.22</jdbc.mysql.version>
+        <jackson.version>2.13.2</jackson.version>
+        <protobuf.version>3.19.1</protobuf.version>
+        <flink.elasticsearch.version>3.0.1-1.17</flink.elasticsearch.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <dependencies>
