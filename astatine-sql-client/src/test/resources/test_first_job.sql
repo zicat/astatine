@@ -1,16 +1,17 @@
-<#import "env_local.ftl" as template>
-<@template.udf_time />
-
+-- define streaming source
 CREATE TABLE source (
-   name            STRING,
-   vid             BIGINT,
-   ts              BIGINT,
-   numerator       BIGINT,
-   denominator     BIGINT,
-   productType     STRING,
-   wk AS to_timestamp3(ts)
-) <@template.table_kafka_source_property
-    topic = 'insight_metric_vid'
-    properties\.bootstrap\.servers = '10.11.2.10:9092,10.11.2.11:9092,10.11.2.12:9092' />
+    name STRING ,
+    score INT
+) WITH (
+  'connector' = 'socket',
+  'hostname' = 'localhost',
+  'port' = '9999',
+  'byte-delimiter' = '10',
+  'format' = 'json'
+);
 
-PRINT FROM source;
+-- create logic view
+CREATE VIEW source_double AS SELECT name, score * 2 FROM source;
+
+-- keyword 'PRINT FROM' is used to print result to terminal
+PRINT FROM source_double;

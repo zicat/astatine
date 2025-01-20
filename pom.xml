@@ -12,6 +12,7 @@
         <module>astatine-streaming-sql</module>
         <module>astatine-sql-client</module>
         <module>astatine-functions</module>
+        <module>astatine-connectors</module>
     </modules>
 
     <properties>
