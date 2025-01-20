@@ -10,10 +10,11 @@
     <packaging>pom</packaging>
     <modules>
         <module>astatine-streaming-sql</module>
-        <module>astatine-sql-client</module>
         <module>astatine-functions</module>
         <module>astatine-connectors</module>
         <module>astatine-formats</module>
+        <module>astatine-sql-client</module>
+        <module>astatine-sql-docker</module>
     </modules>
 
     <properties>

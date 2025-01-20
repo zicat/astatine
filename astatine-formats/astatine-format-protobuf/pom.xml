@@ -10,11 +10,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.agora.datahub</groupId>
-            <artifactId>aquarius-protobuf-build</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-json</artifactId>
             <version>${flink.version}</version>
