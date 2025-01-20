@@ -22,6 +22,11 @@
         </dependency>
         <dependency>
             <groupId>name.zicat</groupId>
+            <artifactId>astatine-format-protobuf</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>name.zicat</groupId>
             <artifactId>astatine-connector-http</artifactId>
             <version>${project.version}</version>
         </dependency>

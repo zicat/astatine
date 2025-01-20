@@ -13,6 +13,7 @@
         <module>astatine-sql-client</module>
         <module>astatine-functions</module>
         <module>astatine-connectors</module>
+        <module>astatine-formats</module>
     </modules>
 
     <properties>

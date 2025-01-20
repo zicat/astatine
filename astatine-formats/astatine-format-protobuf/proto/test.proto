@@ -1,0 +1,9 @@
+syntax = "proto3";
+package name.zicat.astatine.formats.protobuf;
+option java_package = "name.zicat.astatine.formats.protobuf";
+
+message NameScoreTs {
+   string   name              = 1;
+   int32    score             = 2;
+   int64    ts                = 3;
+}
