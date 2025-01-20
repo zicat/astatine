@@ -16,22 +16,29 @@
  * limitations under the License.
  */
 
-package name.zicat.astatine.functions.test;
+package name.zicat.astatine.functions.test.math.percentile;
 
-import name.zicat.astatine.functions.ToTimestamp3;
+import name.zicat.astatine.functions.statistics.percentile.Percentile;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.table.functions.FunctionContext;
 import org.junit.Assert;
 import org.junit.Test;
 
-/** ToTimestamp3Test. */
-public class ToTimestamp3Test {
-
+/** PercentileTest. */
+public class PercentileTest {
   @Test
   public void test() {
-    final var toTimestamp3 = new ToTimestamp3();
-    final var ts1 = 100L;
-    Assert.assertEquals(ts1, toTimestamp3.eval(ts1).getTime());
+    final var configuration = new Configuration();
 
-    final var ts2 = 200;
-    Assert.assertEquals(ts2 * 1000L, toTimestamp3.eval(ts2).getTime());
+    final var percentile = new Percentile();
+    percentile.open(new FunctionContext(null, null, configuration));
+    final var acc = percentile.createAccumulator();
+    percentile.accumulate(acc, 1.0, 0.9);
+    percentile.accumulate(acc, 0.9, 0.9);
+    percentile.accumulate(acc, 0.3, 0.9);
+    percentile.accumulate(acc, 0.3, 0.9);
+    percentile.accumulate(acc, 0.1, 0.9);
+
+    Assert.assertEquals(1, percentile.getValue(acc), 0.0001);
   }
 }

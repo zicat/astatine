@@ -16,22 +16,12 @@
  * limitations under the License.
  */
 
-package name.zicat.astatine.functions.test;
+package name.zicat.astatine.functions.statistics.hyperloglog;
 
-import name.zicat.astatine.functions.ToTimestamp3;
-import org.junit.Assert;
-import org.junit.Test;
-
-/** ToTimestamp3Test. */
-public class ToTimestamp3Test {
-
-  @Test
-  public void test() {
-    final var toTimestamp3 = new ToTimestamp3();
-    final var ts1 = 100L;
-    Assert.assertEquals(ts1, toTimestamp3.eval(ts1).getTime());
-
-    final var ts2 = 200;
-    Assert.assertEquals(ts2 * 1000L, toTimestamp3.eval(ts2).getTime());
+/** Hyperloglog. */
+public class Hyperloglog extends AbstractHyperloglog<Long> {
+  @Override
+  public Long getValue(Acc acc) {
+    return acc.getValue();
   }
 }

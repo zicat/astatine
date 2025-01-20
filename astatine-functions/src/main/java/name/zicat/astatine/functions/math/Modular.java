@@ -16,22 +16,26 @@
  * limitations under the License.
  */
 
-package name.zicat.astatine.functions.test;
+package name.zicat.astatine.functions.math;
 
-import name.zicat.astatine.functions.ToTimestamp3;
-import org.junit.Assert;
-import org.junit.Test;
+import org.apache.flink.table.functions.ScalarFunction;
 
-/** ToTimestamp3Test. */
-public class ToTimestamp3Test {
+/** modular. */
+public class Modular extends ScalarFunction {
 
-  @Test
-  public void test() {
-    final var toTimestamp3 = new ToTimestamp3();
-    final var ts1 = 100L;
-    Assert.assertEquals(ts1, toTimestamp3.eval(ts1).getTime());
+  public int eval(Long value, int mode) {
+    if (value == null || mode <= 0) {
+      return 0;
+    }
+    long absValue = Math.abs(value);
+    return absValue < 0 ? 0 : (int) (absValue % mode);
+  }
 
-    final var ts2 = 200;
-    Assert.assertEquals(ts2 * 1000L, toTimestamp3.eval(ts2).getTime());
+  public int eval(Integer value, int mode) {
+    if (value == null || mode <= 0) {
+      return 0;
+    }
+    int absValue = Math.abs(value);
+    return absValue < 0 ? 0 : (absValue % mode);
   }
 }

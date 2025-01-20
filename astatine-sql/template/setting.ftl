@@ -9,20 +9,18 @@ SET 'restart-strategy.delay' = '${delay}';
 
 <#macro setting_table
     idle_state_retention_time = '4 min'
-    pipeline_operator_chaining='true'
-    table_exec_source_idle_auto_create='0s' >
+    pipeline_operator_chaining='true' >
 SET 'table.exec.state.ttl' = '${idle_state_retention_time}';
-SET 'table.exec.source.idle-auto-create' = '${table_exec_source_idle_auto_create}';
 SET 'pipeline.operator-chaining' = '${pipeline_operator_chaining}';
 </#macro>
 
 <#macro setting_checkpointing
     mode = 'EXACTLY_ONCE'
-    alignment_timeout = '30 s'
-    interval = '1 min'
-    timeout = '1 min'
+    alignment_timeout = '1 min'
+    interval = '2 min'
+    timeout = '2 min'
     force_unaligned = 'false'
-    max_concurrent = '1'
+    max_concurrent = '2'
     min_pause_between = '2 s'
     externalized = 'RETAIN_ON_CANCELLATION'
     tolerable_failed_checkpoints = '5' >

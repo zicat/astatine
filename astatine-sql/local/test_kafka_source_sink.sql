@@ -5,7 +5,7 @@ CREATE TABLE source (
    name            STRING,
    score           INT,
    ts              BIGINT,
-   wk AS to_timestamp3(ts)
+   event_time AS to_timestamp3(ts)
 ) <@template.table_kafka_source topic = 'test_topic'/>
 
 CREATE TABLE target (
@@ -19,5 +19,5 @@ CREATE TABLE target (
     protobuf\.ignore\-parse\-errors = 'true' />
 
 INSERT INTO target
-SELECT name, score* 2, ts
+SELECT name, score* 2, to_long_timestamp(event_time)
 FROM source;

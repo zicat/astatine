@@ -16,22 +16,20 @@
  * limitations under the License.
  */
 
-package name.zicat.astatine.functions.test;
+package name.zicat.astatine.functions.statistics.percentile;
 
-import name.zicat.astatine.functions.ToTimestamp3;
-import org.junit.Assert;
-import org.junit.Test;
+/** Percentile. */
+public class Percentile extends AbstractPercentile<Double> {
 
-/** ToTimestamp3Test. */
-public class ToTimestamp3Test {
+  private static final String COMPRESSION_KEY = "percentile.compression";
 
-  @Test
-  public void test() {
-    final var toTimestamp3 = new ToTimestamp3();
-    final var ts1 = 100L;
-    Assert.assertEquals(ts1, toTimestamp3.eval(ts1).getTime());
+  @Override
+  protected String getCompressionKey() {
+    return COMPRESSION_KEY;
+  }
 
-    final var ts2 = 200;
-    Assert.assertEquals(ts2 * 1000L, toTimestamp3.eval(ts2).getTime());
+  @Override
+  public Double getValue(Acc acc) {
+    return acc.getValue();
   }
 }

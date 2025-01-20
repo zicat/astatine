@@ -34,7 +34,7 @@ public class SqlDebug {
        add vm param: --add-opens java.base/java.nio=ALL-UNNAMED --add-opens java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-exports java.base/sun.net.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED
     */
     TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
-    final var reader = new FileReader("astatine-sql/local/test_kafka_source_sink.sql");
+    final var reader = new FileReader("astatine-sql/local/test_math_statistics_functions.sql");
     createStatementSet(
             new PlusSqlRegisterFactory(
                 StreamExecutionEnvironment.getExecutionEnvironment().setParallelism(1)),
