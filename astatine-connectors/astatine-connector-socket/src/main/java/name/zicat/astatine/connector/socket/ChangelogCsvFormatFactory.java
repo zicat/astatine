@@ -42,38 +42,38 @@ import java.util.Set;
  */
 public final class ChangelogCsvFormatFactory implements DeserializationFormatFactory {
 
-    // define all options statically
-    public static final ConfigOption<String> COLUMN_DELIMITER =
-            ConfigOptions.key("column-delimiter").stringType().defaultValue("|");
+  // define all options statically
+  public static final ConfigOption<String> COLUMN_DELIMITER =
+      ConfigOptions.key("column-delimiter").stringType().defaultValue("|");
 
-    @Override
-    public String factoryIdentifier() {
-        return "changelog-csv";
-    }
+  @Override
+  public String factoryIdentifier() {
+    return "changelog-csv";
+  }
 
-    @Override
-    public Set<ConfigOption<?>> requiredOptions() {
-        return Collections.emptySet();
-    }
+  @Override
+  public Set<ConfigOption<?>> requiredOptions() {
+    return Collections.emptySet();
+  }
 
-    @Override
-    public Set<ConfigOption<?>> optionalOptions() {
-        final Set<ConfigOption<?>> options = new HashSet<>();
-        options.add(COLUMN_DELIMITER);
-        return options;
-    }
+  @Override
+  public Set<ConfigOption<?>> optionalOptions() {
+    final Set<ConfigOption<?>> options = new HashSet<>();
+    options.add(COLUMN_DELIMITER);
+    return options;
+  }
 
-    @Override
-    public DecodingFormat<DeserializationSchema<RowData>> createDecodingFormat(
-            DynamicTableFactory.Context context, ReadableConfig formatOptions) {
-        // either implement your custom validation logic here ...
-        // or use the provided helper method
-        FactoryUtil.validateFactoryOptions(this, formatOptions);
+  @Override
+  public DecodingFormat<DeserializationSchema<RowData>> createDecodingFormat(
+      DynamicTableFactory.Context context, ReadableConfig formatOptions) {
+    // either implement your custom validation logic here ...
+    // or use the provided helper method
+    FactoryUtil.validateFactoryOptions(this, formatOptions);
 
-        // get the validated options
-        final var columnDelimiter = formatOptions.get(COLUMN_DELIMITER);
+    // get the validated options
+    final var columnDelimiter = formatOptions.get(COLUMN_DELIMITER);
 
-        // create and return the format
-        return new ChangelogCsvFormat(columnDelimiter);
-    }
+    // create and return the format
+    return new ChangelogCsvFormat(columnDelimiter);
+  }
 }

@@ -6,6 +6,6 @@ CREATE TABLE source (
    score           INT,
    ts              BIGINT
    wk AS to_timestamp3(ts)
-) <@template.table_kafka_source_property topic = 'test_topic'/>
+) <@template.table_kafka_source topic = 'test_topic'/>
 
 PRINT FROM source;

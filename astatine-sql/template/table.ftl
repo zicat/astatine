@@ -1,4 +1,4 @@
-<#macro table_kafka_source_property
+<#macro table_kafka_source
         topic
         properties\.bootstrap\.servers = '${kafka\\.properties\\.bootstrap\\.servers}'
         scan\.startup\.mode ='latest-offset'
@@ -13,5 +13,45 @@ WITH (
     'properties.bootstrap.servers' = '${properties\.bootstrap\.servers}',
     'format' = '${format}',
     'scan.startup.mode' = '${scan\.startup\.mode}'
+);
+</#macro>
+
+<#macro table_socket_source
+    hostname = '${socket\\.hostname}'
+    port = '9999'
+    byte\.delimiter = '10'
+    format = 'json' >
+WITH (
+    'connector' = 'socket',
+    'hostname' = '${hostname}',
+    'port' = '${port}',
+    'byte-delimiter' = '${byte\.delimiter}',
+    'format' = '${format}'
+);
+</#macro>
+
+<#macro table_http_sink
+    request\.type
+    proxy = ''
+    connect\.timeout = '10s'
+    read\.timeout = '10s'
+    retry\.interval = '1s'
+    retry\.count = '1'
+    async\.queue\.size = '1024'
+    async\.threads = '5'
+    sink\.parallelism = '1'
+    code\.400\.fail = 'false'>
+WITH (
+    'connector' = 'http',
+    'request.type' = '${request\.type}',
+    'proxy' = '${proxy}',
+    'connect.timeout' = '${connect\.timeout}',
+    'read.timeout' = '${read\.timeout}',
+    'retry.interval' = '${retry\.interval}',
+    'retry.count' = '${retry\.count}',
+    'async.queue.size' = '${async\.queue\.size}',
+    'async.threads' = '${async\.threads}',
+    'sink.parallelism' = '${sink\.parallelism}',
+    'code.400.fail' = '${code\.400\.fail}'
 );
 </#macro>

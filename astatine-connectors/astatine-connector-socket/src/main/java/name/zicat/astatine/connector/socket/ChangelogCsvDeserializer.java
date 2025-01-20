@@ -39,57 +39,57 @@ import java.util.regex.Pattern;
  */
 public final class ChangelogCsvDeserializer implements DeserializationSchema<RowData> {
 
-    private final List<LogicalType> parsingTypes;
-    private final DataStructureConverter converter;
-    private final TypeInformation<RowData> producedTypeInfo;
-    private final String columnDelimiter;
+  private final List<LogicalType> parsingTypes;
+  private final DataStructureConverter converter;
+  private final TypeInformation<RowData> producedTypeInfo;
+  private final String columnDelimiter;
 
-    public ChangelogCsvDeserializer(
-            List<LogicalType> parsingTypes,
-            DataStructureConverter converter,
-            TypeInformation<RowData> producedTypeInfo,
-            String columnDelimiter) {
-        this.parsingTypes = parsingTypes;
-        this.converter = converter;
-        this.producedTypeInfo = producedTypeInfo;
-        this.columnDelimiter = columnDelimiter;
-    }
+  public ChangelogCsvDeserializer(
+      List<LogicalType> parsingTypes,
+      DataStructureConverter converter,
+      TypeInformation<RowData> producedTypeInfo,
+      String columnDelimiter) {
+    this.parsingTypes = parsingTypes;
+    this.converter = converter;
+    this.producedTypeInfo = producedTypeInfo;
+    this.columnDelimiter = columnDelimiter;
+  }
 
-    @Override
-    public TypeInformation<RowData> getProducedType() {
-        // return the type information required by Flink's core interfaces
-        return producedTypeInfo;
-    }
+  @Override
+  public TypeInformation<RowData> getProducedType() {
+    // return the type information required by Flink's core interfaces
+    return producedTypeInfo;
+  }
 
-    @Override
-    public void open(InitializationContext context) {
-        // converters must be opened
-        converter.open(Context.create(ChangelogCsvDeserializer.class.getClassLoader()));
-    }
+  @Override
+  public void open(InitializationContext context) {
+    // converters must be opened
+    converter.open(Context.create(ChangelogCsvDeserializer.class.getClassLoader()));
+  }
 
-    @Override
-    public RowData deserialize(byte[] message) {
-        // parse the columns including a changelog flag
-        final var columns = new String(message).split(Pattern.quote(columnDelimiter));
-        final var kind = RowKind.valueOf(columns[0]);
-        final var row = new Row(kind, parsingTypes.size());
-        for (var i = 0; i < parsingTypes.size(); i++) {
-            row.setField(i, parse(parsingTypes.get(i).getTypeRoot(), columns[i + 1]));
-        }
-        // convert to internal data structure
-        return (RowData) converter.toInternal(row);
+  @Override
+  public RowData deserialize(byte[] message) {
+    // parse the columns including a changelog flag
+    final var columns = new String(message).split(Pattern.quote(columnDelimiter));
+    final var kind = RowKind.valueOf(columns[0]);
+    final var row = new Row(kind, parsingTypes.size());
+    for (var i = 0; i < parsingTypes.size(); i++) {
+      row.setField(i, parse(parsingTypes.get(i).getTypeRoot(), columns[i + 1]));
     }
+    // convert to internal data structure
+    return (RowData) converter.toInternal(row);
+  }
 
-    private static Object parse(LogicalTypeRoot root, String value) {
-        return switch (root) {
-            case INTEGER -> Integer.parseInt(value);
-            case VARCHAR -> value;
-            default -> throw new IllegalArgumentException();
-        };
-    }
+  private static Object parse(LogicalTypeRoot root, String value) {
+    return switch (root) {
+      case INTEGER -> Integer.parseInt(value);
+      case VARCHAR -> value;
+      default -> throw new IllegalArgumentException();
+    };
+  }
 
-    @Override
-    public boolean isEndOfStream(RowData nextElement) {
-        return false;
-    }
+  @Override
+  public boolean isEndOfStream(RowData nextElement) {
+    return false;
+  }
 }

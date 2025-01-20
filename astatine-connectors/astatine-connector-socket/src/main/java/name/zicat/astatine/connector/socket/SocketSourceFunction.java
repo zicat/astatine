@@ -41,75 +41,71 @@ import java.net.Socket;
  * fault-tolerant and can only work with a parallelism of 1.
  */
 public final class SocketSourceFunction extends RichSourceFunction<RowData>
-        implements ResultTypeQueryable<RowData> {
+    implements ResultTypeQueryable<RowData> {
 
-    private final String hostname;
-    private final int port;
-    private final byte byteDelimiter;
-    private final DeserializationSchema<RowData> deserializer;
+  private final String hostname;
+  private final int port;
+  private final byte byteDelimiter;
+  private final DeserializationSchema<RowData> deserializer;
 
-    private volatile boolean isRunning = true;
-    private Socket currentSocket;
+  private volatile boolean isRunning = true;
+  private Socket currentSocket;
 
-    public SocketSourceFunction(
-            String hostname,
-            int port,
-            byte byteDelimiter,
-            DeserializationSchema<RowData> deserializer) {
-        this.hostname = hostname;
-        this.port = port;
-        this.byteDelimiter = byteDelimiter;
-        this.deserializer = deserializer;
-    }
+  public SocketSourceFunction(
+      String hostname, int port, byte byteDelimiter, DeserializationSchema<RowData> deserializer) {
+    this.hostname = hostname;
+    this.port = port;
+    this.byteDelimiter = byteDelimiter;
+    this.deserializer = deserializer;
+  }
 
-    @Override
-    public TypeInformation<RowData> getProducedType() {
-        return deserializer.getProducedType();
-    }
+  @Override
+  public TypeInformation<RowData> getProducedType() {
+    return deserializer.getProducedType();
+  }
 
-    @Override
-    public void open(Configuration parameters) throws Exception {
-        deserializer.open(
-                RuntimeContextInitializationContextAdapters.deserializationAdapter(
-                        getRuntimeContext()));
-    }
+  @Override
+  public void open(Configuration parameters) throws Exception {
+    deserializer.open(
+        RuntimeContextInitializationContextAdapters.deserializationAdapter(getRuntimeContext()));
+  }
 
-    @Override
-    public void run(SourceContext<RowData> ctx) throws Exception {
-        while (isRunning) {
-            // open and consume from socket
-            try (final Socket socket = new Socket()) {
-                currentSocket = socket;
-                socket.connect(new InetSocketAddress(hostname, port), 0);
-                try (InputStream stream = socket.getInputStream()) {
-                    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-                    int b;
-                    while ((b = stream.read()) >= 0) {
-                        // buffer until delimiter
-                        if (b != byteDelimiter) {
-                            buffer.write(b);
-                        }
-                        // decode and emit record
-                        else {
-                            ctx.collect(deserializer.deserialize(buffer.toByteArray()));
-                            buffer.reset();
-                        }
-                    }
-                }
-            } catch (Throwable t) {
-                t.printStackTrace(); // print and continue
+  @Override
+  public void run(SourceContext<RowData> ctx) throws Exception {
+    while (isRunning) {
+      // open and consume from socket
+      try (final Socket socket = new Socket()) {
+        currentSocket = socket;
+        socket.connect(new InetSocketAddress(hostname, port), 0);
+        try (InputStream stream = socket.getInputStream()) {
+          ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+          int b;
+          while ((b = stream.read()) >= 0) {
+            // buffer until delimiter
+            if (b != byteDelimiter) {
+              buffer.write(b);
             }
-            Thread.sleep(1000);
+            // decode and emit record
+            else {
+              ctx.collect(deserializer.deserialize(buffer.toByteArray()));
+              buffer.reset();
+            }
+          }
         }
+      } catch (Throwable t) {
+        t.printStackTrace(); // print and continue
+      }
+      Thread.sleep(1000);
     }
+  }
 
-    @Override
-    public void cancel() {
-        isRunning = false;
-        try {
-            currentSocket.close();
-        } catch (Throwable t) {
-            // ignore
-        }
+  @Override
+  public void cancel() {
+    isRunning = false;
+    try {
+      currentSocket.close();
+    } catch (Throwable t) {
+      // ignore
     }
+  }
 }
