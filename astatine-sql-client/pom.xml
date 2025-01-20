@@ -22,6 +22,11 @@
         </dependency>
         <dependency>
             <groupId>name.zicat</groupId>
+            <artifactId>astatine-functions</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>name.zicat</groupId>
             <artifactId>astatine-streaming-sql-parser</artifactId>
             <version>${project.version}</version>
         </dependency>
