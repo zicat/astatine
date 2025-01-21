@@ -40,17 +40,17 @@ public class TemporalJoinConnectionFunctionFactory
 
   public static final String IDENTIFY = "temporal_join";
   public static final ConfigOption<String> OPTION_LEFT_EVENTTIME =
-      ConfigOptions.key("left_eventtime").stringType().noDefaultValue();
+      ConfigOptions.key("left.eventtime").stringType().noDefaultValue();
   public static final ConfigOption<String> OPTION_RIGHT_EVENTTIME =
-      ConfigOptions.key("right_eventtime").stringType().noDefaultValue();
+      ConfigOptions.key("right.eventtime").stringType().noDefaultValue();
 
   public static final ConfigOption<JoinType> OPTION_JOIN_TYPE =
-      ConfigOptions.key("join_type").enumType(JoinType.class).defaultValue(JoinType.INNER);
+      ConfigOptions.key("join.type").enumType(JoinType.class).defaultValue(JoinType.INNER);
 
   public static final ConfigOption<String> OPTION_LEFT_SELECT_FIELDS =
-      ConfigOptions.key("left_output_fields").stringType().noDefaultValue();
+      ConfigOptions.key("left.output.fields").stringType().noDefaultValue();
   public static final ConfigOption<String> OPTION_RIGHT_SELECT_FIELDS =
-      ConfigOptions.key("right_output_fields").stringType().noDefaultValue();
+      ConfigOptions.key("right.output.fields").stringType().noDefaultValue();
 
   @Override
   public DataStream<RowData> createConnect(

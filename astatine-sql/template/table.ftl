@@ -47,13 +47,13 @@ WITH (
 <#macro table_socket_source
     hostname = '${socket\\.hostname}'
     port = '9999'
-    byte\.delimiter = '10'
+    byte\-delimiter = '10'
     format = 'json' >
 WITH (
     'connector' = 'socket',
     'hostname' = '${hostname}',
     'port' = '${port}',
-    'byte-delimiter' = '${byte\.delimiter}',
+    'byte-delimiter' = '${byte\-delimiter}',
     'format' = '${format}'
 );
 </#macro>
@@ -81,5 +81,11 @@ WITH (
     'async.threads' = '${async\.threads}',
     'sink.parallelism' = '${sink\.parallelism}',
     'code.400.fail' = '${code\.400\.fail}'
+);
+</#macro>
+
+<#macro table_print_sink>
+WITH (
+    'connector' = 'print'
 );
 </#macro>

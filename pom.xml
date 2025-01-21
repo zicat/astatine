@@ -14,8 +14,21 @@
         <module>astatine-connectors</module>
         <module>astatine-formats</module>
         <module>astatine-sql-client</module>
-        <module>astatine-sql-docker</module>
     </modules>
+
+    <profiles>
+        <profile>
+            <id>docker</id>
+            <modules>
+                <module>astatine-streaming-sql</module>
+                <module>astatine-functions</module>
+                <module>astatine-connectors</module>
+                <module>astatine-formats</module>
+                <module>astatine-sql-client</module>
+                <module>astatine-sql-docker</module>
+            </modules>
+        </profile>
+    </profiles>
 
     <properties>
         <java.17.params>--add-exports java.base/sun.net.util=ALL-UNNAMED --add-exports java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED</java.17.params>

@@ -42,7 +42,7 @@ public class FieldValueWatchChangedEmitterFunctionFactory
 
   public static final String IDENTIFY = "field_value_watch_changed_emitter";
   public static final ConfigOption<String> WATCH_FIELD =
-      key("watch_field").stringType().noDefaultValue();
+      key("watch.field").stringType().noDefaultValue();
   public static final ConfigOption<String> EVENT_TIME_FIELD =
       key("eventtime").stringType().noDefaultValue();
 

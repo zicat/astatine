@@ -1,40 +1,6 @@
 # The first streaming sql job based on local docker in local environment
 
-## Prepare
-
-Before to start developing the streaming sql job based on local docker, make sure the machine has installed and running docker successfully.
-Using the following command to check whether docker is already installed and running：
-``` shell 
-$ docker version
-Client:
- Cloud integration: v1.0.29
- Version:           20.10.22
- ...
-Server: Docker Desktop 4.16.2 (95914)
- Engine:
-  Version:          20.10.22
- ... 
- 
-$  docker ps # check docker whether is running
-CONTAINER ID   IMAGE             COMMAND           CREATED        STATUS      PORTS                    NAMES 
-```
-
-Tips: For macOs users, Go To [Docker-Release-Notes](https://docs.docker.com/desktop/release-notes/) to install a suitable docker version. Please download Docker Desktop version < 4.7.0 if your macOs version <= 10.14.
-
-Build Docker image by source code
-```shell
-$ git clone $astatine_repo
-$ cd astatine
-$ mvn clean install -DskipTests
-```
-
-Check the docker image
-```shell
-$ docker image ls|grep astatine-sql-docker
-astatine-sql-docker                                     latest                de8d2875ae9e   4 minutes ago       844MB
-````
-
-## Develop the first streaming sql job
+Goto [Compile and Build astatine](build_project.md) to build astatine first before read following content.
 
 1. Create a file like test.sql, input the content as below and save it.
 

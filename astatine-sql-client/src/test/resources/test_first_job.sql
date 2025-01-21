@@ -1,11 +1,21 @@
--- define streaming source
+-- flink sql
 CREATE TABLE source (
-    name STRING ,
-    score INT
-) <@template.table_socket_source />
+  name STRING ,
+  score INT
+) <@template.table_socket_source hostname = 'localhost' />
 
--- create logic view
-CREATE VIEW source_double AS SELECT name, score * 2 FROM source;
+-- astatine sql
+CREATE STREAM stream_source
+FROM source
+MAP WITH (
+    'identity' = 'row_2_pojo',
+    'class' = 'name.zicat.astatine.streaming.sql.parser.test.function.NameScore'
+);
 
--- keyword 'PRINT FROM' is used to print result to terminal
-PRINT FROM source_double;
+CREATE STREAM stream_source_double
+FROM stream_source
+MAP WITH (
+    'identity' = 'score_double'
+);
+
+PRINT FROM stream_source_double;
