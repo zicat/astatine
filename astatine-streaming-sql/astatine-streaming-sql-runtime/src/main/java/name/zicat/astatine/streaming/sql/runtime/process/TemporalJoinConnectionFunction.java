@@ -20,7 +20,7 @@ package name.zicat.astatine.streaming.sql.runtime.process;
 
 import static name.zicat.astatine.streaming.sql.runtime.utils.StateUtils.registerEventCleanupTimer;
 
-import name.zicat.astatine.streaming.sql.runtime.utils.ModifiableProjectRowData;
+import name.zicat.astatine.streaming.sql.runtime.utils.UpdatableProjectRowData;
 
 import org.apache.flink.api.common.state.MapState;
 import org.apache.flink.api.common.state.MapStateDescriptor;
@@ -360,7 +360,7 @@ public class TemporalJoinConnectionFunction<T>
         }
     }
 
-    private static ModifiableProjectRowData projectRow(RowData row, int[] indexMapping) {
-        return ModifiableProjectRowData.from(indexMapping).replaceRow(row);
+    private static UpdatableProjectRowData projectRow(RowData row, int[] indexMapping) {
+        return UpdatableProjectRowData.from(indexMapping).replaceRow(row);
     }
 }
