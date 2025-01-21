@@ -1,4 +1,4 @@
-FROM hub.agoralab.co/data-platform/openjdk:17
+FROM openjdk:17-jdk
 
 WORKDIR /app/astatine
 ADD target/astatine-sql-docker-final.jar .

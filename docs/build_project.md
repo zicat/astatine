@@ -1,6 +1,6 @@
 # Compile and Build astatine
 
-Compiling Astatine depends on the JDK 17, Maven 3.9 AND docker, Please make sure you have installed them before building astatine.
+Compiling Astatine depends on the JDK 17, Maven 3.9 and docker, Please make sure you have installed them before building astatine.
 
 ## Check the environment
 

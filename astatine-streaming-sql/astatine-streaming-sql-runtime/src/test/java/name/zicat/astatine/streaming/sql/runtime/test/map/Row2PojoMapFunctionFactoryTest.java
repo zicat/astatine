@@ -43,7 +43,7 @@ public class Row2PojoMapFunctionFactoryTest extends TransformFactoryTestBase {
         final var configuration = new Configuration();
         configuration.set(
                 FunctionFactory.OPTION_FUNCTION_IDENTITY, Row2PojoMapFunctionFactory.IDENTITY);
-        configuration.set(Row2PojoMapFunctionFactory.OPTION_CLASS_NAME, MyPojo.class.getName());
+        configuration.set(Row2PojoMapFunctionFactory.OPTION_MAPPING_CLASS_NAME, MyPojo.class.getName());
 
         final var context = createContext(configuration);
 
