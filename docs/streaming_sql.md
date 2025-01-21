@@ -24,7 +24,7 @@ CREATE STREAM stream_source
 FROM source
 MAP WITH (
     'identity' = 'row_2_pojo',
-    'class' = 'name.zicat.astatine.streaming.sql.parser.test.function.NameScore'
+    'mapping.class' = 'name.zicat.astatine.streaming.sql.parser.test.function.NameScore'
 );
 
 CREATE STREAM stream_source_double 
@@ -98,7 +98,7 @@ CREATE STREAM map_source
 FROM source
 MAP WITH (
     'identity' = 'row_2_pojo',
-    'class' = 'name.zicat.astatine.streaming.sql.parser.test.function.NameScore'
+    'mapping.class' = 'name.zicat.astatine.streaming.sql.parser.test.function.NameScore'
 );
 
 -- flink sql

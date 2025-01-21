@@ -34,14 +34,12 @@ import static org.apache.flink.table.types.utils.TypeInfoDataTypeConverter.toDat
 public class Row2PojoMapFunctionFactory<T> implements MapFunctionFactory<Row, T> {
 
     public static final String IDENTITY = "row_2_pojo";
-    public static final ConfigOption<String> OPTION_CLASS_NAME =
-            ConfigOptions.key("class").stringType().noDefaultValue();
 
     public static final ConfigOption<String> OPTION_MAPPING_CLASS_NAME =
-            ConfigOptions.key("mapping-class").stringType().defaultValue(null);
+            ConfigOptions.key("mapping.class").stringType().defaultValue(null);
 
     public static final ConfigOption<String> OPTION_RETURN_CLASS_NAME =
-            ConfigOptions.key("return-class").stringType().defaultValue(null);
+            ConfigOptions.key("return.class").stringType().defaultValue(null);
 
     @SuppressWarnings("unchecked")
     @Override
@@ -51,8 +49,7 @@ public class Row2PojoMapFunctionFactory<T> implements MapFunctionFactory<Row, T>
                 context.streamTableEnvironmentImpl().getCatalogManager().getDataTypeFactory();
         final var rowType =
                 (RowType) toDataType(dataTypeFactory, stream.getType()).getLogicalType();
-        var pojoClassName = context.get(OPTION_MAPPING_CLASS_NAME);
-        pojoClassName = pojoClassName == null ? context.get(OPTION_CLASS_NAME) : pojoClassName;
+        final var pojoClassName = context.get(OPTION_MAPPING_CLASS_NAME);
         final var returnClassName = context.get(OPTION_RETURN_CLASS_NAME);
         final Class<?> pojoClass;
         final Class<?> returnClass;
