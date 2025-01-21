@@ -11,6 +11,7 @@ to start your first streaming sql.
 
 - Source & Sink
 
+    - [Kafka Source Sink](docs/connectors/kafka_source_sink.md)
     - [Http Sink](docs/connectors/http_sink.md)
     - [Socket Source](docs/connectors/socket_source.md)
     - [ElasticSearch6 Sink](docs/connectors/elasticsearch6_sink.md)

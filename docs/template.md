@@ -44,29 +44,6 @@ Note:
 
 ## Source Sink Define
 
-### Kafka Source And Sink
-```sql
-<#import "env_local.ftl" as template>
-CREATE TABLE source (
-   name            STRING,
-   score           INT,
-   ts              BIGINT,
-   event_time AS to_timestamp3(ts)
-) <@template.table_kafka_source 
-    topic = 'test_topic'
-    ... />
-
-CREATE TABLE target (
-   name            STRING,
-   score           INT,
-   ts              BIGINT
-) <@template.table_kafka_sink
-    topic = 'test_topic_output'
-    format = 'protobuf'
-    protobuf\.message\-class\-name = 'name.zicat.astatine.formats.protobuf.Test$NameScoreTs'
-    protobuf\.ignore\-parse\-errors = 'true'
-    .../>
-```
-
-### [Http Sink](connectors/http_sink.md)
-### [Socket Source](connectors/socket_source.md)
+- [Kafka Source And Sink](connectors/kafka_source_sink.md)
+- [Http Sink](connectors/http_sink.md)
+- [Socket Source](connectors/socket_source.md)
