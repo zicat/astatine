@@ -7,6 +7,8 @@ to start your first streaming sql.
 
 # Astatine Extensions
 
+- [Astatine Sql Template](docs/template.md)
+
 - Source & Sink
 
     - [Http Sink](docs/connectors/http_sink.md)

@@ -1,0 +1,72 @@
+# Astatine Sql Template
+
+Astatine Sql Template is a feature that allows you to use a template to generate a sql script. 
+
+The benefit of using template is that you can reuse the sql logic mostly and configure difference like source sink url in env_xxx.ftl.
+
+This section is introduced how to use it.
+
+## Set Flink Configuration
+```sql
+<#import "env_local.ftl" as template>
+
+-- set the flink job restart strategy policy
+<@template.setting_restart_strategy_policy type = 'fixed-delay' fixed\-delay\.attempts = '2147483647' delay = '10 s' />
+
+-- set table state ttl
+<@template.setting_table exec\.state\.ttl = '4 min' />
+
+-- set the flink job checkpointing
+<@template.setting_checkpointing
+    mode = 'EXACTLY_ONCE' aligned\-checkpoint\-timeout = '1 min' interval = '2 min' timeout = '2 min' unaligned\.enabled = 'false'
+    max\-concurrent\-checkpoint = '2' min\-pause = '2 s' externalized\-checkpoint\-retention = 'RETAIN_ON_CANCELLATION' tolerable\-failed\-checkpoints = '5' />
+    
+-- set other flink params that not supported by template
+SET 'table.exec.source.idle-timeout'= '2 min';    
+```
+
+Note: User can add other env by adding related template to [astatine-sql/template](../astatine-sql/template)
+
+## Set Function
+
+```sql
+-- define the hash_code function and set the hashcode.seed param
+<@template.udf_math hashcode\.seed = '12331233'/>
+
+-- the function `test_udf` has a param `aaa` with value `bbb`
+SET 'jobparam.aaa'='bbb'; 
+CREATE TEMPORARY SYSTEM FUNCTION IF NOT EXISTS test_udf AS 'name.zicat.example.TestUdf' LANGUAGE JAVA;
+```
+
+Note: 
+- The udf params must start with `jobparam.`.
+- Set the function param first then defined function.
+
+## Source Sink Define
+
+### Kafka Source And Sink
+```sql
+<#import "env_local.ftl" as template>
+CREATE TABLE source (
+   name            STRING,
+   score           INT,
+   ts              BIGINT,
+   event_time AS to_timestamp3(ts)
+) <@template.table_kafka_source 
+    topic = 'test_topic'
+    ... />
+
+CREATE TABLE target (
+   name            STRING,
+   score           INT,
+   ts              BIGINT
+) <@template.table_kafka_sink
+    topic = 'test_topic_output'
+    format = 'protobuf'
+    protobuf\.message\-class\-name = 'name.zicat.astatine.formats.protobuf.Test$NameScoreTs'
+    protobuf\.ignore\-parse\-errors = 'true'
+    .../>
+```
+
+### [Http Sink](connectors/http_sink.md)
+### [Socket Source](connectors/socket_source.md)
