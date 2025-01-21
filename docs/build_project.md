@@ -7,7 +7,7 @@ Compiling Astatine depends on the JDK 17, Maven 3.9 and docker, Please make sure
 ```shell
 $ mvn -version
 Apache Maven 3.9.9 (8e8579a9e76f7d015ee5ec7bfcdc97d260186937)
-Maven home: /opt/apache-maven-3.9.9
+Maven home: ...
 Java version: 17.0.13
 
 $ docker version # check whether docker is installed

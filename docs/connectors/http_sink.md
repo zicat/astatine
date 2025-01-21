@@ -2,7 +2,7 @@
 
 Astatine support to sink data to http server.
 
-# How to Create Http Json Sink Table
+## How to Create Http Json Sink Table
 
 ```sql
 -- define http sink table
@@ -42,7 +42,7 @@ CREATE TABLE http_sink_table (
     code\.400\.fail = 'false'/>
 ```
 
-# Connector Options
+## Connector Options
 
 | Option           | Template Option   | Type     | Default | Description                                                                                    |
 |------------------|-------------------|----------|---------|------------------------------------------------------------------------------------------------|
@@ -58,7 +58,7 @@ CREATE TABLE http_sink_table (
 | sink.parallelism | sink\.parallelism | Integer  | null    | Specify the http sink parallelism, default is extends previous operator parallelism            |
 | code.400.fail    | code\.400\.fail   | boolean  | false   | Specify whether to fail the job if response status code is 400+, default false                 |
 
-# Example
+## Example
 
 - Using http connector to sink data to WeChat.
 

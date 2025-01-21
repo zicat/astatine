@@ -2,7 +2,7 @@
 
 Astatine support to read data from socket connector. The source connector is useful when testing some operators on local.
 
-# How to Create Socket Source Table
+## How to Create Socket Source Table
 ```
 -- define socket source table
 CREATE TABLE source_socket(
@@ -25,7 +25,7 @@ CREATE TABLE source_socket(
      format = 'json'/>
 ```
 
-# Connector Options
+## Connector Options
 
 | Option         | Template Option | Type   | Default | Description                                                         |
 |----------------|-----------------|--------|---------|---------------------------------------------------------------------|

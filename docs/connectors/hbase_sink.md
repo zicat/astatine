@@ -2,7 +2,7 @@
 
 Astatine support to sink data to hbase(version 2.2.x) .
 
-# How to Create HBase Sink Table
+## How to Create HBase Sink Table
 ```
 CREATE TABLE source (
    rowkey  BYTES,
@@ -26,10 +26,10 @@ SELECT rowkey
       ,ROW(column3, column4)
 FROM source;
 ```
-# Connector Options
+## Connector Options
 
 The HBase Sink Connector is based on the Flink HBase Sink Connector, so all options can be found in [Flink HBase SQL Connector](https://nightlies.apache.org/flink/flink-docs-release-1.17/docs/connectors/table/hbase/)
 
-# Others
+## Others
 
 Please config param taskmanager.memory.task.off-heap.size like -Dtaskmanager.memory.task.off-heap.size=256m to avoid OOM when using HBase Sink Connector.

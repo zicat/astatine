@@ -34,6 +34,7 @@
         <java.17.params>--add-exports java.base/sun.net.util=ALL-UNNAMED --add-exports java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED</java.17.params>
         <java.version>17</java.version>
         <flink.version>1.17.1</flink.version>
+        <flink.build.version>1.17</flink.build.version>
         <scala.binary.version>2.12.18</scala.binary.version>
         <scala.build.version>2.12</scala.build.version>
         <maven.compiler.source>17</maven.compiler.source>
@@ -43,6 +44,7 @@
         <jdbc.mysql.version>8.0.22</jdbc.mysql.version>
         <jackson.version>2.13.2</jackson.version>
         <protobuf.version>3.19.1</protobuf.version>
+        <paimon.version>0.7.0-incubating</paimon.version>
         <flink.elasticsearch.version>3.0.1-1.17</flink.elasticsearch.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>

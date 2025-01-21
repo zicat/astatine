@@ -16,6 +16,7 @@ to start your first streaming sql.
     - [Socket Source](docs/connectors/socket_source.md)
     - [ElasticSearch6 Sink](docs/connectors/elasticsearch6_sink.md)
     - [HBase Sink](docs/connectors/hbase_sink.md)
+    - [Paimon Source Sink](docs/connectors/paimon_source_sink.md)
 
 - [User Defined Functions(UDF)](docs/udf.md)
 
