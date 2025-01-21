@@ -11,6 +11,7 @@
     <modules>
         <module>astatine-connector-socket</module>
         <module>astatine-connector-http</module>
+        <module>astatine-connector-elasticsearch6</module>
     </modules>
 
     <dependencies>

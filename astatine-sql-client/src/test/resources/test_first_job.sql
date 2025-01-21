@@ -3,6 +3,17 @@ CREATE TABLE source (
    score INT
 ) <@template.table_socket_source hostname = 'localhost' />
 
-CREATE VIEW source_double AS SELECT name, score * 2 FROM source;
+CREATE TABLE sink_elasticsearch (
+    name            STRING,
+    score           INT,
+    PRIMARY KEY (name) NOT ENFORCED
+) <@template.table_astatine_elasticsearch6_sink
+    routing = '{name}'
+    function\.id = 'default'
+    hosts = 'http://localhost:9200'
+    document\-type = 'doc'
+    index = 'test_index' />
 
-PRINT FROM source_double;
+INSERT INTO sink_elasticsearch
+SELECT name,score
+FROM source;

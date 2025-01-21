@@ -89,3 +89,19 @@ WITH (
     'connector' = 'print'
 );
 </#macro>
+
+<#macro table_astatine_elasticsearch6_sink
+    index
+    document\-type
+    hosts = '${elasticsearch\\.hosts}'
+    dynamic_key_value...>
+WITH (
+    'connector' = 'astatine-elasticsearch-6',
+    <#list dynamic_key_value?keys as p>
+    '${p}' = '${dynamic_key_value[p]}',
+    </#list>
+    'hosts' = '${hosts}',
+    'document-type' = '${document\-type}',
+    'index' = '${index}'
+);
+</#macro>

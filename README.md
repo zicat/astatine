@@ -13,6 +13,7 @@ to start your first streaming sql.
 
     - [Http Sink](docs/connectors/http_sink.md)
     - [Socket Source](docs/connectors/socket_source.md)
+    - [ElasticSearch6 Sink](docs/connectors/elasticsearch6_sink.md)
 
 - [User Defined Functions(UDF)](docs/udf.md)
 

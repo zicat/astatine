@@ -1,0 +1,2 @@
+name.zicat.astatine.connector.elasticsearch6.DefaultRowElasticsearchSinkFunctionFactory
+name.zicat.astatine.connector.elasticsearch6.AppendOnlyRowElasticsearchSinkFunctionFactory
