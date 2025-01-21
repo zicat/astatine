@@ -1,19 +1,21 @@
 CREATE TABLE source (
-   name  STRING,
-   score INT
+   rowkey  BYTES,
+   column1 BYTES,
+   column2 BYTES,
+   column3 BYTES,
+   column4 BYTES
 ) <@template.table_socket_source hostname = 'localhost' />
 
-CREATE TABLE sink_elasticsearch (
-    name            STRING,
-    score           INT,
-    PRIMARY KEY (name) NOT ENFORCED
-) <@template.table_astatine_elasticsearch6_sink
-    routing = '{name}'
-    function\.id = 'default'
-    hosts = 'http://localhost:9200'
-    document\-type = 'doc'
-    index = 'test_index' />
+CREATE TABLE hTable (
+     rowkey           BYTES,
+     family1          ROW<column1 BYTES, column2 BYTES>,
+     family2          ROW<column3 BYTES, column4 BYTES>,
+     PRIMARY KEY (rowkey) NOT ENFORCED
+) <@template.table_hbase2_sink
+    table\-name = 'test_table' />
 
-INSERT INTO sink_elasticsearch
-SELECT name,score
+INSERT INTO hTable
+SELECT rowkey
+      ,ROW(column1, column2)
+      ,ROW(column3, column4)
 FROM source;

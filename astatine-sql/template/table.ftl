@@ -105,3 +105,21 @@ WITH (
     'index' = '${index}'
 );
 </#macro>
+
+<#macro table_hbase2_sink
+    table\-name
+    zookeeper\.quorum = '${hbase\\.zookeeper\\.quorum}'
+    zookeeper\.znode\.parent = ''
+    dynamic_key_value...>
+WITH (
+    'connector' = 'hbase-2.2',
+    <#list dynamic_key_value?keys as p>
+    '${p}' = '${dynamic_key_value[p]}',
+    </#list>
+    'table-name' = '${table\-name}',
+    <#if zookeeper\.znode\.parent != ''>
+    'zookeeper.znode.parent' = '${zookeeper\.znode\.parent}',
+    </#if>
+    'zookeeper.quorum' = '${zookeeper\.quorum}'
+);
+</#macro>
