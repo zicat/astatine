@@ -1,10 +1,6 @@
-# Astatine User Defined Functions(UDF)
+# Astatine Functions(UDF)
 
-Astatine support to
-develop [Flink UDF](https://nightlies.apache.org/flink/flink-docs-master/docs/dev/table/functions/overview/),
-UDF Source Code is in the module of [Astatine-Functions](../astatine-functions).
-
-Existing UDFs in Astatine-Functions is defined as template
+Existing Functions(UDF) in Astatine-Functions is defined as template
 in [function.ftl](../astatine-sql/template/function.ftl).
 
 Before using those functions, please include the related template macro first. e.g. import

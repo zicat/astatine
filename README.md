@@ -22,8 +22,11 @@ to start your first streaming sql.
     - [HBase Sink](docs/connectors/hbase_sink.md)
     - [Paimon Source Sink](docs/connectors/paimon_source_sink.md)
 
-- [Functions(UDF)](docs/udf.md)
+- Functions
 
+  - [Develop Functions](docs/udf_develop.md)
+  - [Exist Functions](docs/udf.md)
+  
 - [Streaming SQL](docs/streaming_sql.md)
 
     - [Field Value Watch Changed Emitter Operator](docs/streaming_operators/field_value_watch_changed_emitter_operator.md)

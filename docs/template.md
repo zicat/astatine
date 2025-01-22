@@ -27,20 +27,8 @@ SET 'table.exec.source.idle-timeout'= '2 min';
 
 Note: User can add other env by adding related template to [astatine-sql/template](../astatine-sql/template)
 
-## Set Function
+## [Set Function](udf_develop.md)
 
-```sql
--- define the hash_code function and set the hashcode.seed param
-<@template.udf_math hashcode\.seed = '12331233'/>
-
--- the function `test_udf` has a param `aaa` with value `bbb`
-SET 'jobparam.aaa'='bbb'; 
-CREATE TEMPORARY SYSTEM FUNCTION IF NOT EXISTS test_udf AS 'name.zicat.example.TestUdf' LANGUAGE JAVA;
-```
-
-Note: 
-- The udf params must start with `jobparam.`.
-- Set the function param first then defined function.
 
 ## Source Sink Define
 
