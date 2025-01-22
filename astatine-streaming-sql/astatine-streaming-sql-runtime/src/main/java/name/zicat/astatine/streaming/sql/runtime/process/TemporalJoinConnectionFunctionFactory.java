@@ -20,6 +20,7 @@ package name.zicat.astatine.streaming.sql.runtime.process;
 
 import name.zicat.astatine.streaming.sql.parser.function.ConnectFunctionFactory;
 import name.zicat.astatine.streaming.sql.parser.transform.TransformContext;
+import name.zicat.astatine.streaming.sql.parser.utils.Types;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 import org.apache.flink.streaming.api.datastream.ConnectedStreams;
@@ -27,9 +28,9 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.table.api.config.ExecutionConfigOptions;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
-import org.apache.flink.table.types.DataTypeQueryable;
 import org.apache.flink.table.types.logical.RowType;
 
+import java.util.Arrays;
 import java.util.stream.Stream;
 
 import static name.zicat.astatine.streaming.sql.parser.utils.Types.*;
@@ -55,44 +56,46 @@ public class TemporalJoinConnectionFunctionFactory
   @Override
   public DataStream<RowData> createConnect(
       TransformContext context, ConnectedStreams<RowData, RowData> connectedStream) {
-    final var leftType = (DataTypeQueryable) connectedStream.getFirstInput().getType();
-    final var rightType = (DataTypeQueryable) connectedStream.getSecondInput().getType();
+
+    final var lRowType = Types.toRowType(connectedStream.getFirstInput().getType());
+    final var rRowType = Types.toRowType(connectedStream.getSecondInput().getType());
 
     final var joinType = context.get(OPTION_JOIN_TYPE);
     final var minRetentionTime =
         context.get(ExecutionConfigOptions.IDLE_STATE_RETENTION).toMillis();
     final var maxRetentionTime = minRetentionTime * 3 / 2;
-    final var leftEventTimeIndex = fieldIndex(leftType, context.get(OPTION_LEFT_EVENTTIME));
-    final var rightEventTimeIndex = fieldIndex(rightType, context.get(OPTION_RIGHT_EVENTTIME));
-    final var leftRowType = (RowType) leftType.getDataType().getLogicalType();
-    final var rightRowType = (RowType) rightType.getDataType().getLogicalType();
-    final var leftReturnRowIndexes =
-        fieldsIndex(leftRowType, context.get(OPTION_LEFT_SELECT_FIELDS));
-    final var rightReturnRowIndexes =
-        fieldsIndex(rightRowType, context.get(OPTION_RIGHT_SELECT_FIELDS));
-    final var leftReturnFields = rowFields(leftRowType, leftReturnRowIndexes);
-    final var rightReturnFields =
-        joinType == JoinType.LEFT
-            ? rowFieldsNullable(rightRowType, rightReturnRowIndexes)
-            : rowFields(rightRowType, rightReturnRowIndexes);
 
-    final var returnFields =
-        Stream.concat(leftReturnFields.stream(), rightReturnFields.stream()).toList();
+    final var lReturnFieldNameTypes =
+        fieldsNameTypes(lRowType, context.get(OPTION_LEFT_SELECT_FIELDS));
+    final var rReturnFieldNameTypes =
+        fieldsNameTypes(rRowType, context.get(OPTION_RIGHT_SELECT_FIELDS));
+
+    final var lReturnFields =
+        Arrays.stream(lReturnFieldNameTypes).map(FieldNameType::targetRowField).toList();
+    final var rReturnFields =
+        joinType == JoinType.LEFT
+            ? Arrays.stream(rReturnFieldNameTypes)
+                .map(FieldNameType::targetNullableRowField)
+                .toList()
+            : Arrays.stream(rReturnFieldNameTypes).map(FieldNameType::targetRowField).toList();
     final var result =
         connectedStream.process(
             createTemporalJoinConnectionFunction(
-                InternalTypeInfo.of(new RowType(leftReturnFields)),
-                InternalTypeInfo.of(new RowType(rightReturnFields)),
-                leftEventTimeIndex,
-                rightEventTimeIndex,
+                InternalTypeInfo.of(new RowType(lReturnFields)),
+                InternalTypeInfo.of(new RowType(rReturnFields)),
+                fieldNameType(lRowType, context.get(OPTION_LEFT_EVENTTIME)).getIndex(),
+                fieldNameType(rRowType, context.get(OPTION_RIGHT_EVENTTIME)).getIndex(),
                 minRetentionTime,
                 maxRetentionTime,
                 joinType,
-                leftReturnRowIndexes,
-                rightReturnRowIndexes));
+                Arrays.stream(lReturnFieldNameTypes).mapToInt(FieldNameType::getIndex).toArray(),
+                Arrays.stream(rReturnFieldNameTypes).mapToInt(FieldNameType::getIndex).toArray()));
     return result
         .name(identity() + "_" + result.getId())
-        .returns(InternalTypeInfo.of(new RowType(returnFields)));
+        .returns(
+            InternalTypeInfo.of(
+                new RowType(
+                    Stream.concat(lReturnFields.stream(), rReturnFields.stream()).toList())));
   }
 
   protected TemporalJoinConnectionFunction<?> createTemporalJoinConnectionFunction(

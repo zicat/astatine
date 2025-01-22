@@ -33,6 +33,7 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.data.TimestampData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
+import org.apache.flink.table.types.DataTypeQueryable;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
 import org.apache.flink.table.types.logical.VarCharType;
@@ -56,19 +57,23 @@ public class TemporalJoinConnectionFunctionFactoryTest extends TransformFactoryT
     final var leftRow1 = new GenericRowData(3);
     leftRow1.setField(0, StringData.fromString("name1"));
     leftRow1.setField(1, TimestampData.fromEpochMillis(ts + 1000));
+    leftRow1.setField(2, StringData.fromString("leftTag1"));
     final var leftRow2 = new GenericRowData(3);
     leftRow2.setField(0, StringData.fromString("name1"));
     leftRow2.setField(1, TimestampData.fromEpochMillis(ts + 2000));
+    leftRow2.setField(2, StringData.fromString("leftTag2"));
     final var leftRow3 = new GenericRowData(3);
     leftRow3.setField(0, StringData.fromString("name1"));
     leftRow3.setField(1, TimestampData.fromEpochMillis(ts + 3000));
+    leftRow3.setField(2, StringData.fromString("leftTag3"));
 
     final TypeInformation<RowData> leftType =
         InternalTypeInfo.of(
             new RowType(
                 Arrays.asList(
                     new RowType.RowField("name", new VarCharType()),
-                    new RowType.RowField("ts", new TimestampType(3)))));
+                    new RowType.RowField("ts", new TimestampType(3)),
+                    new RowType.RowField("tag", new VarCharType()))));
 
     final var leftSource =
         env.fromCollection(Arrays.<RowData>asList(leftRow1, leftRow2, leftRow3))
@@ -78,12 +83,12 @@ public class TemporalJoinConnectionFunctionFactoryTest extends TransformFactoryT
     final var rightRow1 = new GenericRowData(3);
     rightRow1.setField(0, StringData.fromString("name1"));
     rightRow1.setField(1, TimestampData.fromEpochMillis(ts));
-    rightRow1.setField(2, StringData.fromString("tag1"));
+    rightRow1.setField(2, StringData.fromString("rightTag1"));
 
     final var rightRow2 = new GenericRowData(3);
     rightRow2.setField(0, StringData.fromString("name1"));
     rightRow2.setField(1, TimestampData.fromEpochMillis(ts + 2000));
-    rightRow2.setField(2, StringData.fromString("tag2"));
+    rightRow2.setField(2, StringData.fromString("rightTag2"));
 
     final TypeInformation<RowData> rightType =
         InternalTypeInfo.of(
@@ -111,7 +116,7 @@ public class TemporalJoinConnectionFunctionFactoryTest extends TransformFactoryT
     configuration.set(OPTION_RIGHT_EVENTTIME, "ts");
     configuration.set(OPTION_JOIN_TYPE, JoinType.INNER);
     configuration.set(OPTION_LEFT_SELECT_FIELDS, "*");
-    configuration.set(OPTION_RIGHT_SELECT_FIELDS, "tag");
+    configuration.set(OPTION_RIGHT_SELECT_FIELDS, "tag AS right_tag");
     configuration.set(FunctionFactory.OPTION_FUNCTION_IDENTITY, IDENTIFY);
     configuration.set(ExecutionConfigOptions.IDLE_STATE_RETENTION, Duration.ofHours(1));
     final var context = createContext(configuration);
@@ -121,6 +126,13 @@ public class TemporalJoinConnectionFunctionFactoryTest extends TransformFactoryT
 
     final var resultStream =
         factory.transform(context, leftSource.keyBy(keySelect), rightSource.keyBy(keySelect));
+
+    final var rowType =
+        (RowType) ((DataTypeQueryable) resultStream.getType()).getDataType().getLogicalType();
+    Assert.assertEquals(rowType.getFieldNames().get(0), "name");
+    Assert.assertEquals(rowType.getFieldNames().get(1), "ts");
+    Assert.assertEquals(rowType.getFieldNames().get(2), "tag");
+    Assert.assertEquals(rowType.getFieldNames().get(3), "right_tag");
 
     TransformFactoryTestBase.execAndAssert(
         resultStream,
@@ -132,10 +144,11 @@ public class TemporalJoinConnectionFunctionFactoryTest extends TransformFactoryT
             final var rowData = (RowData) data.get(i);
             Assert.assertEquals(rowData.getString(0).toString(), "name1");
             Assert.assertEquals(rowData.getTimestamp(1, 3).getMillisecond(), ts + 1000L * (i + 1));
+            Assert.assertEquals(rowData.getString(2).toString(), "leftTag" + (i + 1));
             if (i == 0) {
-              Assert.assertEquals(rowData.getString(2).toString(), "tag1");
+              Assert.assertEquals(rowData.getString(3).toString(), "rightTag1");
             } else {
-              Assert.assertEquals(rowData.getString(2).toString(), "tag2");
+              Assert.assertEquals(rowData.getString(3).toString(), "rightTag2");
             }
           }
         });

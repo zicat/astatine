@@ -22,6 +22,7 @@ import java.time.Duration;
 
 import name.zicat.astatine.streaming.sql.parser.function.KeyedProcessFunctionFactory;
 import name.zicat.astatine.streaming.sql.parser.transform.TransformContext;
+import name.zicat.astatine.streaming.sql.parser.utils.Types;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -29,10 +30,8 @@ import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
-import org.apache.flink.table.types.DataTypeQueryable;
-import org.apache.flink.table.types.logical.RowType;
 
-import static name.zicat.astatine.streaming.sql.parser.utils.Types.fieldIndex;
+import static name.zicat.astatine.streaming.sql.parser.utils.Types.fieldNameType;
 import static org.apache.flink.configuration.ConfigOptions.key;
 import static org.apache.flink.table.api.config.ExecutionConfigOptions.IDLE_STATE_RETENTION;
 
@@ -61,28 +60,19 @@ public class FieldValueWatchChangedEmitterFunctionFactory
   public DataStream<RowData> transform(
       TransformContext context, KeyedStream<RowData, RowData> keyedStream) {
 
-    final var type = (DataTypeQueryable) keyedStream.getType();
-    final var rowType = ((RowType) type.getDataType().getLogicalType());
-
+    final var rowType = Types.toRowType(keyedStream.getType());
     final var retentionOption = context.getOptional(IDLE_STATE_RETENTION);
     final long minRetentionTime =
         retentionOption.map(Duration::toMillis).orElseGet(() -> Duration.ofMinutes(2).toMillis());
     final var maxRetentionTime = minRetentionTime * 3 / 2;
-
-    final var watchFieldIndex = fieldIndex(type, context.get(WATCH_FIELD));
-    final var fieldType = rowType.getFields().get(watchFieldIndex);
-    final var fieldGetter =
-        RowData.createFieldGetter(rowType.getTypeAt(watchFieldIndex), watchFieldIndex);
-
-    final var eventTimeIndex = fieldIndex(type, context.get(EVENT_TIME_FIELD));
-
+    final var watchFieldNameType = fieldNameType(rowType, context.get(WATCH_FIELD));
     final var returnType = InternalTypeInfo.of(rowType);
     var result =
         keyedStream.process(
             new FieldValueWatchChangedEmitterFunction<>(
-                fieldGetter,
-                fieldType,
-                eventTimeIndex,
+                watchFieldNameType.fieldGetter(),
+                watchFieldNameType.targetRowField(),
+                fieldNameType(rowType, context.get(EVENT_TIME_FIELD)).getIndex(),
                 minRetentionTime,
                 maxRetentionTime,
                 returnType));

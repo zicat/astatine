@@ -47,7 +47,7 @@ CONNECT stream_keyed_by_name_source2 WITH (
   'left.eventtime' = 'ts',
   'right.eventtime' = 'ts',
   'left.output.fields' = '*',
-  'right.output.fields' = 'score',
+  'right.output.fields' = 'score AS right_source',
   'table.exec.state.ttl' = '10min',
   'join.type' = 'LEFT'
 );
@@ -87,7 +87,7 @@ Note:
 1. The identity of the operator is `temporal_join`.
 2. The `left.eventtime` is set the left stream eventtime field name.
 3. The `right.eventtime` is set the right stream eventtime field name.
-4. The `left.output.fields` is set the left stream output fields, the `*` means output all left input fields.
-5. The `right.output.fields` is set the right stream output fields, the `*` means output all left input fields.
+4. The `left.output.fields` is set the left stream output fields, split by `,`, the `*` means output all left input fields, using keyword `AS` to rename fieldName if necessary.
+5. The `right.output.fields` is set the right stream output fields, split by `,`, the `*` means output all left input fields, using keyword `AS` to rename fieldName if necessary.
 6. The `join.type` is set the join type including `LEFT`, `INNER`.
 7. The `table.exec.state.ttl` is set the eventtime expired state ttl, the default value is 2 minutes.

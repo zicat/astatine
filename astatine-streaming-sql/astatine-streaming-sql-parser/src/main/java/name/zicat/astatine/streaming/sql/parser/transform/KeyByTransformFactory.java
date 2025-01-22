@@ -32,7 +32,6 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalSerializers;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.runtime.typeutils.RowDataSerializer;
-import org.apache.flink.table.types.DataTypeQueryable;
 import org.apache.flink.table.types.logical.RowType;
 
 import java.io.Serial;
@@ -66,25 +65,22 @@ public class KeyByTransformFactory extends OneTransformFactory {
     if (idOption.isPresent()) {
       return super.transform(context, stream);
     }
-    final var type = stream.getType();
-    final var fields =
-        Arrays.stream(context.get(OPTION_FIELD).split(",")).map(String::trim).distinct().toList();
-    if (fields.isEmpty()) {
+    final var fieldExpression = context.get(OPTION_FIELD);
+    if (fieldExpression == null || fieldExpression.isBlank()) {
       throw new IllegalStateException("fields not found");
     }
-    if (type instanceof DataTypeQueryable dataTypeQueryable) {
-      final var rowType = (RowType) dataTypeQueryable.getDataType().getLogicalType();
-      final var fieldsIndex = Types.fieldsIndex(rowType, fields);
-      final var fieldGetters = Types.fieldGetters(rowType, fieldsIndex);
-      final var rowFields = Types.rowFields(rowType, fieldsIndex);
-      final var returnType = new RowType(rowFields);
-      final var rowStream = (DataStream<RowData>) stream;
-      return rowStream.keyBy(
-          new RowDataKeySelector(fieldGetters, InternalSerializers.create(returnType)),
-          InternalTypeInfo.of(returnType));
-    } else {
-      throw new RuntimeException("KeyBy Fields only support RowData type, real : " + type);
-    }
+
+    final var rowType = Types.toRowType(stream.getType());
+    final var fieldNameTypes = Types.fieldsNameTypes(rowType, fieldExpression);
+    final var rowFields =
+        Arrays.stream(fieldNameTypes).map(Types.FieldNameType::targetRowField).toList();
+    final var returnType = new RowType(rowFields);
+    final var rowStream = (DataStream<RowData>) stream;
+    return rowStream.keyBy(
+        new RowDataKeySelector(
+            Arrays.stream(fieldNameTypes).map(Types.FieldNameType::fieldGetter).toList(),
+            InternalSerializers.create(returnType)),
+        InternalTypeInfo.of(returnType));
   }
 
   /** RowDataKeySelector. */
