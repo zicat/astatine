@@ -7,7 +7,11 @@ to start your first streaming sql.
 
 # Astatine Extensions
 
-- [Astatine Sql Template](docs/template.md)
+- [Sql Template](docs/template.md)
+
+- Formats
+
+    - [Protobuf](docs/formats/format_protobuf.md)
 
 - Source & Sink
 
@@ -18,9 +22,9 @@ to start your first streaming sql.
     - [HBase Sink](docs/connectors/hbase_sink.md)
     - [Paimon Source Sink](docs/connectors/paimon_source_sink.md)
 
-- [User Defined Functions(UDF)](docs/udf.md)
+- [Functions(UDF)](docs/udf.md)
 
-- [Astatine Streaming SQL](docs/streaming_sql.md)
+- [Streaming SQL](docs/streaming_sql.md)
 
     - [Field Value Watch Changed Emitter Operator](docs/streaming_operators/field_value_watch_changed_emitter_operator.md)
     - [Eventtime Temporal Join Operator](docs/streaming_operators/streaming_eventtime_temporal_join_operator.md)
