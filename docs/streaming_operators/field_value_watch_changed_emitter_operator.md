@@ -3,7 +3,8 @@
 The field value changed emit operator is an eventtime-based streaming keyed operator that support to watch a field value change and emit the changed result.
 
 ```sql
-<@template.setting tf_idle_state_retention_time='1 min' cp_alignment_timeout = '1 min' cp_interval = '2 min' cp_timeout = '2 min'/>
+<@template.setting_table exec\.state\.ttl = '1 min' />
+<@template.setting_checkpointing aligned\-checkpoint\-timeout = '1 min'  interval = '1 min' timeout = '1 min' />
 
 -- define streaming source
 CREATE TABLE source (
@@ -11,7 +12,7 @@ CREATE TABLE source (
   score INT,
   wk   TIMESTAMP(3),
   WATERMARK FOR wk AS wk
-) <@template.table_socket_source hostname = 'localhost' />
+) <@template.table_socket_source hostname = 'host.docker.internal' />
 
 CREATE VIEW field_changed_emit_result WITH (
     'expression.watermark' = 'WATERMARK FOR wk AS SOURCE_WATERMARK()'

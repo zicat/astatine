@@ -14,21 +14,21 @@ The streaming eventtime temporal join operator is an eventtime-based streaming k
 
 ## Demo
 ```
-<@template.setting tf_idle_state_retention_time='5 min'/>
+<@template.setting_table exec\.state\.ttl = '1 min' />
 
 CREATE TABLE source (
   name STRING,
   peer STRING,
   ts   TIMESTAMP(3),
   WATERMARK FOR ts AS ts - INTERVAL '3' SECOND
-) <@template.table_socket_source hostname = 'localhost' port = '9990' />
+) <@template.table_socket_source hostname = 'host.docker.internal' port = '9990' />
 
 CREATE TABLE source2 (
   name STRING,
   score INT,
   ts   TIMESTAMP(3),
   WATERMARK FOR ts AS ts - INTERVAL '3' SECOND
-) <@template.table_socket_source hostname = 'localhost' port = '9991' />
+) <@template.table_socket_source hostname = 'host.docker.internal' port = '9991' />
 
 -- create a stream from source2 with key by name
 CREATE STREAM stream_keyed_by_name_source2
