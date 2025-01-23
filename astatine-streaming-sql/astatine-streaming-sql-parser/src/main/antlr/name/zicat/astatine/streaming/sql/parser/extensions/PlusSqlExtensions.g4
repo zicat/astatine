@@ -42,7 +42,6 @@ grammar PlusSqlExtensions;
 
 statement
     : CREATE STREAM multipartIdentifier nameIdentifierKeyValues FROM multipartIdentifier sourceIdentifierKeyValues operators
-    | INSERT INTO multipartIdentifier FROM multipartIdentifier operators
     | CREATE VIEW multipartIdentifier nameIdentifierKeyValues FROM multipartIdentifier sourceIdentifierKeyValues operators
     | PRINT FROM multipartIdentifier operators
     ;

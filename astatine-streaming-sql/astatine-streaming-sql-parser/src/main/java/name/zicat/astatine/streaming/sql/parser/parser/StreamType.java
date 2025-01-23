@@ -25,8 +25,6 @@ import java.util.StringJoiner;
 
 /** StreamType. */
 public enum StreamType {
-  INSERT_INTO("INSERT INTO"),
-
   CREATE_STREAM("CREATE STREAM"),
 
   PRINT_FROM("PRINT FROM"),
@@ -52,8 +50,6 @@ public enum StreamType {
   public static StreamType parse(PlusSqlExtensionsParser.StatementContext statement) {
     if (statement.CREATE() != null && statement.STREAM() != null) {
       return StreamType.parse(statement.CREATE(), statement.STREAM());
-    } else if (statement.INSERT() != null && statement.INTO() != null) {
-      return StreamType.parse(statement.INSERT(), statement.INTO());
     } else if (statement.PRINT() != null && statement.FROM() != null) {
       return StreamType.parse(statement.PRINT(), statement.FROM());
     } else if (statement.CREATE() != null && statement.VIEW() != null) {

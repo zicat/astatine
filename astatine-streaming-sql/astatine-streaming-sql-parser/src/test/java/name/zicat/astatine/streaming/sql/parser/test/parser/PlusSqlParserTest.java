@@ -28,47 +28,10 @@ import org.junit.Test;
 /** PlusSqlExtensionsListenerTest. */
 public class PlusSqlParserTest {
 
-    @Test
-    public void testInsertIntoParse() {
-        final var sqlText =
-                """
-            INSERT INTO S1
-            FROM t1
-            MAP WITH (
-                'identity' = 'row_2_name_score'
-            )
-            filter with (
-                'identity' = 'name_score_filter',
-                'prefix' = 'bb'
-            )
-            KEY by WITH (
-                'identity' = 'name_score_key_select'
-            )
-            PROCESS WITH (
-                'identity' = 'name_score_key_process'
-            )
-            FLAT MAP WITH (
-                'identity' = 'name_score_key_flat_map'
-            )
-            UNION S8 union s9
-        """;
-        final var parser = new PlusSqlParser();
-        final var streamOperation = parser.parse(sqlText);
-        Assert.assertEquals(StreamType.INSERT_INTO, streamOperation.streamType());
-
-        final var sqlText2 = """
-            insert into S2 from t2
-        """;
-        final var streamOperation2 = parser.parse(sqlText2);
-        Assert.assertEquals(StreamType.INSERT_INTO, streamOperation2.streamType());
-
-        assertStreamOptions(streamOperation, streamOperation2);
-    }
-
-    @Test
-    public void testCreateStreamParse() {
-        final var sqlText =
-                """
+  @Test
+  public void testCreateStreamParse() {
+    final var sqlText =
+        """
             CREATE STREAM S1
             FROM t1
             MAP WITH (
@@ -89,78 +52,72 @@ public class PlusSqlParserTest {
             )
             UNION S8 union s9
         """;
-        final var parser = new PlusSqlParser();
-        final var streamOperation = parser.parse(sqlText);
-        Assert.assertEquals(StreamType.CREATE_STREAM, streamOperation.streamType());
+    final var parser = new PlusSqlParser();
+    final var streamOperation = parser.parse(sqlText);
+    Assert.assertEquals(StreamType.CREATE_STREAM, streamOperation.streamType());
 
-        final var sqlText2 = """
+    final var sqlText2 =
+        """
             create stream S2 from t2
         """;
-        final var streamOperation2 = parser.parse(sqlText2);
+    final var streamOperation2 = parser.parse(sqlText2);
 
-        assertStreamOptions(streamOperation, streamOperation2);
-        Assert.assertEquals(StreamType.CREATE_STREAM, streamOperation2.streamType());
-    }
+    assertStreamOptions(streamOperation, streamOperation2);
+    Assert.assertEquals(StreamType.CREATE_STREAM, streamOperation2.streamType());
+  }
 
-    /**
-     * assert.
-     *
-     * @param streamOperation streamOperation
-     * @param streamOperation2 streamOperation2
-     */
-    private static void assertStreamOptions(
-            StreamOperation streamOperation, StreamOperation streamOperation2) {
-        Assert.assertEquals("S1", streamOperation.name());
-        Assert.assertEquals("t1", streamOperation.source());
+  /**
+   * assert.
+   *
+   * @param streamOperation streamOperation
+   * @param streamOperation2 streamOperation2
+   */
+  private static void assertStreamOptions(
+      StreamOperation streamOperation, StreamOperation streamOperation2) {
+    Assert.assertEquals("S1", streamOperation.name());
+    Assert.assertEquals("t1", streamOperation.source());
 
-        Assert.assertEquals(7, streamOperation.streamOperatorOperations().size());
+    Assert.assertEquals(7, streamOperation.streamOperatorOperations().size());
 
-        Assert.assertEquals("MAP", streamOperation.streamOperatorOperations().get(0).type());
-        Assert.assertEquals("FILTER", streamOperation.streamOperatorOperations().get(1).type());
-        Assert.assertEquals("KEY BY", streamOperation.streamOperatorOperations().get(2).type());
-        Assert.assertEquals("PROCESS", streamOperation.streamOperatorOperations().get(3).type());
-        Assert.assertEquals("FLAT MAP", streamOperation.streamOperatorOperations().get(4).type());
-        Assert.assertEquals("UNION", streamOperation.streamOperatorOperations().get(5).type());
-        Assert.assertEquals("UNION", streamOperation.streamOperatorOperations().get(6).type());
+    Assert.assertEquals("MAP", streamOperation.streamOperatorOperations().get(0).type());
+    Assert.assertEquals("FILTER", streamOperation.streamOperatorOperations().get(1).type());
+    Assert.assertEquals("KEY BY", streamOperation.streamOperatorOperations().get(2).type());
+    Assert.assertEquals("PROCESS", streamOperation.streamOperatorOperations().get(3).type());
+    Assert.assertEquals("FLAT MAP", streamOperation.streamOperatorOperations().get(4).type());
+    Assert.assertEquals("UNION", streamOperation.streamOperatorOperations().get(5).type());
+    Assert.assertEquals("UNION", streamOperation.streamOperatorOperations().get(6).type());
 
-        Assert.assertEquals(
-                1, streamOperation.streamOperatorOperations().get(0).properties().size());
-        Assert.assertEquals(
-                2, streamOperation.streamOperatorOperations().get(1).properties().size());
-        Assert.assertEquals(
-                1, streamOperation.streamOperatorOperations().get(2).properties().size());
-        Assert.assertEquals(
-                1, streamOperation.streamOperatorOperations().get(3).properties().size());
-        Assert.assertEquals(
-                1, streamOperation.streamOperatorOperations().get(4).properties().size());
-        Assert.assertEquals(
-                0, streamOperation.streamOperatorOperations().get(5).properties().size());
-        Assert.assertEquals(
-                0, streamOperation.streamOperatorOperations().get(6).properties().size());
+    Assert.assertEquals(1, streamOperation.streamOperatorOperations().get(0).properties().size());
+    Assert.assertEquals(2, streamOperation.streamOperatorOperations().get(1).properties().size());
+    Assert.assertEquals(1, streamOperation.streamOperatorOperations().get(2).properties().size());
+    Assert.assertEquals(1, streamOperation.streamOperatorOperations().get(3).properties().size());
+    Assert.assertEquals(1, streamOperation.streamOperatorOperations().get(4).properties().size());
+    Assert.assertEquals(0, streamOperation.streamOperatorOperations().get(5).properties().size());
+    Assert.assertEquals(0, streamOperation.streamOperatorOperations().get(6).properties().size());
 
-        Assert.assertEquals(
-                "row_2_name_score",
-                streamOperation.streamOperatorOperations().get(0).properties().get("identity"));
-        Assert.assertEquals(
-                "name_score_filter",
-                streamOperation.streamOperatorOperations().get(1).properties().get("identity"));
-        Assert.assertEquals(
-                "bb", streamOperation.streamOperatorOperations().get(1).properties().get("prefix"));
-        Assert.assertEquals(
-                "name_score_key_select",
-                streamOperation.streamOperatorOperations().get(2).properties().get("identity"));
-        Assert.assertEquals(
-                "name_score_key_process",
-                streamOperation.streamOperatorOperations().get(3).properties().get("identity"));
-        Assert.assertEquals(
-                "name_score_key_flat_map",
-                streamOperation.streamOperatorOperations().get(4).properties().get("identity"));
+    Assert.assertEquals(
+        "row_2_name_score",
+        streamOperation.streamOperatorOperations().get(0).properties().get("identity"));
+    Assert.assertEquals(
+        "name_score_filter",
+        streamOperation.streamOperatorOperations().get(1).properties().get("identity"));
+    Assert.assertEquals(
+        "bb", streamOperation.streamOperatorOperations().get(1).properties().get("prefix"));
+    Assert.assertEquals(
+        "name_score_key_select",
+        streamOperation.streamOperatorOperations().get(2).properties().get("identity"));
+    Assert.assertEquals(
+        "name_score_key_process",
+        streamOperation.streamOperatorOperations().get(3).properties().get("identity"));
+    Assert.assertEquals(
+        "name_score_key_flat_map",
+        streamOperation.streamOperatorOperations().get(4).properties().get("identity"));
 
-        Assert.assertEquals("S8", streamOperation.streamOperatorOperations().get(5).source());
-        Assert.assertEquals("s9", streamOperation.streamOperatorOperations().get(6).source());
+    Assert.assertEquals("S8", streamOperation.streamOperatorOperations().get(5).source());
+    Assert.assertEquals("s9", streamOperation.streamOperatorOperations().get(6).source());
 
-        Assert.assertEquals("S2", streamOperation2.name());
-        Assert.assertEquals("t2", streamOperation2.source());
-        Assert.assertTrue(streamOperation2.streamOperatorOperations().isEmpty());
-    }
+    Assert.assertEquals("S2", streamOperation2.name());
+    Assert.assertEquals("t2", streamOperation2.source());
+    Assert.assertTrue(streamOperation2.streamOperatorOperations().isEmpty());
+  }
 }

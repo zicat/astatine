@@ -102,10 +102,7 @@ public class PlusSqlTableEnvironment {
     final var nameConfig = new Configuration(configuration);
     nameConfig.addAll(Configuration.fromMap(streamOperation.nameProperties()));
 
-    if (operationType == StreamType.INSERT_INTO) {
-      statementSet.add(tEnv.fromDataStream(stream).insertInto(name));
-      return true;
-    } else if (operationType == StreamType.CREATE_STREAM) {
+    if (operationType == StreamType.CREATE_STREAM) {
       streamCache.put(name, stream);
       return true;
     } else if (operationType == StreamType.PRINT_FROM) {
