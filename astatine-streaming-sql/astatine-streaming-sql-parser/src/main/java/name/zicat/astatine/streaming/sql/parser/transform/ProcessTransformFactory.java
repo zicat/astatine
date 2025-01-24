@@ -26,25 +26,25 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 /** ProcessTransformFactory. */
 public class ProcessTransformFactory extends OneTransformFactory {
 
-    public static final String IDENTITY = "PROCESS";
+  public static final String IDENTITY = "PROCESS";
 
-    @Override
-    public String identity() {
-        return IDENTITY;
-    }
+  @Override
+  public String identity() {
+    return IDENTITY;
+  }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public DataStream<?> transform(TransformContext context, DataStream<?> stream) {
-        final var functionFactory = functionFactory(context);
+  @SuppressWarnings("unchecked")
+  @Override
+  public DataStream<?> transform(TransformContext context, DataStream<?> stream) {
+    final var functionFactory = functionFactory(context);
     if (functionFactory.isInstanceOf(ProcessFunctionFactory.class)) {
-            return functionFactory.cast(ProcessFunctionFactory.class).transform(context, stream);
-        } else if (functionFactory.isInstanceOf(KeyedProcessFunctionFactory.class)) {
-            return functionFactory
-                    .cast(KeyedProcessFunctionFactory.class)
-                    .transform(context, OneKeyedTransformFactory.castAsKeyedstream(stream));
-        } else {
-            throw new RuntimeException("unknown process type " + functionFactory.getClass());
-        }
+      return functionFactory.cast(ProcessFunctionFactory.class).transform(context, stream);
+    } else if (functionFactory.isInstanceOf(KeyedProcessFunctionFactory.class)) {
+      return functionFactory
+          .cast(KeyedProcessFunctionFactory.class)
+          .transform(context, OneKeyedTransformFactory.castAsKeyedstream(stream));
+    } else {
+      throw new RuntimeException("unknown process type " + functionFactory.getClass());
     }
+  }
 }

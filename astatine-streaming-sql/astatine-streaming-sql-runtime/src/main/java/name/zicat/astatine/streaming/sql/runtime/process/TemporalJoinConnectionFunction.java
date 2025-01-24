@@ -18,8 +18,6 @@
 
 package name.zicat.astatine.streaming.sql.runtime.process;
 
-import static name.zicat.astatine.streaming.sql.runtime.utils.StateUtils.registerEventCleanupTimer;
-
 import name.zicat.astatine.streaming.sql.runtime.utils.UpdatableProjectRowData;
 
 import org.apache.flink.api.common.state.MapState;
@@ -29,7 +27,6 @@ import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.api.java.typeutils.ListTypeInfo;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.streaming.api.TimerService;
 import org.apache.flink.streaming.api.functions.co.KeyedCoProcessFunction;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -41,6 +38,8 @@ import java.io.IOException;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
+
+import static name.zicat.astatine.streaming.sql.runtime.utils.StateUtils.*;
 
 /** TemporalJoinConnectionFunction. */
 public class TemporalJoinConnectionFunction<T>
@@ -130,7 +129,7 @@ public class TemporalJoinConnectionFunction<T>
     rowDataList.add(rowData);
     leftState.put(eventTime, rowDataList);
     final var timeService = context.timerService();
-    registerSmallestTimer(eventTime, timeService);
+    registerSmallestTimer(registeredTimer, eventTime, timeService);
   }
 
   @Override
@@ -146,7 +145,7 @@ public class TemporalJoinConnectionFunction<T>
     final var rowData = projectRow(row, rightReturnIndexMapping);
     rightState.put(eventTime, rowData);
     final var timeService = context.timerService();
-    registerSmallestTimer(eventTime, timeService);
+    registerSmallestTimer(registeredTimer, eventTime, timeService);
   }
 
   @Override
@@ -185,7 +184,7 @@ public class TemporalJoinConnectionFunction<T>
       return;
     }
     if (lastUnprocessedTime < Long.MAX_VALUE) {
-      registerTimer(lastUnprocessedTime, timeService);
+      registerTimer(registeredTimer, lastUnprocessedTime, timeService);
     } else {
       registeredTimer.clear();
     }
@@ -212,21 +211,6 @@ public class TemporalJoinConnectionFunction<T>
     } else if (rightRowOption.isPresent()) {
       collectJoinedRow(leftSideRow, rightRowOption.get().getValue(), out);
     }
-  }
-
-  private void registerSmallestTimer(long timestamp, TimerService timerService) throws IOException {
-    Long currentRegisteredTimer = registeredTimer.value();
-    if (currentRegisteredTimer == null) {
-      registerTimer(timestamp, timerService);
-    } else if (currentRegisteredTimer > timestamp) {
-      timerService.deleteEventTimeTimer(currentRegisteredTimer);
-      registerTimer(timestamp, timerService);
-    }
-  }
-
-  private void registerTimer(long timestamp, TimerService timerService) throws IOException {
-    registeredTimer.update(timestamp);
-    timerService.registerEventTimeTimer(timestamp);
   }
 
   /**

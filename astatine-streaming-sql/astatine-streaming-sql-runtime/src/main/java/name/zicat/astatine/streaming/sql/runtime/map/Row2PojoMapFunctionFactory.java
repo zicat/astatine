@@ -33,49 +33,49 @@ import static org.apache.flink.table.types.utils.TypeInfoDataTypeConverter.toDat
 /** Row2PojoMapFunctionFactory. */
 public class Row2PojoMapFunctionFactory<T> implements MapFunctionFactory<Row, T> {
 
-    public static final String IDENTITY = "row_2_pojo";
+  public static final String IDENTITY = "row_2_pojo";
 
-    public static final ConfigOption<String> OPTION_MAPPING_CLASS_NAME =
-            ConfigOptions.key("mapping.class").stringType().defaultValue(null);
+  public static final ConfigOption<String> OPTION_MAPPING_CLASS_NAME =
+      ConfigOptions.key("mapping.class").stringType().defaultValue(null);
 
-    public static final ConfigOption<String> OPTION_RETURN_CLASS_NAME =
-            ConfigOptions.key("return.class").stringType().defaultValue(null);
+  public static final ConfigOption<String> OPTION_RETURN_CLASS_NAME =
+      ConfigOptions.key("return.class").stringType().defaultValue(null);
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public DataStream<T> transform(TransformContext context, DataStream<Row> stream) {
+  @SuppressWarnings("unchecked")
+  @Override
+  public DataStream<T> transform(TransformContext context, DataStream<Row> stream) {
 
-        final var dataTypeFactory =
-                context.streamTableEnvironmentImpl().getCatalogManager().getDataTypeFactory();
-        final var rowType =
-                (RowType) toDataType(dataTypeFactory, stream.getType()).getLogicalType();
-        final var pojoClassName = context.get(OPTION_MAPPING_CLASS_NAME);
-        final var returnClassName = context.get(OPTION_RETURN_CLASS_NAME);
-        final Class<?> pojoClass;
-        final Class<?> returnClass;
-        try {
-            pojoClass = Class.forName(pojoClassName);
-            returnClass = returnClassName == null ? pojoClass : Class.forName(returnClassName);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-        return setReturn(
-                (TypeInformation<T>) TypeInformation.of(returnClass),
-                stream.map(new Row2PojoMapFunction<T>(rowType, pojoClassName)).name(identity()));
+    final var dataTypeFactory =
+        context.streamTableEnvironmentImpl().getCatalogManager().getDataTypeFactory();
+    final var rowType = (RowType) toDataType(dataTypeFactory, stream.getType()).getLogicalType();
+    final var pojoClassName = context.get(OPTION_MAPPING_CLASS_NAME);
+    final var returnClassName = context.get(OPTION_RETURN_CLASS_NAME);
+    final Class<?> pojoClass;
+    final Class<?> returnClass;
+    try {
+      pojoClass = Class.forName(pojoClassName);
+      returnClass = returnClassName == null ? pojoClass : Class.forName(returnClassName);
+    } catch (ClassNotFoundException e) {
+      throw new RuntimeException(e);
     }
+    final var result = stream.map(new Row2PojoMapFunction<T>(rowType, pojoClassName));
+    return setReturn(
+        (TypeInformation<T>) TypeInformation.of(returnClass),
+        result.name(identity() + "_" + result.getId()));
+  }
 
-    @Override
-    public String identity() {
-        return IDENTITY;
-    }
+  @Override
+  public String identity() {
+    return IDENTITY;
+  }
 
-    @Override
-    public MapFunction<Row, T> createMap(TransformContext context) {
-        throw new UnsupportedOperationException();
-    }
+  @Override
+  public MapFunction<Row, T> createMap(TransformContext context) {
+    throw new UnsupportedOperationException();
+  }
 
-    @Override
-    public TypeInformation<T> returns() {
-        throw new UnsupportedOperationException();
-    }
+  @Override
+  public TypeInformation<T> returns() {
+    throw new UnsupportedOperationException();
+  }
 }

@@ -18,7 +18,6 @@
 
 package name.zicat.astatine.streaming.sql.runtime.process;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -30,7 +29,6 @@ import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.api.java.typeutils.ListTypeInfo;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.streaming.api.TimerService;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -38,7 +36,7 @@ import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.Collector;
 
-import static name.zicat.astatine.streaming.sql.runtime.utils.StateUtils.registerEventCleanupTimer;
+import static name.zicat.astatine.streaming.sql.runtime.utils.StateUtils.*;
 
 /**
  * FieldValueWatchChangedEmitterFunction.
@@ -137,7 +135,7 @@ public class FieldValueWatchChangedEmitterFunction<T>
     }
 
     if (lastUnprocessedTime < Long.MAX_VALUE) {
-      registerTimer(lastUnprocessedTime, timeService);
+      registerTimer(registeredTimer, lastUnprocessedTime, timeService);
     } else {
       registeredTimer.clear();
     }
@@ -168,22 +166,7 @@ public class FieldValueWatchChangedEmitterFunction<T>
     rowDataList.add(rowData);
     rowsState.put(eventTime, rowDataList);
     final var timeService = context.timerService();
-    registerSmallestTimer(eventTime, timeService);
-  }
-
-  private void registerSmallestTimer(long timestamp, TimerService timerService) throws IOException {
-    Long currentRegisteredTimer = registeredTimer.value();
-    if (currentRegisteredTimer == null) {
-      registerTimer(timestamp, timerService);
-    } else if (currentRegisteredTimer > timestamp) {
-      timerService.deleteEventTimeTimer(currentRegisteredTimer);
-      registerTimer(timestamp, timerService);
-    }
-  }
-
-  private void registerTimer(long timestamp, TimerService timerService) throws IOException {
-    registeredTimer.update(timestamp);
-    timerService.registerEventTimeTimer(timestamp);
+    registerSmallestTimer(registeredTimer, eventTime, timeService);
   }
 
   protected void cleanUpdateState() {

@@ -6,7 +6,7 @@ Astatine provides a key-by-with-fields operator that can be used to convert a ro
 CREATE TABLE source (
   name              STRING,
   score             INT
-) <@template.table_socket_source hostname = 'localhost' />
+) <@template.table_socket_source hostname = 'host.docker.internal' />
 
 CREATE STREAM stream_by_name
 FROM source WITH(

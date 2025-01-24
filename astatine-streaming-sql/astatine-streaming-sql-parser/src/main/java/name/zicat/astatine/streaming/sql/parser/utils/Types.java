@@ -88,6 +88,18 @@ public class Types {
   }
 
   /**
+   * get field index by rowType and select expression.
+   *
+   * @param rowType rowType
+   * @param fieldName fieldName
+   * @return FieldGetter
+   */
+  public static RowData.FieldGetter fieldGetter(RowType rowType, String fieldName) {
+    final var index = rowType.getFieldIndex(fieldName);
+    return RowData.createFieldGetter(rowType.getTypeAt(index), index);
+  }
+
+  /**
    * get field name type by rowType and select expression.
    *
    * @param rowType rowType

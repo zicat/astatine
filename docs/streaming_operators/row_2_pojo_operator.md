@@ -6,7 +6,7 @@ The row_2_pojo operator is a streaming map operator that converts the input row 
 CREATE TABLE source (
   name STRING ,
   score INT
-) <@template.table_socket_source hostname = 'localhost' />
+) <@template.table_socket_source hostname = 'host.docker.internal' />
 
 -- astatine sql
 CREATE STREAM stream_source

@@ -32,7 +32,7 @@ PRINT FROM field_changed_emit_result;
 
 Input:
 
-```texg
+```shell
 $ nc -l 9999
 {"name":"n1","score":1,"wk":"2024-12-03 12:00:00"}
 {"name":"n1","score":1,"wk":"2024-12-03 12:00:01"}
