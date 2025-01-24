@@ -6,6 +6,7 @@ This page lists all the supported statements supported in Astatine Streaming SQL
 
 - CREATE STREAM identity FROM identity2 operators
 - CREATE VIEW identity FROM identity2 operators
+- PRINT FROM identity
 
 ## CREATE STREAM FROM
 
@@ -81,6 +82,87 @@ Creating view support to set watermark expression with `expression.watermark` in
 
 The `SOURCE_WATERMARK()` is a built-in function to get the watermark of the source stream.
 
+## PRINT FROM
+
+`PRINT FROM identity` support to print the result of the stream or view or table without define print-sink table.
+
+```sql
+CREATE TABLE source (
+  name              STRING,
+  score             INT,
+  ts                TIMESTAMP(3),
+  WATERMARK FOR ts AS ts - INTERVAL '1' SECOND
+) <@template.table_socket_source hostname = 'localhost' />
+
+PRINT FROM source;
+```
+
+## Transforms
+
+Astatine use `Transforms` to organize the operators of stream processing.
+
+The syntax of Transforms is as follows:
+
+```sql
+trasnaform_id WITH (
+    'identity' = 'identity_name',
+    ......
+)
+```
+
+The following is the list of supported transforms:
+
+- MAP WITH
+
+  Define a [map function factory](../astatine-streaming-sql/astatine-streaming-sql-parser/src/main/java/name/zicat/astatine/streaming/sql/parser/function/MapFunctionFactory.java) registering by spi to map the input stream.
+
+- FLAT MAP WITH
+
+  Define
+  a [flat map function factory](../astatine-streaming-sql/astatine-streaming-sql-parser/src/main/java/name/zicat/astatine/streaming/sql/parser/function/FlatMapFunctionFactory.java)
+  registering by spi to flat map the input stream.
+
+- UNION identity2
+
+  The union operator is used to combine two streams into a single stream.
+
+- REDUCE
+
+  Define
+  a [reduce function factory](../astatine-streaming-sql/astatine-streaming-sql-parser/src/main/java/name/zicat/astatine/streaming/sql/parser/function/ReduceFunctionFactory.java)
+  registering by spi to reduce the keyed input stream.
+
+- JOIN identity2 WITH
+
+  Define
+  a [join function factory](../astatine-streaming-sql/astatine-streaming-sql-parser/src/main/java/name/zicat/astatine/streaming/sql/parser/function/JoinFunctionFactory.java)
+  registering by spi to transform the JoinedStreams.
+
+- INTERVAL JOIN identity2 WITH
+
+  Define
+  an [interval join function factory](../astatine-streaming-sql/astatine-streaming-sql-parser/src/main/java/name/zicat/astatine/streaming/sql/parser/function/IntervalJoinFunctionFactory.java)
+  registering by spi to transform the IntervalJoinedStreams.
+
+- CONNECT identity2 WITH
+
+  Define
+  a [connect function factory](../astatine-streaming-sql/astatine-streaming-sql-parser/src/main/java/name/zicat/astatine/streaming/sql/parser/function/ConnectFunctionFactory.java)
+  registering by spi to transform the ConnectedStreams.
+
+- FILTER
+
+  Define
+  a [filter function factory](../astatine-streaming-sql/astatine-streaming-sql-parser/src/main/java/name/zicat/astatine/streaming/sql/parser/function/FilterFunctionFactory.java)
+  registering by spi to filter the input stream.
+
+- KEY BY WITH
+
+  Define
+  a [key by function factory](../astatine-streaming-sql/astatine-streaming-sql-parser/src/main/java/name/zicat/astatine/streaming/sql/parser/function/KeyByFunctionFactory.java)
+  registering by spi to key by the input stream.
+
+
 ## Example of mixed usage of Flink SQL and Astatine Streaming SQL
 ```sql
 CREATE TABLE source (
@@ -97,8 +179,10 @@ WITH (
     'expression.watermark' = 'WATERMARK FOR ts AS SOURCE_WATERMARK()'
 ) FROM source WITH (
   'product.type' = 'RowData'
-) KEY BY WITH('fields' = 'name')
-PROCESS WITH (
+) KEY BY WITH(
+    'identity' = 'key_by_rowdata',
+    'fields' = 'name'
+) PROCESS WITH (
     'identity' = 'field_value_watch_changed_emitter',
     'watch.field' = 'score',
     'eventtime' = 'ts'

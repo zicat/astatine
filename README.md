@@ -14,6 +14,7 @@ to start your first streaming sql.
   - [Field Value Watch Changed Emitter Operator](docs/streaming_operators/field_value_watch_changed_emitter_operator.md)
   - [Eventtime Temporal Join Operator](docs/streaming_operators/streaming_eventtime_temporal_join_operator.md)
   - [Row 2 Pojo Operator](docs/streaming_operators/row_2_pojo_operator.md)
+  - [Key By Field Operator](docs/streaming_operators/key_by_with_fields.md)
 
 - Formats
 

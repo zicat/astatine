@@ -18,8 +18,10 @@ CREATE VIEW field_changed_emit_result WITH (
     'expression.watermark' = 'WATERMARK FOR wk AS SOURCE_WATERMARK()'
 ) FROM source WITH (
   'product.type' = 'RowData'
-) KEY BY WITH ('fields' = 'name')
-PROCESS WITH (
+) KEY BY WITH (
+   'identity' = 'key_by_rowdata',
+   'fields' = 'name'
+) PROCESS WITH (
     'identity' = 'field_value_watch_changed_emitter',
     'watch.field' = 'score',
     'eventtime' = 'wk'
