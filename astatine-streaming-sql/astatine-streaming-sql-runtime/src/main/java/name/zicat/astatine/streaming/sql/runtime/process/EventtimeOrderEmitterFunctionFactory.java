@@ -34,7 +34,6 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.data.TimestampData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.DataTypeQueryable;
 import org.apache.flink.table.types.logical.RowType;
@@ -45,7 +44,8 @@ import java.util.List;
 import java.util.Map;
 
 import static name.zicat.astatine.streaming.sql.parser.utils.Types.fieldGetter;
-import static name.zicat.astatine.streaming.sql.runtime.utils.StateUtils.registerSmallestTimer;
+import static name.zicat.astatine.streaming.sql.runtime.utils.ProcessUtils.addRowDataInListStateAndRegisterTimer;
+import static name.zicat.astatine.streaming.sql.runtime.utils.ProcessUtils.filterProcessableData;
 import static name.zicat.astatine.streaming.sql.runtime.utils.StateUtils.registerTimer;
 
 /** EventtimeOrderEmitterFunctionFactory. */
@@ -89,20 +89,8 @@ public class EventtimeOrderEmitterFunctionFactory
                   KeyedProcessFunction<RowData, RowData, RowData>.Context context,
                   Collector<RowData> collector)
                   throws Exception {
-                final var eventTimestamp = eventTimeGetter.getFieldOrNull(rowData);
-                if (eventTimestamp == null) {
-                  throw new RuntimeException("event time field is null");
-                }
-                final var eventTime = ((TimestampData) eventTimestamp).getMillisecond();
-                var values = valueState.get(eventTime);
-                if (values != null) {
-                  values.add(rowData);
-                  return;
-                }
-                values = new ArrayList<>();
-                values.add(rowData);
-                valueState.put(eventTime, values);
-                registerSmallestTimer(registeredTimer, eventTime, context.timerService());
+                addRowDataInListStateAndRegisterTimer(
+                    eventTimeGetter, rowData, valueState, registeredTimer, context.timerService());
               }
 
               @Override
@@ -111,29 +99,18 @@ public class EventtimeOrderEmitterFunctionFactory
                   KeyedProcessFunction<RowData, RowData, RowData>.OnTimerContext ctx,
                   Collector<RowData> out)
                   throws Exception {
-                long lastUnprocessedTime = Long.MAX_VALUE;
+
                 final var timerService = ctx.timerService();
-                final var it = valueState.iterator();
                 final var currentWatermark = timerService.currentWatermark();
                 final var processableData = new ArrayList<Map.Entry<Long, List<RowData>>>();
-                while (it.hasNext()) {
-                  final var entry = it.next();
-                  final var leftEventTime = entry.getKey();
-                  if (leftEventTime > currentWatermark) {
-                    lastUnprocessedTime = Math.min(lastUnprocessedTime, leftEventTime);
-                    continue;
-                  }
-                  it.remove();
-                  processableData.add(entry);
-                }
-
+                final var lastUnprocessedTime =
+                    filterProcessableData(valueState, currentWatermark, processableData::add);
                 processableData.sort(Map.Entry.comparingByKey());
                 for (var entry : processableData) {
                   for (var row : entry.getValue()) {
                     out.collect(row);
                   }
                 }
-
                 if (lastUnprocessedTime < Long.MAX_VALUE) {
                   registerTimer(registeredTimer, lastUnprocessedTime, timerService);
                 } else {

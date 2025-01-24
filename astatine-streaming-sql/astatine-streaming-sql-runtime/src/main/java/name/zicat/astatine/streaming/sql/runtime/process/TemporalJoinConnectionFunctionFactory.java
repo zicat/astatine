@@ -83,8 +83,8 @@ public class TemporalJoinConnectionFunctionFactory
             createTemporalJoinConnectionFunction(
                 InternalTypeInfo.of(new RowType(lReturnFields)),
                 InternalTypeInfo.of(new RowType(rReturnFields)),
-                fieldNameType(lRowType, context.get(OPTION_LEFT_EVENTTIME)).getIndex(),
-                fieldNameType(rRowType, context.get(OPTION_RIGHT_EVENTTIME)).getIndex(),
+                fieldGetter(lRowType, context.get(OPTION_LEFT_EVENTTIME)),
+                fieldGetter(rRowType, context.get(OPTION_RIGHT_EVENTTIME)),
                 minRetentionTime,
                 maxRetentionTime,
                 joinType,
@@ -101,8 +101,8 @@ public class TemporalJoinConnectionFunctionFactory
   protected TemporalJoinConnectionFunction<?> createTemporalJoinConnectionFunction(
       InternalTypeInfo<RowData> leftTypeInfo,
       InternalTypeInfo<RowData> rightTypeInfo,
-      int leftEventTimeIndex,
-      int rightEventTimeIndex,
+      RowData.FieldGetter leftEventTimeGetter,
+      RowData.FieldGetter rightEventTimeGetter,
       long minRetentionTime,
       long maxRetentionTime,
       JoinType leftJoin,
@@ -111,8 +111,8 @@ public class TemporalJoinConnectionFunctionFactory
     return new TemporalJoinConnectionFunction<>(
         leftTypeInfo,
         rightTypeInfo,
-        leftEventTimeIndex,
-        rightEventTimeIndex,
+        leftEventTimeGetter,
+        rightEventTimeGetter,
         minRetentionTime,
         maxRetentionTime,
         leftJoin,

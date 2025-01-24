@@ -18,7 +18,6 @@
 
 package name.zicat.astatine.streaming.sql.runtime.utils;
 
-import org.apache.flink.table.connector.Projection;
 import org.apache.flink.table.data.*;
 import org.apache.flink.types.RowKind;
 
@@ -179,26 +178,7 @@ public class UpdatableProjectRowData implements RowData {
         + "}";
   }
 
-  public static UpdatableProjectRowData from(int[][] projection) throws IllegalArgumentException {
-    return new UpdatableProjectRowData(
-        Arrays.stream(projection)
-            .mapToInt(
-                (arr) -> {
-                  if (arr.length != 1) {
-                    throw new IllegalArgumentException(
-                        "ProjectedRowData doesn't support nested projections");
-                  } else {
-                    return arr[0];
-                  }
-                })
-            .toArray());
-  }
-
   public static UpdatableProjectRowData from(int[] projection) {
     return new UpdatableProjectRowData(projection);
-  }
-
-  public static UpdatableProjectRowData from(Projection projection) {
-    return new UpdatableProjectRowData(projection.toTopLevelIndexes());
   }
 }

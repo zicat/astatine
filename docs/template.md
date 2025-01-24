@@ -6,7 +6,7 @@ The benefit of using template is that you can reuse the sql logic mostly and con
 
 This section is introduced how to use it.
 
-## Set Flink Configuration
+## Define Flink Configuration
 ```sql
 <#import "env_local.ftl" as template>
 
@@ -27,10 +27,10 @@ SET 'table.exec.source.idle-timeout'= '2 min';
 
 Note: User can add other env by adding related template to [astatine-sql/template](../astatine-sql/template)
 
-## [Set Function](udf_develop.md)
+## [Define Function](udf_develop.md)
 
 
-## Source Sink Define
+## Define Source Sink
 
 - [Kafka Source And Sink](connectors/kafka_source_sink.md)
 - [Http Sink](connectors/http_sink.md)

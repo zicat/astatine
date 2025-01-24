@@ -15,7 +15,8 @@ to start your first streaming sql.
   - [Eventtime Temporal Join Operator](docs/streaming_operators/streaming_eventtime_temporal_join_operator.md)
   - [Row 2 Pojo Operator](docs/streaming_operators/row_2_pojo_operator.md)
   - [Key By Field Operator](docs/streaming_operators/key_by_with_fields.md)
-  - [Eventtime Order Emitter](docs/streaming_operators/eventime_order_emitter_operator.md)
+  - [Eventtime Order Emitter Operator](docs/streaming_operators/eventime_order_emitter_operator.md)
+  - [Deduplicate Operator](docs/streaming_operators/deduplicate_operator.md)
 
 - Formats
 
@@ -32,8 +33,9 @@ to start your first streaming sql.
 
 - Functions
 
+  - [Astatine Built-In Functions](docs/udf.md)
   - [Develop Functions](docs/udf_develop.md)
-  - [Exist Functions](docs/udf.md)
+  
 
 
 # Useful Links

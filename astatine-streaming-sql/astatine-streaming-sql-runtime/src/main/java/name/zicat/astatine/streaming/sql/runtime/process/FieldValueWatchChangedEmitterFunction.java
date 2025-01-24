@@ -36,6 +36,8 @@ import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.Collector;
 
+import static name.zicat.astatine.streaming.sql.runtime.utils.ProcessUtils.addRowDataInListStateAndRegisterTimer;
+import static name.zicat.astatine.streaming.sql.runtime.utils.ProcessUtils.filterProcessableData;
 import static name.zicat.astatine.streaming.sql.runtime.utils.StateUtils.*;
 
 /**
@@ -47,7 +49,7 @@ public class FieldValueWatchChangedEmitterFunction<T>
     extends KeyedProcessFunction<T, RowData, RowData> {
 
   protected final RowData.FieldGetter fieldGetter;
-  protected final int eventTimeIndex;
+  protected final RowData.FieldGetter eventTimeGetter;
   protected final RowType.RowField fieldType;
   protected final InternalTypeInfo<RowData> rowTypeInfo;
   protected final long minRetentionTime;
@@ -61,20 +63,20 @@ public class FieldValueWatchChangedEmitterFunction<T>
   public FieldValueWatchChangedEmitterFunction(
       RowData.FieldGetter fieldGetter,
       RowType.RowField fieldType,
-      int eventTimeIndex,
+      RowData.FieldGetter eventTimeGetter,
       long minRetentionTime,
       long maxRetentionTime,
       InternalTypeInfo<RowData> rowTypeInfo) {
     this.fieldGetter = fieldGetter;
     this.fieldType = fieldType;
-    this.eventTimeIndex = eventTimeIndex;
+    this.eventTimeGetter = eventTimeGetter;
     this.minRetentionTime = minRetentionTime;
     this.maxRetentionTime = maxRetentionTime;
     this.rowTypeInfo = rowTypeInfo;
   }
 
   @Override
-  public void open(Configuration parameters) throws Exception {
+  public void open(Configuration parameters) {
     rowsState =
         getRuntimeContext()
             .getMapState(
@@ -101,25 +103,15 @@ public class FieldValueWatchChangedEmitterFunction<T>
       return;
     }
     final var timeService = ctx.timerService();
-    long lastUnprocessedTime = Long.MAX_VALUE;
-    final var leftIt = rowsState.iterator();
     final var currentWatermark = timeService.currentWatermark();
-    final var leftData = new ArrayList<Map.Entry<Long, List<RowData>>>();
-    while (leftIt.hasNext()) {
-      final var entry = leftIt.next();
-      final var leftEventTime = entry.getKey();
-      if (leftEventTime > currentWatermark) {
-        lastUnprocessedTime = Math.min(lastUnprocessedTime, leftEventTime);
-        continue;
-      }
-      leftIt.remove();
-      leftData.add(entry);
-    }
+    final var processableData = new ArrayList<Map.Entry<Long, List<RowData>>>();
+    final var lastUnprocessedTime =
+        filterProcessableData(rowsState, currentWatermark, processableData::add);
 
-    leftData.sort(Map.Entry.comparingByKey());
+    processableData.sort(Map.Entry.comparingByKey());
     var previousRow = previousRowState.value();
     try {
-      for (var entry : leftData) {
+      for (var entry : processableData) {
         final var leftStateValueList = entry.getValue();
         for (var leftStateValue : leftStateValueList) {
           final var key = new GenericRowData(1);
@@ -153,20 +145,8 @@ public class FieldValueWatchChangedEmitterFunction<T>
       KeyedProcessFunction<T, RowData, RowData>.Context context,
       Collector<RowData> collector)
       throws Exception {
-    final var eventTime = rowData.getTimestamp(eventTimeIndex, 3).getMillisecond();
-    if (eventTime <= 0 || eventTime < context.timerService().currentWatermark()) {
-      return;
-    }
-    final var leftStateValueList = rowsState.get(eventTime);
-    if (leftStateValueList != null) {
-      leftStateValueList.add(rowData);
-      return;
-    }
-    final var rowDataList = new ArrayList<RowData>();
-    rowDataList.add(rowData);
-    rowsState.put(eventTime, rowDataList);
-    final var timeService = context.timerService();
-    registerSmallestTimer(registeredTimer, eventTime, timeService);
+    addRowDataInListStateAndRegisterTimer(
+        eventTimeGetter, rowData, rowsState, registeredTimer, context.timerService(), true);
   }
 
   protected void cleanUpdateState() {

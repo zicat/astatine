@@ -18,7 +18,7 @@
 
 package name.zicat.astatine.streaming.sql.runtime.process;
 
-import name.zicat.astatine.streaming.sql.runtime.utils.UpdatableProjectRowData;
+import name.zicat.astatine.streaming.sql.runtime.utils.ProcessUtils;
 
 import org.apache.flink.api.common.state.MapState;
 import org.apache.flink.api.common.state.MapStateDescriptor;
@@ -34,11 +34,11 @@ import org.apache.flink.table.data.utils.JoinedRowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.util.Collector;
 
-import java.io.IOException;
-import java.io.Serial;
-import java.io.Serializable;
 import java.util.*;
 
+import static name.zicat.astatine.streaming.sql.runtime.utils.ProcessUtils.eventTime;
+import static name.zicat.astatine.streaming.sql.runtime.utils.ProcessUtils.filterProcessableData;
+import static name.zicat.astatine.streaming.sql.runtime.utils.RowUtils.projectRow;
 import static name.zicat.astatine.streaming.sql.runtime.utils.StateUtils.*;
 
 /** TemporalJoinConnectionFunction. */
@@ -49,11 +49,10 @@ public class TemporalJoinConnectionFunction<T>
   private static final String RIGHT_STATE_NAME = "right";
   private static final String CLEANUP_STATE_NAME = "cleanUp";
   private static final String REGISTERED_TIMER_STATE_NAME = "smallTimer";
-  protected final int leftEventTimeIndex;
-  protected final int rightEventTimeIndex;
+  protected final RowData.FieldGetter leftEventTimeGetter;
+  protected final RowData.FieldGetter rightEventTimeGetter;
   protected final long minRetentionTime;
   protected final long maxRetentionTime;
-  protected final RowtimeComparator rightRowtimeComparator;
   protected final TemporalJoinConnectionFunctionFactory.JoinType joinType;
   protected final InternalTypeInfo<RowData> leftReturnRowTypeInfo;
   protected final InternalTypeInfo<RowData> rightReturnRowTypeInfo;
@@ -70,8 +69,8 @@ public class TemporalJoinConnectionFunction<T>
   public TemporalJoinConnectionFunction(
       InternalTypeInfo<RowData> leftReturnRowTypeInfo,
       InternalTypeInfo<RowData> rightReturnRowTypeInfo,
-      int leftEventTimeIndex,
-      int rightEventTimeIndex,
+      RowData.FieldGetter leftEventTimeGetter,
+      RowData.FieldGetter rightEventTimeGetter,
       long minRetentionTime,
       long maxRetentionTime,
       TemporalJoinConnectionFunctionFactory.JoinType joinType,
@@ -79,11 +78,10 @@ public class TemporalJoinConnectionFunction<T>
       int[] rightReturnIndexMapping) {
     this.leftReturnRowTypeInfo = leftReturnRowTypeInfo;
     this.rightReturnRowTypeInfo = rightReturnRowTypeInfo;
-    this.leftEventTimeIndex = leftEventTimeIndex;
-    this.rightEventTimeIndex = rightEventTimeIndex;
+    this.leftEventTimeGetter = leftEventTimeGetter;
+    this.rightEventTimeGetter = rightEventTimeGetter;
     this.minRetentionTime = minRetentionTime;
     this.maxRetentionTime = maxRetentionTime;
-    this.rightRowtimeComparator = new RowtimeComparator();
     this.joinType = joinType;
     this.leftReturnIndexMapping = leftReturnIndexMapping;
     this.rightReturnIndexMapping = rightReturnIndexMapping;
@@ -115,21 +113,8 @@ public class TemporalJoinConnectionFunction<T>
       KeyedCoProcessFunction<T, RowData, RowData, RowData>.Context context,
       Collector<RowData> collector)
       throws Exception {
-    final var eventTime = row.getTimestamp(leftEventTimeIndex, 3).getMillisecond();
-    if (eventTime <= 0 || eventTime == Long.MAX_VALUE) {
-      return;
-    }
-    final var rowData = projectRow(row, leftReturnIndexMapping);
-    final var leftStateValueList = leftState.get(eventTime);
-    if (leftStateValueList != null) {
-      leftStateValueList.add(rowData);
-      return;
-    }
-    final var rowDataList = new ArrayList<RowData>();
-    rowDataList.add(rowData);
-    leftState.put(eventTime, rowDataList);
-    final var timeService = context.timerService();
-    registerSmallestTimer(registeredTimer, eventTime, timeService);
+    ProcessUtils.addRowDataInListStateAndRegisterTimer(
+        leftEventTimeGetter, row, leftState, registeredTimer, context.timerService());
   }
 
   @Override
@@ -138,14 +123,9 @@ public class TemporalJoinConnectionFunction<T>
       KeyedCoProcessFunction<T, RowData, RowData, RowData>.Context context,
       Collector<RowData> collector)
       throws Exception {
-    final var eventTime = row.getTimestamp(rightEventTimeIndex, 3).getMillisecond();
-    if (eventTime <= 0 || eventTime == Long.MAX_VALUE) {
-      return;
-    }
-    final var rowData = projectRow(row, rightReturnIndexMapping);
-    rightState.put(eventTime, rowData);
-    final var timeService = context.timerService();
-    registerSmallestTimer(registeredTimer, eventTime, timeService);
+    final var ts = eventTime(rightEventTimeGetter, row);
+    rightState.put(ts, projectRow(row, rightReturnIndexMapping));
+    registerSmallestTimer(registeredTimer, ts, context.timerService());
   }
 
   @Override
@@ -159,24 +139,20 @@ public class TemporalJoinConnectionFunction<T>
       return;
     }
 
+    final var rightRowsSorted = getRightRowSorted();
     final var timeService = ctx.timerService();
-    long lastUnprocessedTime = Long.MAX_VALUE;
-    final var leftIt = leftState.iterator();
     final var currentWatermark = timeService.currentWatermark();
-    final var rightRowsSorted = getRightRowSorted(rightRowtimeComparator);
-    while (leftIt.hasNext()) {
-      final var entry = leftIt.next();
-      final var leftEventTime = entry.getKey();
-      if (leftEventTime > currentWatermark) {
-        lastUnprocessedTime = Math.min(lastUnprocessedTime, leftEventTime);
-        continue;
-      }
-      leftIt.remove();
-      final var leftSideRows = entry.getValue();
-      for (var leftSideRow : leftSideRows) {
-        emitRow(leftSideRow, leftEventTime, rightRowsSorted, out);
-      }
-    }
+    final var lastUnprocessedTime =
+        filterProcessableData(
+            leftState,
+            currentWatermark,
+            entry -> {
+              final var leftEventTime = entry.getKey();
+              final var leftSideRows = entry.getValue();
+              for (var leftSideRow : leftSideRows) {
+                emitRow(leftSideRow, leftEventTime, rightRowsSorted, out);
+              }
+            });
     cleanupExpiredVersionInState(currentWatermark, rightRowsSorted);
     // left and right row is empty, clear state
     if (lastUnprocessedTime == Long.MAX_VALUE && rightState.isEmpty()) {
@@ -200,16 +176,16 @@ public class TemporalJoinConnectionFunction<T>
       RowData leftSideRow,
       long leftEventTime,
       List<Map.Entry<Long, RowData>> rightRowsSorted,
-      Collector<RowData> out)
-      throws IOException {
+      Collector<RowData> out) {
     var rightRowOption = latestRightRowToJoin(rightRowsSorted, leftEventTime);
     if (joinType == TemporalJoinConnectionFunctionFactory.JoinType.LEFT) {
       collectJoinedRow(
           leftSideRow,
           rightRowOption.isPresent() ? rightRowOption.get().getValue() : rightNullRow,
           out);
-    } else if (rightRowOption.isPresent()) {
-      collectJoinedRow(leftSideRow, rightRowOption.get().getValue(), out);
+    } else {
+      rightRowOption.ifPresent(
+          longRowDataEntry -> collectJoinedRow(leftSideRow, longRowDataEntry.getValue(), out));
     }
   }
 
@@ -232,15 +208,14 @@ public class TemporalJoinConnectionFunction<T>
   }
 
   protected void cleanUpdateState(
-      KeyedCoProcessFunction<T, RowData, RowData, RowData>.OnTimerContext ctx) throws IOException {
+      KeyedCoProcessFunction<T, RowData, RowData, RowData>.OnTimerContext ctx) {
     registeredTimer.clear();
     leftState.clear();
     rightState.clear();
     cleanupTimeState.clear();
   }
 
-  protected void collectJoinedRow(RowData leftSideRow, RowData rightRow, Collector<RowData> out)
-      throws IOException {
+  protected void collectJoinedRow(RowData leftSideRow, RowData rightRow, Collector<RowData> out) {
     returnRowData.setRowKind(leftSideRow.getRowKind());
     returnRowData.replace(leftSideRow, rightRow);
     out.collect(returnRowData);
@@ -280,13 +255,12 @@ public class TemporalJoinConnectionFunction<T>
     return -1;
   }
 
-  private List<Map.Entry<Long, RowData>> getRightRowSorted(RowtimeComparator rowtimeComparator)
-      throws Exception {
+  private List<Map.Entry<Long, RowData>> getRightRowSorted() throws Exception {
     List<Map.Entry<Long, RowData>> rightRows = new ArrayList<>();
     for (var entry : rightState.entries()) {
       rightRows.add(entry);
     }
-    rightRows.sort(rowtimeComparator);
+    rightRows.sort(Map.Entry.comparingByKey());
     return rightRows;
   }
 
@@ -316,24 +290,5 @@ public class TemporalJoinConnectionFunction<T>
         return Optional.of(entry);
       }
     }
-  }
-
-  /** RowtimeComparator. */
-  public static class RowtimeComparator implements Comparator<Map.Entry<Long, ?>>, Serializable {
-
-    @Serial private static final long serialVersionUID = 8160134014590716914L;
-
-    private RowtimeComparator() {}
-
-    @Override
-    public int compare(Map.Entry<Long, ?> o1, Map.Entry<Long, ?> o2) {
-      long o1Time = o1.getKey();
-      long o2Time = o2.getKey();
-      return Long.compare(o1Time, o2Time);
-    }
-  }
-
-  private static UpdatableProjectRowData projectRow(RowData row, int[] indexMapping) {
-    return UpdatableProjectRowData.from(indexMapping).replaceRow(row);
   }
 }

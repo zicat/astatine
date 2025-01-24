@@ -1,6 +1,6 @@
-# Astatine Functions(UDF)
+# Astatine Built-In Functions
 
-Existing Functions(UDF) in Astatine-Functions is defined as template
+Astatine Built-In Functions in Astatine-Functions is defined as template
 in [function.ftl](../astatine-sql/template/function.ftl).
 
 Before using those functions, please include the related template macro first. e.g. import

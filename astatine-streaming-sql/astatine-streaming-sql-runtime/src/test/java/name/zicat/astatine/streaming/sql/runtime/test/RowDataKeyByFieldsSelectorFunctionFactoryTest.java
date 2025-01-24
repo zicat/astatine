@@ -52,7 +52,7 @@ public class RowDataKeyByFieldsSelectorFunctionFactoryTest extends TransformFact
     final var ts = System.currentTimeMillis();
     final var configuration = new Configuration();
     configuration.set(WATCH_FIELD, "value");
-    configuration.set(EVENT_TIME_FIELD, "ts");
+    configuration.set(OPTION_EVENT_TIME, "ts");
     configuration.set(FunctionFactory.OPTION_FUNCTION_IDENTITY, IDENTITY);
     configuration.set(OPTION_FIELD, "name");
 

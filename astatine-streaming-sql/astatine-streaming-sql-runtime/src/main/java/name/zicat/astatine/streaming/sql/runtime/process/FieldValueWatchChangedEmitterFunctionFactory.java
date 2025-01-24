@@ -31,6 +31,7 @@ import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 
+import static name.zicat.astatine.streaming.sql.parser.utils.Types.fieldGetter;
 import static name.zicat.astatine.streaming.sql.parser.utils.Types.fieldNameType;
 import static org.apache.flink.configuration.ConfigOptions.key;
 import static org.apache.flink.table.api.config.ExecutionConfigOptions.IDLE_STATE_RETENTION;
@@ -42,19 +43,8 @@ public class FieldValueWatchChangedEmitterFunctionFactory
   public static final String IDENTIFY = "field_value_watch_changed_emitter";
   public static final ConfigOption<String> WATCH_FIELD =
       key("watch.field").stringType().noDefaultValue();
-  public static final ConfigOption<String> EVENT_TIME_FIELD =
+  public static final ConfigOption<String> OPTION_EVENT_TIME =
       key("eventtime").stringType().noDefaultValue();
-
-  @Override
-  public KeyedProcessFunction<RowData, RowData, RowData> createKeyedProcess(
-      TransformContext context) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public TypeInformation<RowData> returns() {
-    throw new UnsupportedOperationException();
-  }
 
   @Override
   public DataStream<RowData> transform(
@@ -72,7 +62,7 @@ public class FieldValueWatchChangedEmitterFunctionFactory
             new FieldValueWatchChangedEmitterFunction<>(
                 watchFieldNameType.fieldGetter(),
                 watchFieldNameType.targetRowField(),
-                fieldNameType(rowType, context.get(EVENT_TIME_FIELD)).getIndex(),
+                fieldGetter(rowType, context.get(OPTION_EVENT_TIME)),
                 minRetentionTime,
                 maxRetentionTime,
                 returnType));
@@ -82,5 +72,16 @@ public class FieldValueWatchChangedEmitterFunctionFactory
   @Override
   public String identity() {
     return IDENTIFY;
+  }
+
+  @Override
+  public KeyedProcessFunction<RowData, RowData, RowData> createKeyedProcess(
+      TransformContext context) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public TypeInformation<RowData> returns() {
+    throw new UnsupportedOperationException();
   }
 }

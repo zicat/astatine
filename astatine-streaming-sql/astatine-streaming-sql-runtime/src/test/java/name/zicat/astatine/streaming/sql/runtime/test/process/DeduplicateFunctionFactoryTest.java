@@ -22,9 +22,11 @@ import name.zicat.astatine.streaming.sql.parser.function.FunctionFactory;
 import name.zicat.astatine.streaming.sql.parser.test.transform.TransformFactoryTestBase;
 import name.zicat.astatine.streaming.sql.parser.transform.ProcessTransformFactory;
 import name.zicat.astatine.streaming.sql.parser.transform.TransformFactory;
+import name.zicat.astatine.streaming.sql.runtime.process.DeduplicateFunctionFactory;
 import name.zicat.astatine.streaming.sql.runtime.test.utils.TimestampWatermarkGenerator;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.table.api.config.ExecutionConfigOptions;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -41,19 +43,47 @@ import org.junit.Test;
 import java.time.Duration;
 import java.util.Arrays;
 
-import static name.zicat.astatine.streaming.sql.runtime.process.FieldValueWatchChangedEmitterFunctionFactory.*;
-
-/** FieldValueWatchChangedEmitterFunctionFactoryTest. */
-public class FieldValueWatchChangedEmitterFunctionFactoryTest extends TransformFactoryTestBase {
+/** DeduplicateFunctionFactoryTest. */
+public class DeduplicateFunctionFactoryTest extends TransformFactoryTestBase {
 
   @Test
-  public void test() throws Exception {
-
+  public void testDesc() throws Exception {
     final var ts = System.currentTimeMillis();
+    final var dataStream = test(ts, DeduplicateFunctionFactory.OrderType.DESC);
+    execAndAssert(
+        dataStream,
+        data -> {
+          Assert.assertEquals(3, data.size());
+          for (int i = 0; i < data.size(); i++) {
+            final var rowData = (RowData) data.get(i);
+            Assert.assertEquals(rowData.getString(0).toString(), "name1");
+            Assert.assertEquals(rowData.getTimestamp(1, 3).getMillisecond(), ts + 1000L * (i + 1));
+            Assert.assertEquals(rowData.getInt(2), i + 1);
+          }
+        });
+  }
+
+  @Test
+  public void testASC() throws Exception {
+    final var ts = System.currentTimeMillis();
+    final var dataStream = test(ts, DeduplicateFunctionFactory.OrderType.ASC);
+    execAndAssert(
+        dataStream,
+        data -> {
+          Assert.assertEquals(1, data.size());
+          final var rowData = (RowData) data.get(0);
+          Assert.assertEquals(rowData.getString(0).toString(), "name1");
+          Assert.assertEquals(rowData.getTimestamp(1, 3).getMillisecond(), ts + 1000L);
+          Assert.assertEquals(rowData.getInt(2), 1);
+        });
+  }
+
+  private DataStream<?> test(long ts, DeduplicateFunctionFactory.OrderType orderType) {
     final var configuration = new Configuration();
-    configuration.set(WATCH_FIELD, "value");
-    configuration.set(OPTION_EVENT_TIME, "ts");
-    configuration.set(FunctionFactory.OPTION_FUNCTION_IDENTITY, IDENTIFY);
+    configuration.set(DeduplicateFunctionFactory.OPTION_EVENT_TIME, "ts");
+    configuration.set(DeduplicateFunctionFactory.OPTION_ORDER_TYPE, orderType);
+    configuration.set(
+        FunctionFactory.OPTION_FUNCTION_IDENTITY, DeduplicateFunctionFactory.IDENTIFY);
     configuration.set(ExecutionConfigOptions.IDLE_STATE_RETENTION, Duration.ofHours(1));
 
     final var context = createContext(configuration);
@@ -68,11 +98,11 @@ public class FieldValueWatchChangedEmitterFunctionFactoryTest extends TransformF
     final var row2 = new GenericRowData(3);
     row2.setField(0, StringData.fromString("name1"));
     row2.setField(1, TimestampData.fromEpochMillis(ts + 2000));
-    row2.setField(2, 1);
+    row2.setField(2, 2);
     final var row3 = new GenericRowData(3);
     row3.setField(0, StringData.fromString("name1"));
     row3.setField(1, TimestampData.fromEpochMillis(ts + 3000));
-    row3.setField(2, 2);
+    row3.setField(2, 3);
 
     final var source =
         env.fromCollection(Arrays.<RowData>asList(row1, row2, row3))
@@ -85,21 +115,7 @@ public class FieldValueWatchChangedEmitterFunctionFactoryTest extends TransformF
                             new RowType.RowField("ts", new TimestampType(3)),
                             new RowType.RowField("value", new IntType())))));
 
-    final var result = factory.transform(context, source.keyBy((KeySelector<RowData, StringData>) rowData -> rowData.getString(0)));
-    TransformFactoryTestBase.execAndAssert(
-        result,
-        data -> {
-          Assert.assertEquals(2, data.size());
-          for (int i = 0; i < data.size(); i++) {
-            final var rowData = (RowData) data.get(i);
-            Assert.assertEquals(rowData.getString(0).toString(), "name1");
-            if (i == 0) {
-              Assert.assertEquals(rowData.getTimestamp(1, 3).getMillisecond(), ts + 1000L);
-              Assert.assertEquals(rowData.getInt(2), 1);
-            } else {
-              Assert.assertEquals(rowData.getInt(2), 2);
-            }
-          }
-        });
+    return factory.transform(
+        context, source.keyBy((KeySelector<RowData, StringData>) rowData -> rowData.getString(0)));
   }
 }

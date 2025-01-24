@@ -10,12 +10,12 @@ The field value changed emit operator is an eventtime-based streaming keyed oper
 CREATE TABLE source (
   name STRING ,
   score INT,
-  wk   TIMESTAMP(3),
-  WATERMARK FOR wk AS wk
+  ts   TIMESTAMP(3),
+  WATERMARK FOR ts AS ts
 ) <@template.table_socket_source hostname = 'host.docker.internal' />
 
 CREATE VIEW field_changed_emit_result WITH (
-    'expression.watermark' = 'WATERMARK FOR wk AS SOURCE_WATERMARK()'
+    'expression.watermark' = 'WATERMARK FOR ts AS SOURCE_WATERMARK()'
 ) FROM source WITH (
   'product.type' = 'RowData'
 ) KEY BY WITH (
@@ -24,7 +24,7 @@ CREATE VIEW field_changed_emit_result WITH (
 ) PROCESS WITH (
     'identity' = 'field_value_watch_changed_emitter',
     'watch.field' = 'score',
-    'eventtime' = 'wk'
+    'eventtime' = 'ts'
 );
 
 PRINT FROM field_changed_emit_result;
@@ -34,14 +34,14 @@ Input:
 
 ```shell
 $ nc -l 9999
-{"name":"n1","score":1,"wk":"2024-12-03 12:00:00"}
-{"name":"n1","score":1,"wk":"2024-12-03 12:00:01"}
-{"name":"n1","score":2,"wk":"2024-12-03 12:00:02"}
-{"name":"n1","score":2,"wk":"2024-12-03 12:00:03"}
-{"name":"n1","score":3,"wk":"2024-12-03 12:00:04"}
-{"name":"n1","score":3,"wk":"2024-12-03 12:00:05"}
-{"name":"n1","score":1,"wk":"2024-12-03 12:00:06"}
-{"name":"n1","score":1,"wk":"2024-12-03 12:00:07"}
+{"name":"n1","score":1,"ts":"2024-12-03 12:00:00"}
+{"name":"n1","score":1,"ts":"2024-12-03 12:00:01"}
+{"name":"n1","score":2,"ts":"2024-12-03 12:00:02"}
+{"name":"n1","score":2,"ts":"2024-12-03 12:00:03"}
+{"name":"n1","score":3,"ts":"2024-12-03 12:00:04"}
+{"name":"n1","score":3,"ts":"2024-12-03 12:00:05"}
+{"name":"n1","score":1,"ts":"2024-12-03 12:00:06"}
+{"name":"n1","score":1,"ts":"2024-12-03 12:00:07"}
 ```
 
 Output:
@@ -66,6 +66,6 @@ Note:
        'identity' = 'field_value_watch_changed_emitter',
        'watch.field' = 'score',
        'table.exec.state.ttl' = '10 min',
-       'eventtime' = 'wk'
+       'eventtime' = 'ts'
     );
     ```
