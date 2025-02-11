@@ -22,7 +22,7 @@ import name.zicat.astatine.streaming.sql.parser.function.FunctionFactory;
 import name.zicat.astatine.streaming.sql.parser.test.transform.TransformFactoryTestBase;
 import name.zicat.astatine.streaming.sql.parser.transform.ProcessTransformFactory;
 import name.zicat.astatine.streaming.sql.parser.transform.TransformFactory;
-import name.zicat.astatine.streaming.sql.runtime.process.EventtimeOrderEmitterFunctionFactory;
+import name.zicat.astatine.streaming.sql.runtime.process.DisorderDiscardFunctionFactory;
 import name.zicat.astatine.streaming.sql.runtime.test.utils.TimestampWatermarkGenerator;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.configuration.Configuration;
@@ -40,17 +40,17 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
-/** EventtimeOrderEmitterFunctionFactoryTest. */
-public class EventtimeOrderEmitterFunctionFactoryTest extends TransformFactoryTestBase {
+/** DisorderDiscardFunctionFactoryTest. */
+public class DisorderDiscardFunctionFactoryTest extends TransformFactoryTestBase {
 
   @Test
   public void test() throws Exception {
 
     final var ts = System.currentTimeMillis();
     final var configuration = new Configuration();
-    configuration.set(EventtimeOrderEmitterFunctionFactory.OPTION_EVENTTIME, "ts");
+    configuration.set(DisorderDiscardFunctionFactory.OPTION_EVENTTIME, "ts");
     configuration.set(
-        FunctionFactory.OPTION_FUNCTION_IDENTITY, EventtimeOrderEmitterFunctionFactory.IDENTITY);
+        FunctionFactory.OPTION_FUNCTION_IDENTITY, DisorderDiscardFunctionFactory.IDENTITY);
 
     final var context = createContext(configuration);
     final var factory =

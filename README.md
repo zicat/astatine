@@ -15,7 +15,7 @@ to start your first streaming sql.
   - [Eventtime Temporal Join Operator](docs/streaming_operators/streaming_eventtime_temporal_join_operator.md)
   - [Row 2 Pojo Operator](docs/streaming_operators/row_2_pojo_operator.md)
   - [Key By Field Operator](docs/streaming_operators/key_by_with_fields.md)
-  - [Eventtime Order Emitter Operator](docs/streaming_operators/eventime_order_emitter_operator.md)
+  - [Disorder Discard Operator](docs/streaming_operators/disorder_discard_operator.md)
   - [Deduplicate Operator](docs/streaming_operators/deduplicate_operator.md)
 
 - Formats

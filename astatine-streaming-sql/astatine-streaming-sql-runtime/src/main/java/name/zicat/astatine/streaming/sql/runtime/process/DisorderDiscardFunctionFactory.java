@@ -48,14 +48,14 @@ import static name.zicat.astatine.streaming.sql.runtime.utils.ProcessUtils.addRo
 import static name.zicat.astatine.streaming.sql.runtime.utils.ProcessUtils.filterProcessableData;
 import static name.zicat.astatine.streaming.sql.runtime.utils.StateUtils.registerTimer;
 
-/** EventtimeOrderEmitterFunctionFactory. */
-public class EventtimeOrderEmitterFunctionFactory
+/** DisorderDiscardFunctionFactory. */
+public class DisorderDiscardFunctionFactory
     implements KeyedProcessFunctionFactory<RowData, RowData, RowData> {
 
   public static final ConfigOption<String> OPTION_EVENTTIME =
       ConfigOptions.key("eventtime").stringType().noDefaultValue();
 
-  public static final String IDENTITY = "eventtime_order_emitter";
+  public static final String IDENTITY = "disorder_discard";
 
   @Override
   public DataStream<RowData> transform(
@@ -90,7 +90,7 @@ public class EventtimeOrderEmitterFunctionFactory
                   Collector<RowData> collector)
                   throws Exception {
                 addRowDataInListStateAndRegisterTimer(
-                    eventTimeGetter, rowData, valueState, registeredTimer, context.timerService());
+                    eventTimeGetter, rowData, valueState, registeredTimer, context.timerService(), true);
               }
 
               @Override

@@ -4,8 +4,8 @@ Astatine Streaming SQL is a superset of Flink SQL fully compatible with Flink SQ
 
 This page lists all the supported statements supported in Astatine Streaming SQL for now:
 
-- CREATE STREAM identity FROM identity2 operators
-- CREATE VIEW identity FROM identity2 operators
+- CREATE STREAM identity FROM identity2 transforms
+- CREATE VIEW identity FROM identity2 transforms
 - PRINT FROM identity
 
 ## CREATE STREAM FROM
@@ -37,7 +37,7 @@ MAP WITH (
 PRINT FROM stream_source_double;
 ```
 
-If you want to create a stream from a table with type of RowData, you can use the following sql:
+If you want to create a stream from a table or view with type of RowData, you can use the following sql:
 
 ``` sql
 CREATE TABLE source (
@@ -70,8 +70,7 @@ FROM source WITH (
   'product.type' = 'RowData'
 );
 
-CREATE VIEW view_source
-WITH (
+CREATE VIEW view_source WITH (
     'expression.watermark' = 'WATERMARK FOR ts AS SOURCE_WATERMARK()'
 ) FROM stream_source;
 
@@ -162,6 +161,39 @@ The following is the list of supported transforms:
   a [key by function factory](../astatine-streaming-sql/astatine-streaming-sql-parser/src/main/java/name/zicat/astatine/streaming/sql/parser/function/KeyByFunctionFactory.java)
   registering by spi to key by the input stream.
 
+- PROCESS WITH
+
+  Define
+  a [process function factory](../astatine-streaming-sql/astatine-streaming-sql-parser/src/main/java/name/zicat/astatine/streaming/sql/parser/function/ProcessFunctionFactory.java)
+  registering by spi to process the input stream.
+
+  Define
+  a [keyed process function factory](../astatine-streaming-sql/astatine-streaming-sql-parser/src/main/java/name/zicat/astatine/streaming/sql/parser/function/KeyedProcessFunctionFactory.java)
+  registering by spi to process the keyed input stream.
+
+- FORWARD
+
+  The forward operator is used to forward the input stream to the output stream.
+
+If the transforms above does not meet the requirements, you can use common transform to define your own operator.
+
+- TRANSFORM [identity2] WITH
+
+  Define
+  a [transform function factory](../astatine-streaming-sql/astatine-streaming-sql-parser/src/main/java/name/zicat/astatine/streaming/sql/parser/function/OneTransformFunctionFactory.java)
+  registering by spi to transform the input stream to other stream.
+
+  Define
+  a [two transform function factory](../astatine-streaming-sql/astatine-streaming-sql-parser/src/main/java/name/zicat/astatine/streaming/sql/parser/function/TwoTransformFunctionFactory.java)
+  registering by spi to transform the 2 input streams to other stream if having identity2.
+
+  Define
+  a [keyed transform function factory](../astatine-streaming-sql/astatine-streaming-sql-parser/src/main/java/name/zicat/astatine/streaming/sql/parser/function/OneKeyedTransformFunctionFactory.java)
+  registering by spi to transform the keyed input stream to other stream.
+
+  Define
+  a [keyed two transform function factory](../astatine-streaming-sql/astatine-streaming-sql-parser/src/main/java/name/zicat/astatine/streaming/sql/parser/function/TwoKeyedTransformFunctionFactory.java)
+  registering by spi to transform the 2 keyed input streams to other stream if having identity2.
 
 ## Example of mixed usage of Flink SQL and Astatine Streaming SQL
 ```sql

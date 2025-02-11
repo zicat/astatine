@@ -1,6 +1,6 @@
-# Eventtime Order Emitter Operator
+# Disorder Discard Operator
 
-The eventtime order emitter operator is an eventtime-based streaming operator that support to emit the eventtime order result.
+The disorder discard operator is an eventtime-based streaming operator that support to emit rows in order and discard disorder rows.
 
 ```sql
 CREATE TABLE source (
@@ -16,7 +16,7 @@ FROM source WITH(
     'identity' = 'key_by_rowdata',
     'fields' = 'name'
 ) PROCESS WITH(
-    'identity' = 'eventtime_order_emitter',
+    'identity' = 'disorder_discard',
     'eventtime' = 'ts'
 );
 
@@ -29,28 +29,27 @@ Input:
 $ nc -l 9999
 {"name":"n1","ts":"2024-12-03 12:00:00"}
 {"name":"n1","ts":"2024-12-03 12:00:02"}
-{"name":"n1","ts":"2024-12-03 12:00:01"}
 {"name":"n1","ts":"2024-12-03 12:00:04"}
 {"name":"n1","ts":"2024-12-03 12:00:03"}
 {"name":"n1","ts":"2024-12-03 12:00:06"}
-{"name":"n1","ts":"2024-12-03 12:00:05"}
+{"name":"n1","ts":"2024-12-03 12:00:01"}
 {"name":"n1","ts":"2024-12-03 12:00:11"}
+{"name":"n1","ts":"2024-12-03 12:00:15"}
 ```
 
 Output:
 
 ```text
 3> +I[n1, 2024-12-03T12:00]
-3> +I[n1, 2024-12-03T12:00:01]
 3> +I[n1, 2024-12-03T12:00:02]
 3> +I[n1, 2024-12-03T12:00:03]
 3> +I[n1, 2024-12-03T12:00:04]
-3> +I[n1, 2024-12-03T12:00:05]
 3> +I[n1, 2024-12-03T12:00:06]
+3> +I[n1, 2024-12-03T12:00:11]
 ```
 
 Note:
-1. The identity of the operator is `eventtime_order_emitter`.
+1. The identity of the operator is `disorder_discard`.
 2. The source of this operator must from a keyed operator.
 3. The row type of the source must be `RowData`.
 4. The `eventtime` is the field name that you want to order by eventtime.
