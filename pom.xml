@@ -44,7 +44,7 @@
         <jdbc.mysql.version>8.0.22</jdbc.mysql.version>
         <jackson.version>2.13.2</jackson.version>
         <protobuf.version>3.19.1</protobuf.version>
-        <paimon.version>0.7.0-incubating</paimon.version>
+        <paimon.version>1.0.1</paimon.version>
         <flink.elasticsearch.version>3.0.1-1.17</flink.elasticsearch.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>

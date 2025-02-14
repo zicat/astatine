@@ -19,9 +19,9 @@ This document introduces how to use the ProtoBuf Format in Astatine.
    option java_package = "name.zicat.astatine.formats.protobuf";
 
    message NameScoreTs {
-   string   name              = 1;
-   int32    score             = 2;
-   int64    ts                = 3;
+       string   name              = 1;
+       int32    score             = 2;
+       int64    ts                = 3;
    }
     ```
    
@@ -53,3 +53,4 @@ This document introduces how to use the ProtoBuf Format in Astatine.
    Note: 
    - The `format` is `protobuf`.
    - The `protobuf.message-class-name` is the full class name of the message defined in the proto file.
+   - All options supported by the ProtoBuf Format can be found in [Flink ProtoBuf Format](https://nightlies.apache.org/flink/flink-docs-release-1.17/docs/connectors/table/formats/protobuf/).

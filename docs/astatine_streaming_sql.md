@@ -36,22 +36,33 @@ MAP WITH (
 
 PRINT FROM stream_source_double;
 ```
+Note:
 
-If you want to create a stream from a table or view with type of RowData, you can use the following sql:
+1. The return type of the stream depend on the last operator of the stream.
 
-``` sql
-CREATE TABLE source (
-  name STRING ,
-  score INT
-) <@template.table_socket_source hostname = 'localhost' />
+    Like the example above, the product type of the stream `stream_source_double` is `NameScore` defined in [ScoreDoubleMapFunctionFactory](../astatine-streaming-sql/astatine-streaming-sql-parser/src/test/java/name/zicat/astatine/streaming/sql/parser/test/function/ScoreDoubleMapFunctionFactory.java).
 
-CREATE STREAM stream_source
-FROM source WITH (
-  'product.type' = 'RowData'
-);
+2. The default return type of the stream is `Row` if the stream is converted from table/view like below.
 
-PRINT FROM stream_source;
-```
+    ```sql
+    CREATE TABLE source (
+        name STRING ,
+        score INT
+    ) <@template.table_socket_source hostname = 'localhost' />
+    
+    CREATE STREAM stream_source FROM source;
+    ```
+3. Setting the return type of the stream as `RowData` by the param `product.type` in `WITH` clause.
+
+    ```sql
+    CREATE TABLE source (
+        name STRING ,
+        score INT
+    ) <@template.table_socket_source hostname = 'localhost' />
+    
+    CREATE STREAM stream_source FROM source WITH (
+        'product.type' = 'RowData'
+    );
 
 ## CREATE VIEW FROM
 
@@ -65,8 +76,7 @@ CREATE TABLE source (
   WATERMARK FOR ts AS ts - INTERVAL '1' SECOND
 ) <@template.table_socket_source hostname = 'localhost' />
 
-CREATE STREAM stream_source
-FROM source WITH (
+CREATE STREAM stream_source FROM source WITH (
   'product.type' = 'RowData'
 );
 
@@ -77,9 +87,12 @@ CREATE VIEW view_source WITH (
 PRINT FROM view_source;
 ```
 
-Creating view support to set watermark expression with `expression.watermark` in `WITH` clause.
+Note:
 
-The `SOURCE_WATERMARK()` is a built-in function to get the watermark of the source stream.
+1. Creating view support to set watermark expression with `expression.watermark` in `WITH` clause.
+
+    The `SOURCE_WATERMARK()` is a built-in function to get the watermark of the source stream.
+
 
 ## PRINT FROM
 
@@ -98,9 +111,9 @@ PRINT FROM source;
 
 ## Transforms
 
-Astatine use `Transforms` to organize the operators of stream processing.
+Astatine use `Transforms` to organize the pipeline of stream processing.
 
-The syntax of Transforms is as follows:
+The syntax of `Transforms` is as follows:
 
 ```sql
 trasnaform_id WITH (
@@ -206,15 +219,14 @@ CREATE TABLE source (
 
 -- create a view with watermark from stream sql operators
 -- the whole operators include table->streaming->key by->process by field_value_watch_changed_emitter->view
-CREATE VIEW view_stream_demo
-WITH (
+CREATE VIEW view_stream_demo WITH(
     'expression.watermark' = 'WATERMARK FOR ts AS SOURCE_WATERMARK()'
-) FROM source WITH (
+) FROM source WITH(
   'product.type' = 'RowData'
 ) KEY BY WITH(
     'identity' = 'key_by_rowdata',
     'fields' = 'name'
-) PROCESS WITH (
+) PROCESS WITH(
     'identity' = 'field_value_watch_changed_emitter',
     'watch.field' = 'score',
     'eventtime' = 'ts'

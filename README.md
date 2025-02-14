@@ -1,6 +1,6 @@
 # Astatine Overview
 
-Astatine is a streaming SQL development platform based on [Flink-1.17.1](https://nightlies.apache.org/flink/flink-docs-release-1.17/docs/dev/table/sql/queries/overview/).
+Astatine is a streaming SQL development platform based on [Flink-1.17.1](https://nightlies.apache.org/flink/flink-docs-release-1.17/).
 
 Go to [learn how to run a simple streaming sql job on docker in local environment](docs/your_first_simple_job.md)
 to start your first streaming sql.

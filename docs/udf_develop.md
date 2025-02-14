@@ -60,7 +60,7 @@ This document introduces how to develop user-defined functions and register in s
     
     Note:
     - The udf params must start with `jobparam.` like `jobparam.hashcode.seed`.
-    - Set the function param first then defined function.
+    - Set the function param first before defining function.
    
 4. Using template 
   

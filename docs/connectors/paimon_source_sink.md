@@ -1,6 +1,6 @@
 # Paimon Source Sink Connector
 
-Astatine support to source and sink data to Paimon.
+Astatine support to source and sink data to Paimon 1.0.1.
 
 ```sql
 <#import "env_local.ftl" as template>

@@ -27,10 +27,15 @@ SET 'table.exec.source.idle-timeout'= '2 min';
 
 Note: User can add other env by adding related template to [astatine-sql/template](../astatine-sql/template)
 
-## [Define Function](udf_develop.md)
+## Define Functions Template
 
+The function template supported by Astatine are defined in [astatine-sql/template/function.ftl](../astatine-sql/template/function.ftl).
 
-## Define Source Sink
+Go to [Develop Functions](udf_develop.md) to learn how to develop a function and define the functions to template.
+
+## Define Source & Sink Template
+
+The source & sink template supported by Astatine are defined in [astatine-sql/template/table.ftl](../astatine-sql/template/table.ftl).
 
 - [Kafka Source And Sink](connectors/kafka_source_sink.md)
 - [Http Sink](connectors/http_sink.md)
