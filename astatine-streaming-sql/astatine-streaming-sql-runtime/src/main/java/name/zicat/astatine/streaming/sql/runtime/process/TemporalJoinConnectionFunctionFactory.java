@@ -52,6 +52,8 @@ public class TemporalJoinConnectionFunctionFactory
       ConfigOptions.key("left.output.fields").stringType().noDefaultValue();
   public static final ConfigOption<String> OPTION_RIGHT_SELECT_FIELDS =
       ConfigOptions.key("right.output.fields").stringType().noDefaultValue();
+  public static final ConfigOption<Order> OPTION_RIGHT_ORDER_TYPE =
+      ConfigOptions.key("right.order.type").enumType(Order.class).defaultValue(Order.LAST);
 
   @Override
   public DataStream<RowData> createConnect(
@@ -89,7 +91,8 @@ public class TemporalJoinConnectionFunctionFactory
                 maxRetentionTime,
                 joinType,
                 Arrays.stream(lReturnFieldNameTypes).mapToInt(FieldNameType::getIndex).toArray(),
-                Arrays.stream(rReturnFieldNameTypes).mapToInt(FieldNameType::getIndex).toArray()));
+                Arrays.stream(rReturnFieldNameTypes).mapToInt(FieldNameType::getIndex).toArray(),
+                context.get(OPTION_RIGHT_ORDER_TYPE)));
     return result
         .name(identity() + "_" + result.getId())
         .returns(
@@ -107,7 +110,8 @@ public class TemporalJoinConnectionFunctionFactory
       long maxRetentionTime,
       JoinType leftJoin,
       int[] leftReturnIndexMapping,
-      int[] rightReturnIndexMapping) {
+      int[] rightReturnIndexMapping,
+      Order order) {
     return new TemporalJoinConnectionFunction<>(
         leftTypeInfo,
         rightTypeInfo,
@@ -117,7 +121,8 @@ public class TemporalJoinConnectionFunctionFactory
         maxRetentionTime,
         leftJoin,
         leftReturnIndexMapping,
-        rightReturnIndexMapping);
+        rightReturnIndexMapping,
+        order);
   }
 
   @Override
@@ -128,5 +133,11 @@ public class TemporalJoinConnectionFunctionFactory
   public enum JoinType {
     INNER,
     LEFT
+  }
+
+  /** Order. */
+  public enum Order {
+    FIRST,
+    LAST
   }
 }

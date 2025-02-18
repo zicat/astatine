@@ -23,6 +23,7 @@ import name.zicat.astatine.streaming.sql.parser.test.transform.TransformFactoryT
 
 import name.zicat.astatine.streaming.sql.parser.transform.TransformFactory;
 import name.zicat.astatine.streaming.sql.parser.transform.TwoTransformFactory;
+import name.zicat.astatine.streaming.sql.runtime.process.TemporalJoinConnectionFunctionFactory;
 import name.zicat.astatine.streaming.sql.runtime.test.utils.TimestampWatermarkGenerator;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.functions.KeySelector;
@@ -50,8 +51,16 @@ import static name.zicat.astatine.streaming.sql.runtime.process.TemporalJoinConn
 public class TemporalJoinConnectionFunctionFactoryTest extends TransformFactoryTestBase {
 
   @Test
-  public void test() throws Exception {
+  public void testDesc() throws Exception {
+    test(Order.LAST);
+  }
 
+  @Test
+  public void testAsc() throws Exception {
+    test(Order.FIRST);
+  }
+
+  private void test(TemporalJoinConnectionFunctionFactory.Order order) throws Exception {
     final var ts = System.currentTimeMillis();
 
     final var leftRow1 = new GenericRowData(3);
@@ -119,6 +128,8 @@ public class TemporalJoinConnectionFunctionFactoryTest extends TransformFactoryT
     configuration.set(OPTION_RIGHT_SELECT_FIELDS, "tag AS right_tag");
     configuration.set(FunctionFactory.OPTION_FUNCTION_IDENTITY, IDENTIFY);
     configuration.set(ExecutionConfigOptions.IDLE_STATE_RETENTION, Duration.ofHours(1));
+    configuration.set(OPTION_RIGHT_ORDER_TYPE, order);
+
     final var context = createContext(configuration);
 
     final var factory =
@@ -145,7 +156,7 @@ public class TemporalJoinConnectionFunctionFactoryTest extends TransformFactoryT
             Assert.assertEquals(rowData.getString(0).toString(), "name1");
             Assert.assertEquals(rowData.getTimestamp(1, 3).getMillisecond(), ts + 1000L * (i + 1));
             Assert.assertEquals(rowData.getString(2).toString(), "leftTag" + (i + 1));
-            if (i == 0) {
+            if (i == 0 || order == TemporalJoinConnectionFunctionFactory.Order.FIRST) {
               Assert.assertEquals(rowData.getString(3).toString(), "rightTag1");
             } else {
               Assert.assertEquals(rowData.getString(3).toString(), "rightTag2");

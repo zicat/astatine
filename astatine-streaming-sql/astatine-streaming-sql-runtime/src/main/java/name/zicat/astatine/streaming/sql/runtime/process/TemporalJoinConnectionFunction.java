@@ -58,6 +58,7 @@ public class TemporalJoinConnectionFunction<T>
   protected final InternalTypeInfo<RowData> rightReturnRowTypeInfo;
   protected final int[] leftReturnIndexMapping;
   protected final int[] rightReturnIndexMapping;
+  protected final TemporalJoinConnectionFunctionFactory.Order orderType;
 
   protected transient MapState<Long, List<RowData>> leftState;
   protected transient MapState<Long, RowData> rightState;
@@ -75,7 +76,8 @@ public class TemporalJoinConnectionFunction<T>
       long maxRetentionTime,
       TemporalJoinConnectionFunctionFactory.JoinType joinType,
       int[] leftReturnIndexMapping,
-      int[] rightReturnIndexMapping) {
+      int[] rightReturnIndexMapping,
+      TemporalJoinConnectionFunctionFactory.Order orderType) {
     this.leftReturnRowTypeInfo = leftReturnRowTypeInfo;
     this.rightReturnRowTypeInfo = rightReturnRowTypeInfo;
     this.leftEventTimeGetter = leftEventTimeGetter;
@@ -85,6 +87,7 @@ public class TemporalJoinConnectionFunction<T>
     this.joinType = joinType;
     this.leftReturnIndexMapping = leftReturnIndexMapping;
     this.rightReturnIndexMapping = rightReturnIndexMapping;
+    this.orderType = orderType;
   }
 
   @Override
@@ -224,12 +227,26 @@ public class TemporalJoinConnectionFunction<T>
   /** Removes all expired version in the versioned table's state according to current watermark. */
   private void cleanupExpiredVersionInState(
       long currentWatermark, List<Map.Entry<Long, RowData>> rightRowsSorted) throws Exception {
-    int i = 0;
-    int indexToKeep = firstIndexToKeep(currentWatermark, rightRowsSorted);
-    // clean old version data that behind current watermark
-    while (i < indexToKeep) {
-      rightState.remove(rightRowsSorted.get(i).getKey());
-      i += 1;
+    if (orderType == TemporalJoinConnectionFunctionFactory.Order.FIRST) {
+      if (rightRowsSorted.isEmpty()) {
+        return;
+      }
+      final long firstKey = rightRowsSorted.get(0).getKey();
+      var it = rightState.entries().iterator();
+      while (it.hasNext()) {
+        var entry = it.next();
+        if (entry.getKey() > firstKey) {
+          it.remove();
+        }
+      }
+    } else {
+      int i = 0;
+      int indexToKeep = firstIndexToKeep(currentWatermark, rightRowsSorted);
+      // clean old version data that behind current watermark
+      while (i < indexToKeep) {
+        rightState.remove(rightRowsSorted.get(i).getKey());
+        i += 1;
+      }
     }
   }
 
@@ -261,7 +278,11 @@ public class TemporalJoinConnectionFunction<T>
       rightRows.add(entry);
     }
     rightRows.sort(Map.Entry.comparingByKey());
-    return rightRows;
+    if (orderType == TemporalJoinConnectionFunctionFactory.Order.FIRST) {
+      return rightRows.isEmpty() ? rightRows : Collections.singletonList(rightRows.get(0));
+    } else {
+      return rightRows;
+    }
   }
 
   protected Optional<Map.Entry<Long, RowData>> latestRightRowToJoin(
