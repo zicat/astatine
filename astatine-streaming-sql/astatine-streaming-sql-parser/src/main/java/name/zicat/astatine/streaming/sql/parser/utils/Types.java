@@ -24,6 +24,7 @@ import org.apache.flink.table.types.DataTypeQueryable;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 
@@ -95,9 +96,21 @@ public class Types {
    * @return FieldGetter
    */
   public static RowData.FieldGetter fieldGetter(RowType rowType, String fieldName) {
+    if (fieldName == null) {
+      return NULL_FIELD_GETTER;
+    }
     final var index = rowType.getFieldIndex(fieldName);
     return RowData.createFieldGetter(rowType.getTypeAt(index), index);
   }
+
+  private static final RowData.FieldGetter NULL_FIELD_GETTER =
+      new RowData.FieldGetter() {
+        @Nullable
+        @Override
+        public Object getFieldOrNull(RowData rowData) {
+          return null;
+        }
+      };
 
   /**
    * get field name type by rowType and select expression.

@@ -4,3 +4,5 @@ name.zicat.astatine.streaming.sql.runtime.process.FieldValueWatchChangedEmitterF
 name.zicat.astatine.streaming.sql.runtime.RowDataKeyByFieldsSelectorFunctionFactory
 name.zicat.astatine.streaming.sql.runtime.process.DisorderDiscardFunctionFactory
 name.zicat.astatine.streaming.sql.runtime.process.DeduplicateFunctionFactory
+name.zicat.astatine.streaming.sql.runtime.map.DateExpansionFlatMapFunctionFactory
+name.zicat.astatine.streaming.sql.runtime.map.DateHourExpansionFlatMapFunctionFactory

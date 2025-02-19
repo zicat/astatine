@@ -17,6 +17,7 @@ to start your first streaming sql.
   - [Key By Field Operator](docs/streaming_operators/key_by_with_fields.md)
   - [Disorder Discard Operator](docs/streaming_operators/disorder_discard_operator.md)
   - [Deduplicate Operator](docs/streaming_operators/deduplicate_operator.md)
+  - [Date Hour Expansion Operator](docs/streaming_operators/date_hour_expansion_operator.md)
 
 - Formats
 
