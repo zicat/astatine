@@ -1,5 +1,5 @@
 <#macro udf_time>
-CREATE TEMPORARY SYSTEM FUNCTION IF NOT EXISTS to_timestamp3 AS 'name.zicat.astatine.functions.ToTimestamp3' LANGUAGE JAVA;
+CREATE TEMPORARY SYSTEM FUNCTION IF NOT EXISTS to_timestamp AS 'name.zicat.astatine.functions.ToTimestamp3' LANGUAGE JAVA;
 CREATE TEMPORARY SYSTEM FUNCTION IF NOT EXISTS to_long_timestamp AS 'name.zicat.astatine.functions.ToLongTimestamp' LANGUAGE JAVA;
 CREATE TEMPORARY SYSTEM FUNCTION IF NOT EXISTS timestamp_to_date AS 'name.zicat.astatine.functions.Timestamp2Date' LANGUAGE JAVA;
 CREATE TEMPORARY SYSTEM FUNCTION IF NOT EXISTS timestamp_to_hour AS 'name.zicat.astatine.functions.Timestamp2Hour' LANGUAGE JAVA;

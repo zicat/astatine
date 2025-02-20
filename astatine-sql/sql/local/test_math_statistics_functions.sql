@@ -13,7 +13,7 @@ CREATE TABLE source (
    name            STRING,
    score           INT,
    ts              BIGINT,
-   event_time AS to_timestamp3(ts),
+   event_time AS to_timestamp(ts),
    watermark FOR event_time AS event_time
 ) <@template.table_socket_source hostname = 'localhost' />
 

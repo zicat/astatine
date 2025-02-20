@@ -5,7 +5,7 @@ CREATE TABLE source (
    name            STRING,
    score           INT,
    ts              BIGINT,
-   event_time AS to_timestamp3(ts)
+   event_time AS to_timestamp(ts)
 ) <@template.table_kafka_source topic = 'test_topic'/>
 
 CREATE TABLE target (

@@ -29,9 +29,9 @@ FROM source WITH(
 
 CREATE VIEW flap_map_date_print AS
 SELECT name
-      ,to_timestamp3(ts)
-      ,to_timestamp3(start_ts)
-      ,to_timestamp3(end_ts)
+      ,to_timestamp(ts)
+      ,to_timestamp(start_ts)
+      ,to_timestamp(end_ts)
       ,CAST(`date` AS STRING)
 FROM flap_map_date;
 
@@ -80,9 +80,9 @@ FROM source WITH(
 
 CREATE VIEW flap_map_hour_date_print AS
 SELECT name
-      ,to_timestamp3(ts)
-      ,to_timestamp3(start_ts)
-      ,to_timestamp3(end_ts)
+      ,to_timestamp(ts)
+      ,to_timestamp(start_ts)
+      ,to_timestamp(end_ts)
       ,CAST(`date` AS STRING)
       ,`hour`
 FROM flap_map_date;
