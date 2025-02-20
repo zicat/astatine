@@ -17,7 +17,7 @@ CREATE DATABASE IF NOT EXISTS ods;
 CREATE TABLE IF NOT EXISTS ods.test_paimon (
      uid                BIGINT,
      ts                 BIGINT,
-     `date`             INT,
+     `date`             DATE,
      `hour`             INT
 ) PARTITIONED BY (`date`,`hour`)
 WITH (
@@ -44,14 +44,12 @@ CREATE TABLE source (
     ts              BIGINT
 ) <@template.table_socket_source hostname = 'localhost' />
 
--- insert data to paimon
 INSERT INTO paimon.ods.test_paimon
 SELECT uid,ts
-      ,timestamp_to_date(ts, 'GMT') AS `date`
-      ,timestamp_to_hour(ts, 'GMT') AS `hour`
+      ,to_date(ts, 'GMT') AS `date`
+      ,to_hour(ts, 'GMT') AS `hour`
 FROM source;
 
--- read data from paimon
 PRINT FROM paimon.ods.test_paimon;
 ```
 ## Connector Options

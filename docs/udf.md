@@ -13,14 +13,14 @@ to_timestamp function as follows:
 
 ## Scalar Functions
 
-| SQL Function                                                                                                              | template name | Description                                                                                                                          |
-|---------------------------------------------------------------------------------------------------------------------------|---------------|--------------------------------------------------------------------------------------------------------------------------------------|
-| [to_timestamp(param)](../astatine-functions/src/main/java/name/zicat/astatine/functions/ToTimestamp3.java)                | udf_time      | Return the timestamp by long linux timestamp(13) of param                                                                            |
-| [to_long_timestamp(param)](../astatine-functions/src/main/java/name/zicat/astatine/functions/ToLongTimestamp.java)        | udf_time      | Return the long linux timestamp(13) by timestamp(3) of param                                                                         |
-| [timestamp_to_date(param1,param2)](../astatine-functions/src/main/java/name/zicat/astatine/functions/Timestamp2Date.java) | udf_time      | Return the int date(yyyyMMdd) by long or timestamp(3) of param1 and option timezone of params2 like 'GMT+8',default params2 is 'GMT' |
-| [timestamp_to_hour(param1,param2)](../astatine-functions/src/main/java/name/zicat/astatine/functions/Timestamp2Hour.java) | udf_time      | Return the int hour(HH) by long or timestamp(3) of param1 and option timezone of params2 like 'GMT+8',default params2 is 'GMT'       |
-| [hash_code(param)](../astatine-functions/src/main/java/name/zicat/astatine/functions/math/HashCode.java)                  | udf_math      | Return the long hashcode of param                                                                                                    |
-| [modular(param)](../astatine-functions/src/main/java/name/zicat/astatine/functions/math/Modular.java)                     | udf_math      | Return the int modular of param                                                                                                      |
+| SQL Function                                                                                                       | template name | Description                                                                                                                           |
+|--------------------------------------------------------------------------------------------------------------------|---------------|---------------------------------------------------------------------------------------------------------------------------------------|
+| [to_timestamp(param)](../astatine-functions/src/main/java/name/zicat/astatine/functions/ToTimestamp3.java)         | udf_time      | Return the timestamp by long linux timestamp(13) of param                                                                             |
+| [to_long_timestamp(param)](../astatine-functions/src/main/java/name/zicat/astatine/functions/ToLongTimestamp.java) | udf_time      | Return the long linux timestamp(13) by timestamp(3) of param                                                                          |
+| [to_date(param1,param2)](../astatine-functions/src/main/java/name/zicat/astatine/functions/Timestamp2Date.java)    | udf_time      | Return the `DATE` TYPE date by long or timestamp(3) of param1 and option timezone of params2 like 'GMT+8',default params2 is 'GMT'    |
+| [to_hour(param1,param2)](../astatine-functions/src/main/java/name/zicat/astatine/functions/Timestamp2Hour.java)    | udf_time      | Return the `INT` TYPE hour(HH) by long or timestamp(3) of param1 and option timezone of params2 like 'GMT+8',default params2 is 'GMT' |
+| [hash_code(param)](../astatine-functions/src/main/java/name/zicat/astatine/functions/math/HashCode.java)           | udf_math      | Return the long hashcode of param                                                                                                     |
+| [modular(param)](../astatine-functions/src/main/java/name/zicat/astatine/functions/math/Modular.java)              | udf_math      | Return the int modular of param                                                                                                       |
 
 ## Aggregation Functions
 

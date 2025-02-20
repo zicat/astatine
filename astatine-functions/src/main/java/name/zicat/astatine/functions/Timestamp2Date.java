@@ -18,33 +18,33 @@
 
 package name.zicat.astatine.functions;
 
+import org.apache.flink.table.annotation.DataTypeHint;
 import org.apache.flink.table.functions.ScalarFunction;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 
 import java.sql.Timestamp;
-import java.util.TimeZone;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 
 /** Timestamp2Date. */
 public class Timestamp2Date extends ScalarFunction {
 
   private static final String DEFAULT_TIMEZONE = "GMT";
 
-  public int eval(Long ts, String timeZone) {
-    final DateTime dateTime =
-        new DateTime(ts, DateTimeZone.forTimeZone(TimeZone.getTimeZone(timeZone)));
-    return dateTime.getYear() * 10000 + dateTime.getMonthOfYear() * 100 + dateTime.getDayOfMonth();
+  @DataTypeHint(value = "DATE")
+  public LocalDate eval(Long ts, String timeZone) {
+    return LocalDate.ofInstant(Instant.ofEpochSecond(ts/1000), ZoneId.of(timeZone));
   }
 
-  public int eval(Long ts) {
+  public LocalDate eval(Long ts) {
     return eval(ts, DEFAULT_TIMEZONE);
   }
 
-  public int eval(Timestamp timestamp) {
+  public LocalDate eval(Timestamp timestamp) {
     return eval(timestamp.getTime());
   }
 
-  public int eval(Timestamp timestamp, String timeZone) {
+  public LocalDate eval(Timestamp timestamp, String timeZone) {
     return eval(timestamp.getTime(), timeZone);
   }
 }

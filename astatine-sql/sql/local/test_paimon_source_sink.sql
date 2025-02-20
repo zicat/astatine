@@ -13,7 +13,7 @@ CREATE DATABASE IF NOT EXISTS ods;
 CREATE TABLE IF NOT EXISTS ods.test_paimon (
      uid                BIGINT,
      ts                 BIGINT,
-     `date`             INT,
+     `date`             DATE,
      `hour`             INT
 ) PARTITIONED BY (`date`,`hour`)
 WITH (
@@ -42,8 +42,8 @@ CREATE TABLE source (
 
 INSERT INTO paimon.ods.test_paimon
 SELECT uid,ts
-      ,timestamp_to_date(ts, 'GMT') AS `date`
-      ,timestamp_to_hour(ts, 'GMT') AS `hour`
+      ,to_date(ts, 'GMT') AS `date`
+      ,to_hour(ts, 'GMT') AS `hour`
 FROM source;
 
 PRINT FROM paimon.ods.test_paimon;
