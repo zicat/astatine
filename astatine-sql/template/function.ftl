@@ -27,3 +27,7 @@ SET 'jobparam.hashcode.seed' = '${hashcode\.seed}';
 CREATE TEMPORARY SYSTEM FUNCTION IF NOT EXISTS hash_code AS 'name.zicat.astatine.functions.math.HashCode' LANGUAGE JAVA;
 CREATE TEMPORARY SYSTEM FUNCTION IF NOT EXISTS modular AS 'name.zicat.astatine.functions.math.Modular' LANGUAGE JAVA;
 </#macro>
+
+<#macro udf_basic>
+CREATE TEMPORARY SYSTEM FUNCTION IF NOT EXISTS line_separator AS 'name.zicat.astatine.functions.LineSeparator' LANGUAGE JAVA;
+</#macro>

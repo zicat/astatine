@@ -23,19 +23,19 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
 
-/**
- * Timestamp2DateTest.
- */
+/** Timestamp2DateTest. */
 public class Timestamp2DateTest {
 
-    @Test
-    public void test() {
-        final var timestamp2Date = new Timestamp2Date();
-        Assert.assertEquals(20250101, timestamp2Date.eval(1735768800000L));
-        Assert.assertEquals(20250102, timestamp2Date.eval(1735768800000L, "GMT+8"));
-
-        Assert.assertEquals(20250101, timestamp2Date.eval(new Timestamp(1735768800000L)));
-        Assert.assertEquals(20250102, timestamp2Date.eval(new Timestamp(1735768800000L), "GMT+8"));
-    }
+  @Test
+  public void test() {
+    final var timestamp2Date = new Timestamp2Date();
+    Assert.assertEquals(LocalDate.of(2025, 1, 1), timestamp2Date.eval(1735768800000L));
+    Assert.assertEquals(LocalDate.of(2025, 1, 2), timestamp2Date.eval(1735768800000L, "GMT+8"));
+    Assert.assertEquals(
+        LocalDate.of(2025, 1, 1), timestamp2Date.eval(new Timestamp(1735768800000L)));
+    Assert.assertEquals(
+        LocalDate.of(2025, 1, 2), timestamp2Date.eval(new Timestamp(1735768800000L), "GMT+8"));
+  }
 }

@@ -21,6 +21,7 @@ to_timestamp function as follows:
 | [to_hour(param1,param2)](../astatine-functions/src/main/java/name/zicat/astatine/functions/Timestamp2Hour.java)    | udf_time      | Return the `INT` TYPE hour(HH) by long or timestamp(3) of param1 and option timezone of params2 like 'GMT+8',default params2 is 'GMT' |
 | [hash_code(param)](../astatine-functions/src/main/java/name/zicat/astatine/functions/math/HashCode.java)           | udf_math      | Return the long hashcode of param                                                                                                     |
 | [modular(param)](../astatine-functions/src/main/java/name/zicat/astatine/functions/math/Modular.java)              | udf_math      | Return the int modular of param                                                                                                       |
+| [line_separator()](../astatine-functions/src/main/java/name/zicat/astatine/functions/LineSeparator.java)           | udf_basic     | Return the line separator of system                                                                                                   |
 
 ## Aggregation Functions
 

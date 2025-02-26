@@ -18,31 +18,17 @@
 
 package name.zicat.astatine.functions;
 
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-
 import org.apache.flink.table.functions.ScalarFunction;
 
-/** Timestamp2Date. */
-public class Timestamp2Hour extends ScalarFunction {
+/** LineSeparator. */
+public class LineSeparator extends ScalarFunction {
 
-  private static final String DEFAULT_TIMEZONE = "GMT";
-
-  public int eval(Long ts, String timeZone) {
-    return LocalDateTime.ofInstant(Instant.ofEpochSecond(ts / 1000), ZoneId.of(timeZone)).getHour();
-  }
-
-  public int eval(Long ts) {
-    return eval(ts, DEFAULT_TIMEZONE);
-  }
-
-  public int eval(Timestamp timestamp) {
-    return eval(timestamp.getTime());
-  }
-
-  public int eval(Timestamp timestamp, String timeZone) {
-    return eval(timestamp.getTime(), timeZone);
+  /**
+   * get line separator.
+   *
+   * @return string
+   */
+  public String eval() {
+    return System.lineSeparator();
   }
 }

@@ -16,33 +16,18 @@
  * limitations under the License.
  */
 
-package name.zicat.astatine.functions;
+package name.zicat.astatine.functions.test;
 
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import name.zicat.astatine.functions.LineSeparator;
+import org.junit.Assert;
+import org.junit.Test;
 
-import org.apache.flink.table.functions.ScalarFunction;
+/** LineSeparatorTest. */
+public class LineSeparatorTest {
 
-/** Timestamp2Date. */
-public class Timestamp2Hour extends ScalarFunction {
-
-  private static final String DEFAULT_TIMEZONE = "GMT";
-
-  public int eval(Long ts, String timeZone) {
-    return LocalDateTime.ofInstant(Instant.ofEpochSecond(ts / 1000), ZoneId.of(timeZone)).getHour();
-  }
-
-  public int eval(Long ts) {
-    return eval(ts, DEFAULT_TIMEZONE);
-  }
-
-  public int eval(Timestamp timestamp) {
-    return eval(timestamp.getTime());
-  }
-
-  public int eval(Timestamp timestamp, String timeZone) {
-    return eval(timestamp.getTime(), timeZone);
+  @Test
+  public void test() {
+    final var lineSeparator = new LineSeparator();
+    Assert.assertEquals(System.lineSeparator(), lineSeparator.eval());
   }
 }

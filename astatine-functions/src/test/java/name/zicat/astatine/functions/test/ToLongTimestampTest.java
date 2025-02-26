@@ -24,16 +24,14 @@ import org.junit.Test;
 
 import java.sql.Timestamp;
 
-/**
- * ToLongTimestampTest.
- */
+/** ToLongTimestampTest. */
 public class ToLongTimestampTest {
 
-    @Test
-    public void test() {
-        final var toLongTimestamp = new ToLongTimestamp();
+  @Test
+  public void test() {
+    final var toLongTimestamp = new ToLongTimestamp();
 
-        final var ts1 = new Timestamp(100L);
-        Assert.assertEquals(ts1.getTime(), toLongTimestamp.eval(ts1).longValue());
-    }
+    final var ts1 = new Timestamp(100L);
+    Assert.assertEquals(ts1.getTime(), toLongTimestamp.eval(ts1).longValue());
+  }
 }

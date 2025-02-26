@@ -33,7 +33,7 @@ public class Timestamp2Date extends ScalarFunction {
 
   @DataTypeHint(value = "DATE")
   public LocalDate eval(Long ts, String timeZone) {
-    return LocalDate.ofInstant(Instant.ofEpochSecond(ts/1000), ZoneId.of(timeZone));
+    return LocalDate.ofInstant(Instant.ofEpochSecond(ts / 1000), ZoneId.of(timeZone));
   }
 
   public LocalDate eval(Long ts) {
