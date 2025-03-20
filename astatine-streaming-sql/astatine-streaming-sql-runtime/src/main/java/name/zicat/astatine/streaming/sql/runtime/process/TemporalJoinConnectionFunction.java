@@ -159,7 +159,7 @@ public class TemporalJoinConnectionFunction<T>
     cleanupExpiredVersionInState(currentWatermark, rightRowsSorted);
     // left and right row is empty, clear state
     if (lastUnprocessedTime == Long.MAX_VALUE && rightState.isEmpty()) {
-      cleanUpdateState(ctx);
+      cleanUpdateState();
       return;
     }
     if (lastUnprocessedTime < Long.MAX_VALUE) {
@@ -204,14 +204,18 @@ public class TemporalJoinConnectionFunction<T>
       throws Exception {
     final var cleanupTimestamp = cleanupTimeState.value();
     if (cleanupTimestamp != null && cleanupTimestamp == timestamp) {
-      cleanUpdateState(ctx);
-      return true;
+      cleanupTimeState.clear();
+      if (registeredTimer.value() == null) {
+        registeredTimer.clear();
+        leftState.clear();
+        rightState.clear();
+        return true;
+      }
     }
     return false;
   }
 
-  protected void cleanUpdateState(
-      KeyedCoProcessFunction<T, RowData, RowData, RowData>.OnTimerContext ctx) {
+  protected void cleanUpdateState() {
     registeredTimer.clear();
     leftState.clear();
     rightState.clear();

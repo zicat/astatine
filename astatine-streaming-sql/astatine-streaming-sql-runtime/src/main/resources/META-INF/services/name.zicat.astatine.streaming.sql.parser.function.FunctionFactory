@@ -6,3 +6,4 @@ name.zicat.astatine.streaming.sql.runtime.process.DisorderDiscardFunctionFactory
 name.zicat.astatine.streaming.sql.runtime.process.DeduplicateFunctionFactory
 name.zicat.astatine.streaming.sql.runtime.map.DateExpansionFlatMapFunctionFactory
 name.zicat.astatine.streaming.sql.runtime.map.DateHourExpansionFlatMapFunctionFactory
+name.zicat.astatine.streaming.sql.runtime.process.windows.SessionWindowFunctionFactory

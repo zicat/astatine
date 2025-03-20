@@ -54,7 +54,7 @@ public class FieldValueWatchChangedEmitterFunctionFactoryTest extends TransformF
     configuration.set(WATCH_FIELD, "value");
     configuration.set(OPTION_EVENT_TIME, "ts");
     configuration.set(FunctionFactory.OPTION_FUNCTION_IDENTITY, IDENTIFY);
-    configuration.set(ExecutionConfigOptions.IDLE_STATE_RETENTION, Duration.ofHours(1));
+    configuration.set(ExecutionConfigOptions.IDLE_STATE_RETENTION, Duration.ofSeconds(10));
 
     final var context = createContext(configuration);
     final var factory =
@@ -71,11 +71,15 @@ public class FieldValueWatchChangedEmitterFunctionFactoryTest extends TransformF
     row2.setField(2, 1);
     final var row3 = new GenericRowData(3);
     row3.setField(0, StringData.fromString("name1"));
-    row3.setField(1, TimestampData.fromEpochMillis(ts + 3000));
-    row3.setField(2, 2);
+    row3.setField(1, TimestampData.fromEpochMillis(ts + 60000));
+    row3.setField(2, 1);
+    final var row4 = new GenericRowData(4);
+    row4.setField(0, StringData.fromString("name1"));
+    row4.setField(1, TimestampData.fromEpochMillis(ts + 61000));
+    row4.setField(2, 2);
 
     final var source =
-        env.fromCollection(Arrays.<RowData>asList(row1, row2, row3))
+        env.fromCollection(Arrays.<RowData>asList(row1, row2, row3, row4))
             .assignTimestampsAndWatermarks(TimestampWatermarkGenerator.create(1))
             .returns(
                 InternalTypeInfo.of(
@@ -85,21 +89,28 @@ public class FieldValueWatchChangedEmitterFunctionFactoryTest extends TransformF
                             new RowType.RowField("ts", new TimestampType(3)),
                             new RowType.RowField("value", new IntType())))));
 
-    final var result = factory.transform(context, source.keyBy((KeySelector<RowData, StringData>) rowData -> rowData.getString(0)));
+    final var result =
+        factory.transform(
+            context,
+            source.keyBy((KeySelector<RowData, StringData>) rowData -> rowData.getString(0)));
     TransformFactoryTestBase.execAndAssert(
         result,
         data -> {
-          Assert.assertEquals(2, data.size());
-          for (int i = 0; i < data.size(); i++) {
-            final var rowData = (RowData) data.get(i);
-            Assert.assertEquals(rowData.getString(0).toString(), "name1");
-            if (i == 0) {
-              Assert.assertEquals(rowData.getTimestamp(1, 3).getMillisecond(), ts + 1000L);
-              Assert.assertEquals(rowData.getInt(2), 1);
-            } else {
-              Assert.assertEquals(rowData.getInt(2), 2);
-            }
-          }
+          Assert.assertEquals(3, data.size());
+          final var resultRow0 = (RowData) data.get(0);
+          Assert.assertEquals(resultRow0.getString(0).toString(), "name1");
+          Assert.assertEquals(resultRow0.getTimestamp(1, 3).getMillisecond(), ts + 1000L);
+          Assert.assertEquals(resultRow0.getInt(2), 1);
+
+          final var resultRow1 = (RowData) data.get(1);
+          Assert.assertEquals(resultRow1.getString(0).toString(), "name1");
+          Assert.assertEquals(resultRow1.getTimestamp(1, 3).getMillisecond(), ts + 60000L);
+          Assert.assertEquals(resultRow1.getInt(2), 1);
+
+          final var resultRow2 = (RowData) data.get(2);
+          Assert.assertEquals(resultRow2.getString(0).toString(), "name1");
+          Assert.assertEquals(resultRow2.getTimestamp(1, 3).getMillisecond(), ts + 61000L);
+          Assert.assertEquals(resultRow2.getInt(2), 2);
         });
   }
 }

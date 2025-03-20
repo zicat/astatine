@@ -30,6 +30,7 @@ import org.apache.flink.api.java.typeutils.ListTypeInfo;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.metrics.Counter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
@@ -68,19 +69,22 @@ public class DisorderDiscardFunctionFactory
         keyedStream.process(
             new KeyedProcessFunction<RowData, RowData, RowData>() {
 
+              private static final String LATE_ELEMENTS_DROPPED_METRIC_NAME =
+                  "numLateRecordsDropped";
               private transient MapState<Long, List<RowData>> valueState;
               private transient ValueState<Long> registeredTimer;
+              private transient Counter dropCounter;
 
               @Override
               public void open(Configuration parameters) {
+                final var context = getRuntimeContext();
                 valueState =
-                    getRuntimeContext()
-                        .getMapState(
-                            new MapStateDescriptor<>(
-                                "rowState", Types.LONG, new ListTypeInfo<>(rowTypeInfo)));
+                    context.getMapState(
+                        new MapStateDescriptor<>(
+                            "rowState", Types.LONG, new ListTypeInfo<>(rowTypeInfo)));
                 registeredTimer =
-                    getRuntimeContext()
-                        .getState(new ValueStateDescriptor<>("registerTime", Types.LONG));
+                    context.getState(new ValueStateDescriptor<>("registerTime", Types.LONG));
+                dropCounter = context.getMetricGroup().counter(LATE_ELEMENTS_DROPPED_METRIC_NAME);
               }
 
               @Override
@@ -89,8 +93,15 @@ public class DisorderDiscardFunctionFactory
                   KeyedProcessFunction<RowData, RowData, RowData>.Context context,
                   Collector<RowData> collector)
                   throws Exception {
-                addRowDataInListStateAndRegisterTimer(
-                    eventTimeGetter, rowData, valueState, registeredTimer, context.timerService(), true);
+                if (!addRowDataInListStateAndRegisterTimer(
+                    eventTimeGetter,
+                    rowData,
+                    valueState,
+                    registeredTimer,
+                    context.timerService(),
+                    true)) {
+                  dropCounter.inc();
+                }
               }
 
               @Override

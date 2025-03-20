@@ -167,11 +167,13 @@ public class DeduplicateFunctionFactory
               private boolean triggerTimeCleanup(long timestamp) throws Exception {
                 final var cleanupTimestamp = cleanupTimeState.value();
                 if (cleanupTimestamp != null && cleanupTimestamp == timestamp) {
-                  valueState.clear();
-                  registeredTimer.clear();
-                  cleanupTimeState.clear();
                   lastRowState.clear();
-                  return true;
+                  cleanupTimeState.clear();
+                  if (registeredTimer.value() == null) {
+                    valueState.clear();
+                    registeredTimer.clear();
+                    return true;
+                  }
                 }
                 return false;
               }

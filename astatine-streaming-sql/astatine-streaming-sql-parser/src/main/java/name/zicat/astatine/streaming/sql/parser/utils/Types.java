@@ -120,6 +120,9 @@ public class Types {
    * @return FieldNameType Array
    */
   public static FieldNameType[] fieldsNameTypes(RowType rowType, String expression) {
+    if (expression == null) {
+      return new FieldNameType[0];
+    }
     final var selectFields =
         Arrays.stream(expression.split(",")).map(String::trim).distinct().toList();
     final var hasAll = selectFields.stream().anyMatch(f -> f.equals("*"));

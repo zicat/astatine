@@ -34,15 +34,20 @@ CREATE TABLE source2 (
 CREATE STREAM stream_keyed_by_name_source2
 FROM source2 WITH (
   'product.type' = 'RowData'
-) KEY BY WITH ('fields' = 'name');
+) KEY BY WITH (
+   'identity' = 'key_by_rowdata',
+   'fields' = 'name'
+);
 
 -- create view with watermark from source with key by name join with stream_keyed_by_name_source2
 CREATE VIEW temp_join_result WITH (
     'expression.watermark' = 'WATERMARK FOR ts AS SOURCE_WATERMARK()'
 ) FROM source WITH (
   'product.type' = 'RowData'
-) KEY BY WITH ('fields' = 'name')
-CONNECT stream_keyed_by_name_source2 WITH (
+) KEY BY WITH (
+   'identity' = 'key_by_rowdata',
+   'fields' = 'name'
+) CONNECT stream_keyed_by_name_source2 WITH (
   'identity' = 'temporal_join',
   'left.eventtime' = 'ts',
   'right.eventtime' = 'ts',

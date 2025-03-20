@@ -149,13 +149,6 @@ public class FieldValueWatchChangedEmitterFunction<T>
         eventTimeGetter, rowData, rowsState, registeredTimer, context.timerService(), true);
   }
 
-  protected void cleanUpdateState() {
-    previousRowState.clear();
-    rowsState.clear();
-    registeredTimer.clear();
-    cleanupTimeState.clear();
-  }
-
   /**
    * check if trigger processing time cleanup.
    *
@@ -165,8 +158,13 @@ public class FieldValueWatchChangedEmitterFunction<T>
   protected boolean triggerTimeCleanup(long timestamp) throws Exception {
     final var cleanupTimestamp = cleanupTimeState.value();
     if (cleanupTimestamp != null && cleanupTimestamp == timestamp) {
-      cleanUpdateState();
-      return true;
+      cleanupTimeState.clear();
+      previousRowState.clear();
+      if (registeredTimer.value() == null) {
+        registeredTimer.clear();
+        rowsState.clear();
+        return true;
+      }
     }
     return false;
   }

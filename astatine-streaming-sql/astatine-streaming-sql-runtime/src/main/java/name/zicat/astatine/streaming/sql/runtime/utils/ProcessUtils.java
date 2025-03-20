@@ -103,7 +103,7 @@ public class ProcessUtils {
    * @param timerService timerService
    * @throws Exception Exception
    */
-  public static void addRowDataInListStateAndRegisterTimer(
+  public static boolean addRowDataInListStateAndRegisterTimer(
       RowData.FieldGetter eventTimeGetter,
       RowData rowData,
       MapState<Long, List<RowData>> valueState,
@@ -113,17 +113,18 @@ public class ProcessUtils {
       throws Exception {
     final var eventTime = eventTime(eventTimeGetter, rowData);
     if (discardDisorder && eventTime < timerService.currentWatermark()) {
-      return;
+      return false;
     }
     var values = valueState.get(eventTime);
     if (values != null) {
       values.add(rowData);
-      return;
+      return true;
     }
     values = new ArrayList<>();
     values.add(rowData);
     valueState.put(eventTime, values);
     registerSmallestTimer(registeredTimer, eventTime, timerService);
+    return true;
   }
 
   /**

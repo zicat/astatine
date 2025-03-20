@@ -32,6 +32,7 @@ import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.table.api.bridge.java.internal.StreamTableEnvironmentImpl;
 import org.junit.Assert;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,7 +75,7 @@ public class TransformFactoryTestBase {
           }
 
           @Override
-          public void finish() {
+          public void finish() throws IOException {
             handler.assertResult(result);
           }
         });
@@ -96,7 +97,7 @@ public class TransformFactoryTestBase {
    * @param <T> T
    */
   public interface AssertHandler<T> extends Serializable {
-    void assertResult(List<T> result);
+    void assertResult(List<T> result) throws IOException;
   }
 
   public TransformContext createContext(String functionIdentity) {
