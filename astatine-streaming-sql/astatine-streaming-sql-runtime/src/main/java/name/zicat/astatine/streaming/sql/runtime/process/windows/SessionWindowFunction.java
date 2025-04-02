@@ -191,7 +191,7 @@ public class SessionWindowFunction extends KeyedProcessFunction<RowData, RowData
           windowEnd = eventTime + sessionMillis;
         } else if (windowEnd < eventTime) {
           final var notEmpty = collectIfNeed(stateRow, windowEnd, out);
-          if(notEmpty && eventTime < windowEnd + sessionMillis) {
+          if (notEmpty && eventTime < windowEnd + sessionMillis) {
             stateRow = initStateRowData(row, eventTime, windowEnd);
             windowEnd = windowEnd + sessionMillis;
           } else {

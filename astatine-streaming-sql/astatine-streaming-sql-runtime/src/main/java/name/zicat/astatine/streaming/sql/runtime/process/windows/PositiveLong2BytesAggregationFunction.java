@@ -28,7 +28,7 @@ public abstract class PositiveLong2BytesAggregationFunction<T>
 
   @Override
   public byte[] accumulate(byte[] acc, T value) {
-    var longValue = value == null ? 0L: getLongValue(value);
+    var longValue = value == null ? 0L : getLongValue(value);
     if (longValue < 0) {
       throw new IllegalArgumentException("long value must be positive");
     }
