@@ -10,7 +10,8 @@ to start your first streaming sql.
 - [Sql Template](docs/template.md)
 
 - [Astatine Streaming SQL](docs/astatine_streaming_sql.md)
-
+  
+  - [Session Tumble Window Operator](docs/streaming_operators/session_tumble_window_operator.md)
   - [Field Value Watch Changed Emitter Operator](docs/streaming_operators/field_value_watch_changed_emitter_operator.md)
   - [Eventtime Temporal Join Operator](docs/streaming_operators/streaming_eventtime_temporal_join_operator.md)
   - [Row 2 Pojo Operator](docs/streaming_operators/row_2_pojo_operator.md)

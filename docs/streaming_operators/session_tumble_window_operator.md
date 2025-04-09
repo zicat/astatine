@@ -1,6 +1,6 @@
-# Session Window Operator
+# Session Tumble Window Operator
 
-The session window operator is an eventtime-based streaming keyed operator that supports session windowing on the specified field.
+The session tumble window operator is an eventtime-based streaming keyed operator that supports session-tumble windowing on the specified field.
 
 ```sql
 CREATE TEMPORARY SYSTEM FUNCTION IF NOT EXISTS session_value_collect AS 'name.zicat.astatine.functions.SessionValueCollect' LANGUAGE JAVA;
@@ -22,7 +22,7 @@ CREATE VIEW view_session_result WITH(
     'identity' = 'key_by_rowdata',
     'fields' = 'sid'
 ) PROCESS WITH(
-    'identity' = 'session_window',
+    'identity' = 'session_tumble_window',
     'fields' = 'vid AS vendor_id, peer AS peer_id, sid',
     'eventtime' = 'ts',
     'values' = 'score AS score_1',
@@ -73,7 +73,7 @@ Output:
 ```
 
 Note:
-1. The identity of the operator is `session_window`.
+1. The identity of the operator is `session_tumble_window`.
 2. The `fields` is the field names that you want to return in the output, only using first value in one session window.
 3. The `eventtime` is the field name that points to the event time.
 4. The `values` is the field names that you want to collect in the session window, the input type of the field must be `INT` OR `LONG`, the output type of the field must be `BINAAY`.

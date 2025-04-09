@@ -23,7 +23,7 @@ import name.zicat.astatine.streaming.sql.parser.test.transform.TransformFactoryT
 import name.zicat.astatine.streaming.sql.parser.transform.ProcessTransformFactory;
 import name.zicat.astatine.streaming.sql.parser.transform.TransformContext;
 import name.zicat.astatine.streaming.sql.parser.transform.TransformFactory;
-import name.zicat.astatine.streaming.sql.runtime.process.windows.SessionWindowFunctionFactory;
+import name.zicat.astatine.streaming.sql.runtime.process.windows.SessionTumbleWindowFunctionFactory;
 import name.zicat.astatine.streaming.sql.runtime.test.utils.TimestampWatermarkGenerator;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.configuration.Configuration;
@@ -44,7 +44,7 @@ import java.util.Arrays;
 
 import static org.apache.flink.table.data.TimestampData.fromEpochMillis;
 
-public class SessionWindowFunctionFactoryTest extends TransformFactoryTestBase {
+public class SessionTumbleWindowFunctionFactoryTest extends TransformFactoryTestBase {
   @Test
   public void testSessionEndAndCreateNew() throws Exception {
     final var ts = System.currentTimeMillis();
@@ -282,11 +282,11 @@ public class SessionWindowFunctionFactoryTest extends TransformFactoryTestBase {
   private TransformContext createCommonContext() {
     final var configuration = new Configuration();
     configuration.set(
-        FunctionFactory.OPTION_FUNCTION_IDENTITY, SessionWindowFunctionFactory.IDENTITY);
-    configuration.set(SessionWindowFunctionFactory.OPTION_FIELDS, "name");
-    configuration.set(SessionWindowFunctionFactory.OPTION_VALUES, "score AS score_1");
-    configuration.set(SessionWindowFunctionFactory.OPTION_EVENTTIME, "ts");
-    configuration.set(SessionWindowFunctionFactory.OPTION_SESSION_DURATION, Duration.ofMinutes(1));
+        FunctionFactory.OPTION_FUNCTION_IDENTITY, SessionTumbleWindowFunctionFactory.IDENTITY);
+    configuration.set(SessionTumbleWindowFunctionFactory.OPTION_FIELDS, "name");
+    configuration.set(SessionTumbleWindowFunctionFactory.OPTION_VALUES, "score AS score_1");
+    configuration.set(SessionTumbleWindowFunctionFactory.OPTION_EVENTTIME, "ts");
+    configuration.set(SessionTumbleWindowFunctionFactory.OPTION_SESSION_DURATION, Duration.ofMinutes(1));
     return createContext(configuration);
   }
 }

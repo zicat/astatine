@@ -45,8 +45,8 @@ import java.util.*;
 import static org.apache.flink.table.data.RowData.createFieldGetter;
 import static org.apache.flink.table.data.TimestampData.fromEpochMillis;
 
-/** SessionWindowFunction. */
-public class SessionWindowFunction extends KeyedProcessFunction<RowData, RowData, RowData> {
+/** SessionTumbleWindowFunction. */
+public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, RowData, RowData> {
 
   private static final String LATE_ELEMENTS_DROPPED_METRIC_NAME = "numLateRecordsDropped";
 
@@ -72,7 +72,7 @@ public class SessionWindowFunction extends KeyedProcessFunction<RowData, RowData
   protected final int fieldsOffset;
   protected final int valuesOffset;
 
-  public SessionWindowFunction(
+  public SessionTumbleWindowFunction(
       RowData.FieldGetter eventTimeGetter,
       RowType.RowField eventTimeField,
       int[] fieldMapping,

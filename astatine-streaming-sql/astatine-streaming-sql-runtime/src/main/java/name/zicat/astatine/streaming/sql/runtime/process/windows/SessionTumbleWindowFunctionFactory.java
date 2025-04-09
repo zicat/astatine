@@ -38,11 +38,11 @@ import java.util.Arrays;
 
 import static name.zicat.astatine.streaming.sql.parser.utils.Types.fieldsNameTypes;
 
-/** SessionWindowFunctionFactory. */
-public class SessionWindowFunctionFactory
+/** SessionTumbleWindowFunctionFactory. */
+public class SessionTumbleWindowFunctionFactory
     implements KeyedProcessFunctionFactory<RowData, RowData, RowData> {
 
-  public static final String IDENTITY = "session_window";
+  public static final String IDENTITY = "session_tumble_window";
 
   public static final ConfigOption<String> OPTION_FIELDS =
       ConfigOptions.key("fields").stringType().noDefaultValue();
@@ -71,7 +71,7 @@ public class SessionWindowFunctionFactory
             });
     final var eventtimeType = fieldsNameTypes(rowType, context.get(OPTION_EVENTTIME))[0];
     final var function =
-        new SessionWindowFunction(
+        new SessionTumbleWindowFunction(
             eventtimeType.fieldGetter(),
             eventtimeType.targetRowField(),
             Arrays.stream(fieldNameTypes).mapToInt(Types.FieldNameType::getIndex).toArray(),

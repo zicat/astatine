@@ -41,7 +41,7 @@ CREATE VIEW view_session_result WITH(
     'identity' = 'key_by_rowdata',
     'fields' = 'sid'
 ) PROCESS WITH(
-    'identity' = 'session_window',
+    'identity' = 'session_tumble_window',
     'fields' = 'vid AS vendor_id, peer AS peer_id, sid',
     'eventtime' = 'ts',
     'values' = 'score AS score_1',
