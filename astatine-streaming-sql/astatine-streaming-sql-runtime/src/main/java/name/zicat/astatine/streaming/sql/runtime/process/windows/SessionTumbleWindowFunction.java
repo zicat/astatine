@@ -246,8 +246,7 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
   protected UpdatableRowData initStateRowData(RowData rowData, long eventTime, long startTime) {
     final var timestampRow = new GenericRowData(2);
     timestampRow.setField(0, fromEpochMillis(eventTime));
-    timestampRow.setField(
-        1, timeSeriesHandle.accumulate(null, startTime)); // set time series to null
+    timestampRow.setField(1, timeSeriesHandle.accumulate(null, startTime));
     final var valueRow = new GenericRowData(valueFields.length);
     if (rowData instanceof UpdatableRowData updatableRowData
         && updatableRowData.getRow() instanceof MultiJoinedRowData multiJoinedRowData) {
@@ -278,6 +277,12 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
 
   protected UpdatableRowData accumulateValuesTimeSeries(
       UpdatableRowData rowInState, RowData rowData, TimestampData eventTime) {
+    if (emptyElementInStateRow(rowInState)) {
+      // reset keys by current rowData if value is empty
+      final var preEventTime = rowInState.getTimestamp(eventTimeOffset, 3);
+      final var startTime = getStartTime(rowInState);
+      rowInState = initStateRowData(rowData, preEventTime.getMillisecond(), startTime);
+    }
     final var eventTimeMs = eventTime.getMillisecond();
     rowInState.setTimestamp(eventTimeOffset, eventTime, 3);
     for (int i = 0; i < valueFields.length; i++) {
