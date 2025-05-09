@@ -44,6 +44,49 @@ import static name.zicat.astatine.streaming.sql.runtime.map.DateExpansionFlatMap
 public class DateExpansionFlatMapFunctionFactoryTest extends TransformFactoryTestBase {
 
   @Test
+  public void testCrossDateIn1min() throws Exception {
+    final var configuration = new Configuration();
+    final var zoneId = ZoneId.of("GMT");
+    final var maxPartitionCount = 4;
+    configuration.set(OPTION_FUNCTION_IDENTITY, DateExpansionFlatMapFunctionFactory.IDENTITY);
+    configuration.set(OPTION_TIME_ZONE, zoneId.getId());
+    configuration.set(OPTION_FIELD_START_TS, "start_ts");
+    configuration.set(OPTION_FIELD_END_TS, "end_ts");
+    configuration.set(OPTION_FIELD_CURRENT_TS, "ts");
+    configuration.set(OPTION_MAX_COUNT, maxPartitionCount);
+
+    final var context = createContext(configuration);
+    final var factory =
+        TransformFactory.findFactory(FlatMapTransformFactory.IDENTITY)
+            .cast(FlatMapTransformFactory.class);
+    final var sourceType =
+        InternalTypeInfo.of(
+            new RowType(
+                Arrays.asList(
+                    new RowType.RowField("name", new VarCharType()),
+                    new RowType.RowField("ts", new BigIntType()),
+                    new RowType.RowField("start_ts", new BigIntType()),
+                    new RowType.RowField("end_ts", new BigIntType()))));
+    final var startTs = 1746575999000L; // 2025-05-06 23:59:59.000 UTC
+    final var endTs = 1746576001000L; // 2025-05-07 00:00:01.000 UTC
+    final var row1 = new GenericRowData(5);
+    row1.setField(0, StringData.fromString("name1"));
+    row1.setField(1, endTs);
+    row1.setField(2, startTs);
+    row1.setField(3, endTs);
+
+    final var source = env.fromCollection(List.<RowData>of(row1)).returns(sourceType);
+    final var result = factory.transform(context, source);
+    TransformFactoryTestBase.execAndAssert(
+        result,
+        data -> {
+          Assert.assertEquals(2, data.size());
+          Assert.assertEquals(20215, ((RowData) data.get(0)).getInt(4));
+          Assert.assertEquals(20214, ((RowData) data.get(1)).getInt(4));
+        });
+  }
+
+  @Test
   public void test() throws Exception {
 
     final var configuration = new Configuration();

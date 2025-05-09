@@ -28,8 +28,8 @@ import org.apache.flink.table.types.logical.IntType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.Collector;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 
 import static name.zicat.astatine.streaming.sql.parser.utils.Types.fieldGetter;
@@ -64,7 +64,7 @@ public class DateHourExpansionFlatMapFunctionFactory extends ExpansionFlatMapFun
           LocalDateTime startDate,
           LocalDateTime endDateTime,
           Collector<RowData> collector) {
-        final var hoursDifference = (int) Duration.between(startDate, endDateTime).toHours();
+        final var hoursDifference = (int) calculateHourDifference(startDate, endDateTime);
         final var partitionCount = Math.min(maxPartitionCount, hoursDifference + 1);
         var dateOffset = (int) endDateTime.toLocalDate().toEpochDay();
         var hourOffset = endDateTime.getHour();
@@ -89,6 +89,13 @@ public class DateHourExpansionFlatMapFunctionFactory extends ExpansionFlatMapFun
     addField(outputFields, DEFAULT_DATE_FIELD, new DateType(false));
     addField(outputFields, DEFAULT_DATE_HOUR_FIELD, new IntType(false));
     return new RowType(outputFields);
+  }
+
+  public static long calculateHourDifference(LocalDateTime start, LocalDateTime end) {
+    int startHour = start.getHour();
+    int endHour = end.getHour();
+    long daysBetween = ChronoUnit.DAYS.between(start.toLocalDate(), end.toLocalDate());
+    return daysBetween * 24 + (endHour - startHour);
   }
 
   @Override

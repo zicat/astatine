@@ -27,8 +27,8 @@ import org.apache.flink.table.types.logical.DateType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.Collector;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 
 import static name.zicat.astatine.streaming.sql.parser.utils.Types.fieldGetter;
@@ -63,7 +63,8 @@ public class DateExpansionFlatMapFunctionFactory extends ExpansionFlatMapFunctio
           LocalDateTime startDate,
           LocalDateTime endDateTime,
           Collector<RowData> collector) {
-        final var days = (int) Duration.between(startDate, endDateTime).toDays();
+        final var days =
+            ChronoUnit.DAYS.between(startDate.toLocalDate(), endDateTime.toLocalDate());
         final var partitionCount = Math.min(maxPartitionCount, days + 1);
         var dateOffset = (int) endDateTime.toLocalDate().toEpochDay();
         for (var i = 0; i < partitionCount; i++) {
