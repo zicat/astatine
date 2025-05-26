@@ -250,7 +250,7 @@
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
-                <version>0.38.1</version>
+                <version>0.46.0</version>
                 <executions>
                     <execution>
                         <id>build</id>
@@ -263,9 +263,18 @@
                 <configuration>
                     <images>
                         <image>
-                            <name>astatine-sql-docker:latest</name>
+                            <name>astatine-sql:latest</name>
                             <build>
                                 <dockerFileDir>${project.basedir}</dockerFileDir>
+                            </build>
+                        </image>
+                        <image>
+                            <name>astatine-sql-linux:latest</name>
+                            <build>
+                                <dockerFileDir>${project.basedir}</dockerFileDir>
+                                <createImageOptions>
+                                    <platform>linux/arm64</platform>
+                                </createImageOptions>
                             </build>
                         </image>
                     </images>

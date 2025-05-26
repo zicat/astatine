@@ -36,9 +36,9 @@ Goto [Compile and Build astatine](build_project.md) to build astatine first befo
 
        ```shell
        # macOs users
-       $ docker run --network=host -t -i -e sql="$(cat test.sql)" -e java_opts="-Xmx3g" astatine-sql-docker:latest
+       $ docker run --network=host -t -i -e sql="$(cat test.sql)" -e java_opts="-Xmx3g" astatine-sql:latest
        # Linux users
-       ## $ docker run --network=host --add-host=host.docker.internal:$(ip addr show docker0 | grep -Po 'inet \K[\d.]+')  -t -i -e sql="$(cat test.sql)" -e java_opts="-Xmx3g" astatine-sql-docker:latest
+       ## $ docker run --network=host --add-host=host.docker.internal:$(ip addr show docker0 | grep -Po 'inet \K[\d.]+')  -t -i -e sql="$(cat test.sql)" -e java_opts="-Xmx3g" astatine-sql-linux:latest
        ......
        Source: source[1] -> Calc[2] -> Sink: ... (1/1)(...) switched from INITIALIZING to RUNNING.
        ```
@@ -54,7 +54,7 @@ Goto [Compile and Build astatine](build_project.md) to build astatine first befo
     - Switch to the `docker run` terminal, the inputted records are successfully calculated and printed as below:
 
        ```shell
-       $ sql=$(cat test.sql);docker run --network=host -t -i -e sql="$sql" -e java_opts="-Xmx3g" astatine-sql-docker:latest
+       $ sql=$(cat test.sql);docker run --network=host -t -i -e sql="$sql" -e java_opts="-Xmx3g" astatine-sql:latest
        ......
        Source: source[1] -> Calc[2] -> Sink: ... (1/1)(...) switched from INITIALIZING to RUNNING.
        {"name":"s1","score":200}

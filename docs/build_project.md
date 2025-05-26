@@ -48,6 +48,7 @@ $ mvn clean install -DskipTests -Pdocker
 [INFO] astatine-sql-docker ................................ SUCCESS [ 42.531 s]
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
-$ docker image ls|grep astatine-sql-docker # check develop docker image building successfully
-astatine-sql-docker  latest  72c4ffb818d5   About a minute ago   826MB
+$ docker image ls|grep astatine-sql
+astatine-sql-linux                                        latest                e50f3a9a295f   1 minutes ago   880MB
+astatine-sql                                              latest                e50f3a9a295f   1 minutes ago   880MB
 ```
