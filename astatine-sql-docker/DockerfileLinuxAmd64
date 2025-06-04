@@ -1,4 +1,4 @@
-FROM openjdk:17-jdk
+FROM eclipse-temurin:17-jre@sha256:3b15151fc27743cc8b0a82524536bd176c77b3200b8fb7d794ccd13aa7149dd4
 
 WORKDIR /app/astatine
 ADD target/astatine-sql-docker-final.jar .

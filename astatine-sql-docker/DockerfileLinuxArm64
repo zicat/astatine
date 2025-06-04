@@ -1,0 +1,7 @@
+FROM eclipse-temurin:17-jre@sha256:8102734ff3e1badc4551427d9b4158428fe56724c02605e8b054bc8b3cc9f12c
+
+WORKDIR /app/astatine
+ADD target/astatine-sql-docker-final.jar .
+ADD target/test-classes ./template
+ADD sbin/start_docker_job.sh .
+ENTRYPOINT ["bash", "start_docker_job.sh"]

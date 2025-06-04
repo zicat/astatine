@@ -265,15 +265,24 @@
                         <image>
                             <name>astatine-sql:latest</name>
                             <build>
-                                <dockerFileDir>${project.basedir}</dockerFileDir>
+                                <dockerFile>${project.basedir}/DockerfileLinuxArm64</dockerFile>
+                                <args>
+                                    <TARGET_PLATFORM>linux/arm64</TARGET_PLATFORM>
+                                </args>
+                                <createImageOptions>
+                                    <platform>linux/arm64</platform>
+                                </createImageOptions>
                             </build>
                         </image>
                         <image>
-                            <name>astatine-sql-linux:latest</name>
+                            <name>astatine-sql-linux-amd64:latest</name>
                             <build>
-                                <dockerFileDir>${project.basedir}</dockerFileDir>
+                                <dockerFile>${project.basedir}/DockerfileLinuxAmd64</dockerFile>
+                                <args>
+                                    <TARGET_PLATFORM>linux/amd64</TARGET_PLATFORM>
+                                </args>
                                 <createImageOptions>
-                                    <platform>linux/arm64</platform>
+                                    <platform>linux/amd64</platform>
                                 </createImageOptions>
                             </build>
                         </image>

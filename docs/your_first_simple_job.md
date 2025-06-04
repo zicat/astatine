@@ -35,10 +35,14 @@ Goto [Compile and Build astatine](build_project.md) to build astatine first befo
     - Open new terminal and run the job as below:
 
        ```shell
-       # macOs users
+       # macOs arm64 users
        $ docker run --network=host -t -i -e sql="$(cat test.sql)" -e java_opts="-Xmx3g" astatine-sql:latest
-       # Linux users
-       ## $ docker run --network=host --add-host=host.docker.internal:$(ip addr show docker0 | grep -Po 'inet \K[\d.]+')  -t -i -e sql="$(cat test.sql)" -e java_opts="-Xmx3g" astatine-sql-linux:latest
+       # macOs amd64 users
+       # $ docker run --network=host -t -i -e sql="$(cat test.sql)" -e java_opts="-Xmx3g" astatine-sql-linux-amd64:latest
+       # Linux arm64 users
+       # $ docker run --network=host --add-host=host.docker.internal:$(ip addr show docker0 | grep -Po 'inet \K[\d.]+')  -t -i -e sql="$(cat test.sql)" -e java_opts="-Xmx3g" astatine-sql:latest
+       # Linux amd64 users
+       # $ docker run --network=host --add-host=host.docker.internal:$(ip addr show docker0 | grep -Po 'inet \K[\d.]+')  -t -i -e sql="$(cat test.sql)" -e java_opts="-Xmx3g" astatine-sql-linux-amd64:latest
        ......
        Source: source[1] -> Calc[2] -> Sink: ... (1/1)(...) switched from INITIALIZING to RUNNING.
        ```
