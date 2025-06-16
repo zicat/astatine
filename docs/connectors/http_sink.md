@@ -44,19 +44,18 @@ CREATE TABLE http_sink_table (
 
 ## Connector Options
 
-| Option           | Template Option   | Type     | Default | Description                                                                                    |
-|------------------|-------------------|----------|---------|------------------------------------------------------------------------------------------------|
-| connector        | N/A               | string   | (none)  | Specify what connector to use, for Http Sink use 'http', not necessary with template           |
-| request.type     | request\.type     | enum     |         | Specify the http request type, supported type includes `GET`,`POST`,`PUT`,`DELETE`             |
-| proxy            | proxy             | string   | ''      | Specify the http proxy like: localhost:3333, default ''                                        |
-| connect.timeout  | connect\.timeout  | duration | 10s     | Specify the socket connection timeout, default 10s                                             |
-| read.timeout     | read\.timeout     | duration | 10s     | Specify the socket read server response data timeout, default 10s                              |
-| retry.interval   | retry\.interval   | duration | 1s      | Specify the retry interval after previous http request failed, default 1s                      |
-| retry.count      | retry\.count      | int      | 1       | Specify the retry count if request throw IOException OR response status code >= 500, default 1 |
-| async.queue.size | async\.queue_size | int      | 1024    | Specify the async http request queue size, default 1024                                        |
-| async.threads    | async\.threads    | int      | 5       | Specify the async http thread pool size, default 5                                             |
-| sink.parallelism | sink\.parallelism | Integer  | null    | Specify the http sink parallelism, default is extends previous operator parallelism            |
-| code.400.fail    | code\.400\.fail   | boolean  | false   | Specify whether to fail the job if response status code is 400+, default false                 |
+| Option            | Type     | Default | Description                                                                                    |
+|-------------------|----------|---------|------------------------------------------------------------------------------------------------|
+| request\.type     | enum     |         | Specify the http request type, supported type includes `GET`,`POST`,`PUT`,`DELETE`             |
+| proxy             | string   | ''      | Specify the http proxy like: localhost:3333, default ''                                        |
+| connect\.timeout  | duration | 10s     | Specify the socket connection timeout, default 10s                                             |
+| read\.timeout     | duration | 10s     | Specify the socket read server response data timeout, default 10s                              |
+| retry\.interval   | duration | 1s      | Specify the retry interval after previous http request failed, default 1s                      |
+| retry\.count      | int      | 1       | Specify the retry count if request throw IOException OR response status code >= 500, default 1 |
+| async\.queue.size | int      | 1024    | Specify the async http request queue size, default 1024                                        |
+| async\.threads    | int      | 5       | Specify the async http thread pool size, default 5                                             |
+| sink\.parallelism | Integer  | null    | Specify the http sink parallelism, default is extends previous operator parallelism            |
+| code\.400\.fail   | boolean  | false   | Specify whether to fail the job if response status code is 400+, default false                 |
 
 ## Example
 

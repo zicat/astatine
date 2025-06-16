@@ -6,6 +6,8 @@
         <artifactId>astatine-connectors</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
+
+    <name>Astatine : Connectors : Socket</name>
     <artifactId>astatine-connector-socket</artifactId>
 
     <dependencies>

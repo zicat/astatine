@@ -123,3 +123,59 @@ WITH (
     'zookeeper.quorum' = '${zookeeper\.quorum}'
 );
 </#macro>
+
+<#macro table_doris_sink_property
+        fenodes
+        table\.identifier
+        username
+        password
+        connection\.timeout = '15s'
+        socket\.timeout = '5s'
+        sink\.threads = '1'
+        retry\.times = '3'
+        retry\.interval = '1s'
+        sink\.parallelism = '0'
+        sink\.batch\.bytes = '8388608'
+        sink\.flush\-interval = '1s'
+        sink\.group\-commit = 'async_mode'
+        sink\.column\-separator = '\t'
+        sink\.line\-delimiter = '\n'
+        auto\-create\-table = 'false'
+        auto\-create\-table\.engine = ''
+        auto\-create\-table\.partition = ''
+        auto\-create\-table\.bucket = 'DISTRIBUTED BY RANDOM BUCKETS AUTO'
+        dynamic_key_value...>
+WITH(
+    'connector' = 'doris',
+    'fenodes' = '${fenodes}',
+    'table.identifier' = '${table\.identifier}',
+    'username' = '${username}',
+    'password' = '${password}',
+    'connection.timeout' = '${connection\.timeout}',
+    'socket.timeout' = '${socket\.timeout}',
+    'sink.threads' = '${sink\.threads}',
+    'retry.times' = '${retry\.times}',
+    'retry.interval' = '${retry\.interval}',
+    'sink.parallelism' = '${sink\.parallelism}',
+    'sink.batch.bytes' = '${sink\.batch\.bytes}',
+    'sink.flush-interval' = '${sink\.flush\-interval}',
+    'sink.group-commit' = '${sink\.group\-commit}',
+    'sink.column-separator' = '${sink\.column\-separator}',
+    'sink.line-delimiter' = '${sink\.line\-delimiter}',
+    <#list dynamic_key_value?keys as p>
+        <#if p?starts_with("auto-create-table.properties.")>
+    '${p}' = '${dynamic_key_value[p]}',
+        </#if>
+        <#if p?starts_with("header.properties.")>
+    '${p}' = '${dynamic_key_value[p]}',
+        </#if>
+        <#if p?starts_with("auto-create-table.engine.aggregate-function.")>
+    '${p}' = '${dynamic_key_value[p]}',
+        </#if>
+    </#list>
+    'auto-create-table' = '${auto\-create\-table}',
+    'auto-create-table.engine' = '${auto\-create\-table\.engine}',
+    'auto-create-table.partition' = '${auto\-create\-table\.partition}',
+    'auto-create-table.bucket' = '${auto\-create\-table\.bucket}'
+);
+</#macro>

@@ -6,6 +6,8 @@
         <artifactId>astatine-formats</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
+
+    <name>Astatine : Formats: Protobuf</name>
     <artifactId>astatine-format-protobuf</artifactId>
 
     <dependencies>

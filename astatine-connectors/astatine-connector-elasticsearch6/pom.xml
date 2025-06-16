@@ -9,6 +9,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
+    <name>Astatine : Connectors : Elasticsearch6</name>
     <artifactId>astatine-connector-elasticsearch6</artifactId>
 
     <dependencies>

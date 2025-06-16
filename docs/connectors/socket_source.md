@@ -27,12 +27,12 @@ CREATE TABLE source_socket(
 
 ## Connector Options
 
-| Option         | Template Option | Type   | Default | Description                                                         |
-|----------------|-----------------|--------|---------|---------------------------------------------------------------------|
-| connector      | N/A             | String | (none)  | Specify what connector to use, for Socket Source Table use 'socket' |
-| hostname       | hostname        | String | (none)  | Specify the endpoint                                                |
-| port           | port            | Int    | (none)  | Specify the port                                                    |
-| format         | format          | String | (none)  | Specify the schema of socket                                        |
-| byte-delimiter | byte\-delimiter | Int    | 10      | Specify the socket records split char, 10 means '\n'                |
+| Option          | Type   | Default | Description                                                         |
+|-----------------|--------|---------|---------------------------------------------------------------------|
+| connector       | String | (none)  | Specify what connector to use, for Socket Source Table use 'socket' |
+| hostname        | String | (none)  | Specify the endpoint                                                |
+| port            | Int    | (none)  | Specify the port                                                    |
+| format          | String | (none)  | Specify the schema of socket                                        |
+| byte\-delimiter | Int    | 10      | Specify the socket records split char, 10 means '\n'                |
 
 - Use 'nc -l 9999' command to start the socket with port 9999.

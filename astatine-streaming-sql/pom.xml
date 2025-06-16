@@ -9,6 +9,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
+    <name>Astatine : Streaming Sql</name>
     <artifactId>astatine-streaming-sql</artifactId>
     <packaging>pom</packaging>
     <modules>

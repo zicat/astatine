@@ -29,10 +29,10 @@ The Astatine ElasticSearch Sink Connector is based on the Flink ElasticSearch6 S
 
 The Astatine ElasticSearch Sink Connector also supports the following options:
 
-| Option      | Type   | Default   | Description                                                                                                                                                                                                                                                                  |
-|-------------|--------|-----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| routing     | String | (none)    | Specify the elasticsearch routing field                                                                                                                                                                                                                                      |
-| function.id | String | (default) | Specify the sink function implementing the interface of [RowElasticsearchSinkFunction](../../astatine-connectors/astatine-connector-elasticsearch6/src/main/java/name/zicat/astatine/connector/elasticsearch6/RowElasticsearchSinkFunction.java) and register it by Java Spi |
+| Option       | Type   | Default   | Description                                                                                                                                                                                                                                                                  |
+|--------------|--------|-----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| routing      | String | (none)    | Specify the elasticsearch routing field                                                                                                                                                                                                                                      |
+| function\.id | String | (default) | Specify the sink function implementing the interface of [RowElasticsearchSinkFunction](../../astatine-connectors/astatine-connector-elasticsearch6/src/main/java/name/zicat/astatine/connector/elasticsearch6/RowElasticsearchSinkFunction.java) and register it by Java Spi |
 
 ## Community VS Astatine
 

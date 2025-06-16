@@ -6,7 +6,6 @@
         <artifactId>astatine-connectors</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-
-    <name>Astatine : Connectors : Http</name>
-    <artifactId>astatine-connector-http</artifactId>
+    <artifactId>astatine-connectors-base</artifactId>
+    <name>Astatine : Connectors : Base</name>
 </project>

@@ -6,6 +6,8 @@
         <artifactId>astatine</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
+
+    <name>Astatine : Functions</name>
     <artifactId>astatine-functions</artifactId>
 
     <dependencies>

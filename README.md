@@ -32,6 +32,7 @@ to start your first streaming sql.
     - [ElasticSearch6 Sink](docs/connectors/elasticsearch6_sink.md)
     - [HBase Sink](docs/connectors/hbase_sink.md)
     - [Paimon Source Sink](docs/connectors/paimon_source_sink.md)
+    - [Doris Sink](docs/connectors/doris_sink.md)
 
 - Functions
 

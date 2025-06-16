@@ -6,6 +6,8 @@
         <artifactId>astatine</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
+
+    <name>Astatine : Sql Client</name>
     <artifactId>astatine-sql-client</artifactId>
 
     <dependencies>
@@ -23,6 +25,11 @@
         <dependency>
             <groupId>name.zicat</groupId>
             <artifactId>astatine-format-protobuf</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>name.zicat</groupId>
+            <artifactId>astatine-connector-doris</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
