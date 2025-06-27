@@ -10,7 +10,7 @@ This page lists all the supported statements supported in Astatine Streaming SQL
 
 ## CREATE STREAM FROM
 
-`CREATE STREAM identity FROM identity2` support to create a stream from other streams, tables or views.
+`CREATE STREAM identity FROM identity2` support to create a stream from a stream, table or view named identity2.
 
 ``` sql
 -- flink sql
@@ -66,7 +66,7 @@ Note:
 
 ## CREATE VIEW FROM
 
-`CREATE VIEW identity FROM identity2` support to create a view from stream.
+`CREATE VIEW identity FROM identity2` support to create a view from a stream named identity2.
 
 ```sql
 CREATE TABLE source (
@@ -136,7 +136,7 @@ The following is the list of supported transforms:
 
 - UNION identity2
 
-  The union operator is used to combine two streams into a single stream.
+  The union operator is used to combine two streams with same type into a single stream.
 
 - REDUCE
 
@@ -183,6 +183,11 @@ The following is the list of supported transforms:
   Define
   a [keyed process function factory](../astatine-streaming-sql/astatine-streaming-sql-parser/src/main/java/name/zicat/astatine/streaming/sql/parser/function/KeyedProcessFunctionFactory.java)
   registering by spi to process the keyed input stream.
+
+- WATERMARK
+
+  Define a [watermark function factory](../astatine-streaming-sql/astatine-streaming-sql-parser/src/main/java/name/zicat/astatine/streaming/sql/parser/function/WatermarkFunctionFactory.java)
+  registering by spi to generate the watermark for the input stream.  
 
 - FORWARD
 

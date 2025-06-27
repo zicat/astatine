@@ -90,6 +90,7 @@ operatorType
     | 'INTERVAL JOIN'
     | 'CONNECT'
     | 'TRANSFORM'
+    | 'WATERMARK'
     | unknownOperatorType
     ;
 
