@@ -19,6 +19,7 @@ to start your first streaming sql.
   - [Disorder Discard Operator](docs/streaming_operators/disorder_discard_operator.md)
   - [Deduplicate Operator](docs/streaming_operators/deduplicate_operator.md)
   - [Date Hour Expansion Operator](docs/streaming_operators/date_hour_expansion_operator.md)
+  - [Field Watermark Operator](docs/streaming_operators/field_watermark_operator.md)
 
 - Formats
 

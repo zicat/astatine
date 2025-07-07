@@ -66,7 +66,7 @@ public class WatermarkTransformFactoryTest extends TransformFactoryTestBase {
   }
 
   /** ExpectValueIterator. */
-  private static class ExpectValueIterator implements Iterator<Long>, Serializable {
+  public static class ExpectValueIterator implements Iterator<Long>, Serializable {
 
     private final long[] value;
     private int offset = 0;
