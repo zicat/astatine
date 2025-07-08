@@ -63,7 +63,10 @@ public class SessionTumbleWindowFunctionFactoryTest extends TransformFactoryTest
     final var factory =
         TransformFactory.findFactory(ProcessTransformFactory.IDENTITY)
             .cast(ProcessTransformFactory.class);
-
+    /*
+      Input:             (t, t+59s, t+100s, t+110, t+120)
+      Expected Output    (t+60s, t+120s, t+180s)
+    */
     final var row1 = GenericRowData.of(StringData.fromString("n1"), 10, fromEpochMillis(ts), 1L);
     final var row2 =
         GenericRowData.of(StringData.fromString("n1"), 20, fromEpochMillis(ts + 59999), 2L);
@@ -130,6 +133,12 @@ public class SessionTumbleWindowFunctionFactoryTest extends TransformFactoryTest
     final var factory =
         TransformFactory.findFactory(ProcessTransformFactory.IDENTITY)
             .cast(ProcessTransformFactory.class);
+
+    /*
+      Input:             (t, t+182)
+      Expected Output    (t+60s, t+182s+60s)
+    */
+
     final var row1 = GenericRowData.of(StringData.fromString("n1"), fromEpochMillis(ts), 1L);
     final var rowWatermark =
         GenericRowData.of(StringData.fromString("n2"), fromEpochMillis(ts + 60000), 100L);
@@ -180,6 +189,11 @@ public class SessionTumbleWindowFunctionFactoryTest extends TransformFactoryTest
     final var factory =
         TransformFactory.findFactory(ProcessTransformFactory.IDENTITY)
             .cast(ProcessTransformFactory.class);
+
+    /*
+      Input:             (t, t+122)
+      Expected Output    (t+60s, t+122s+60s)
+    */
     final var row1 = GenericRowData.of(StringData.fromString("n1"), fromEpochMillis(ts), 1L);
     final var row2 =
         GenericRowData.of(StringData.fromString("n1"), fromEpochMillis(ts + 122000), 2L);
@@ -228,6 +242,10 @@ public class SessionTumbleWindowFunctionFactoryTest extends TransformFactoryTest
     final var factory =
         TransformFactory.findFactory(ProcessTransformFactory.IDENTITY)
             .cast(ProcessTransformFactory.class);
+    /*
+      Input:             (t, t+62)
+      Expected Output    (t+60s, t+120s)
+    */
     final var row1 = GenericRowData.of(StringData.fromString("n1"), fromEpochMillis(ts), 1L);
     final var row2 =
         GenericRowData.of(StringData.fromString("n1"), fromEpochMillis(ts + 62000), 2L);
