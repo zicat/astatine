@@ -20,7 +20,7 @@ package name.zicat.astatine.connector.doris.util;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.regex.Matcher;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -40,12 +40,22 @@ public class DorisUtils {
       Pattern.compile("\\b(DUPLICATE|UNIQUE|AGGREGATE)\\s+KEY\\s*\\(([^)]+)\\)");
 
   public static List<String> getFieldsFromEngine(String engine) {
-    Matcher matcher = ENGINE_PATTERN.matcher(engine);
+    final var matcher = ENGINE_PATTERN.matcher(engine);
     if (matcher.find()) {
       String fields = matcher.group(2);
-      return Arrays.stream(fields.split(",")).map(String::trim).toList();
+      return Arrays.stream(fields.split(",")).map(removeBacktick()).toList();
     }
     return List.of();
+  }
+
+  private static Function<String, String> removeBacktick() {
+    return v -> {
+      final var vTrim = v.trim();
+      if (v.startsWith("`") && v.endsWith("`")) {
+        return vTrim.substring(1, vTrim.length() - 1);
+      }
+      return vTrim;
+    };
   }
 
   public static String createFieldsDDLSql(
