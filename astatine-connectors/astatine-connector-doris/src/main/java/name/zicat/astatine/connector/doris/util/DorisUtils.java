@@ -35,6 +35,21 @@ public class DorisUtils {
 
   public static final String HEAD_KEY_LABEL = "label";
   public static final String HEAD_KEY_GROUP_COMMIT = "group_commit";
+  public static final String HEAD_KEY_COLUMNS = "columns";
+  public static final String HEAD_KEY_FORMAT = "format";
+  public static final String HEAD_KEY_COLUMN_SEPARATOR = "column_separator";
+  public static final String HEAD_KEY_LINE_DELIMITER = "line_delimiter";
+
+  public static final Set<String> UNSUPPORTED_USER_SET_HEADS =
+      Set.of(
+          HEAD_KEY_COLUMNS,
+          HEAD_KEY_FORMAT,
+          HEAD_KEY_COLUMN_SEPARATOR,
+          HEAD_KEY_LINE_DELIMITER,
+          HEAD_KEY_LABEL,
+          HEAD_KEY_GROUP_COMMIT,
+          HttpHeaders.EXPECT,
+          HttpHeaders.AUTHORIZATION);
 
   private static final Pattern ENGINE_PATTERN =
       Pattern.compile("\\b(DUPLICATE|UNIQUE|AGGREGATE)\\s+KEY\\s*\\(([^)]+)\\)");
@@ -143,10 +158,10 @@ public class DorisUtils {
             .map(item -> String.format("`%s`", item.trim().replace("`", "")))
             .collect(Collectors.joining(","));
     final var allHeaders = new HashMap<>(headers);
-    allHeaders.put("columns", columns);
-    allHeaders.put("format", "csv");
-    allHeaders.put("column_separator", csvColumnSeparator);
-    allHeaders.put("line_delimiter", csvLineDelimiter);
+    allHeaders.put(HEAD_KEY_COLUMNS, columns);
+    allHeaders.put(HEAD_KEY_FORMAT, "csv");
+    allHeaders.put(HEAD_KEY_COLUMN_SEPARATOR, csvColumnSeparator);
+    allHeaders.put(HEAD_KEY_LINE_DELIMITER, csvLineDelimiter);
     allHeaders.put(HttpHeaders.EXPECT, "100-continue");
     allHeaders.put(HttpHeaders.AUTHORIZATION, basicAuthHeader(username, password));
     return allHeaders;

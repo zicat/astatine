@@ -28,6 +28,7 @@ import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.types.RowKind;
 
 import static name.zicat.astatine.connector.doris.table.DorisConfigOptions.*;
+import static name.zicat.astatine.connector.doris.util.DorisUtils.UNSUPPORTED_USER_SET_HEADS;
 
 /** DorisDynamicTableSink. */
 @SuppressWarnings("deprecation")
@@ -57,7 +58,7 @@ public class DorisDynamicTableSink implements DynamicTableSink {
             getDorisAutoCreateTableProperties(catalogTable.getOptions(), config),
             getDorisAutoCreateAggregationFieldFunctions(catalogTable.getOptions()),
             dataType,
-            getHeaders(catalogTable.getOptions(), config));
+            getHeaders(catalogTable.getOptions()));
     return SinkFunctionProvider.of(function, config.get(SINK_PARALLELISM));
   }
 
@@ -88,14 +89,21 @@ public class DorisDynamicTableSink implements DynamicTableSink {
     return properties;
   }
 
-  public static Map<String, String> getHeaders(
-      Map<String, String> tableOptions, ReadableConfig config) {
-    return tableOptions.entrySet().stream()
-        .filter(e -> e.getKey().startsWith(HEADER_PROPERTIES))
-        .collect(
-            HashMap::new,
-            (m, e) -> m.put(e.getKey().substring(HEADER_PROPERTIES.length()), e.getValue()),
-            HashMap::putAll);
+  public static Map<String, String> getHeaders(Map<String, String> tableOptions) {
+    final Map<String, String> headers =
+        tableOptions.entrySet().stream()
+            .filter(e -> e.getKey().startsWith(HEADER_PROPERTIES))
+            .collect(
+                HashMap::new,
+                (m, e) -> m.put(e.getKey().substring(HEADER_PROPERTIES.length()), e.getValue()),
+                HashMap::putAll);
+    for (var key : headers.keySet()) {
+      if (UNSUPPORTED_USER_SET_HEADS.contains(key)) {
+        throw new UnsupportedOperationException(
+            "Doris does not support user set header: %s".formatted(key));
+      }
+    }
+    return headers;
   }
 
   @Override
