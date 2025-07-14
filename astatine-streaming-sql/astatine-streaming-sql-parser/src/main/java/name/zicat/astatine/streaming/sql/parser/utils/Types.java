@@ -18,15 +18,18 @@
 
 package name.zicat.astatine.streaming.sql.parser.utils;
 
+import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.DataTypeQueryable;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
-import javax.annotation.Nullable;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
+
+import static org.apache.flink.table.types.logical.utils.LogicalTypeChecks.*;
 
 /** Types. */
 public class Types {
@@ -89,28 +92,41 @@ public class Types {
   }
 
   /**
-   * get field index by rowType and select expression.
+   * get field getter by row type and filed name.
    *
    * @param rowType rowType
    * @param fieldName fieldName
    * @return FieldGetter
    */
   public static RowData.FieldGetter fieldGetter(RowType rowType, String fieldName) {
-    if (fieldName == null) {
-      return NULL_FIELD_GETTER;
-    }
+    checkFieldName(fieldName);
     final var index = rowType.getFieldIndex(fieldName);
     return RowData.createFieldGetter(rowType.getTypeAt(index), index);
   }
 
-  private static final RowData.FieldGetter NULL_FIELD_GETTER =
-      new RowData.FieldGetter() {
-        @Nullable
-        @Override
-        public Object getFieldOrNull(RowData rowData) {
-          return null;
-        }
-      };
+  /**
+   * get unixtime field getter by row type and filed name.
+   *
+   * @param rowType rowType
+   * @param fieldName fieldName
+   * @return FieldGetter
+   */
+  public static UnixFieldGetter unixTimeFieldGetter(RowType rowType, String fieldName) {
+    checkFieldName(fieldName);
+    final var index = rowType.getFieldIndex(fieldName);
+    return createUnixTimeGetter(rowType.getTypeAt(index), index);
+  }
+
+  /**
+   * check field name.
+   *
+   * @param fieldName fieldName
+   */
+  private static void checkFieldName(String fieldName) {
+    if (fieldName == null) {
+      throw new IllegalArgumentException("fieldName cannot be null");
+    }
+  }
 
   /**
    * get field name type by rowType and select expression.
@@ -174,5 +190,44 @@ public class Types {
     public RowData.FieldGetter fieldGetter() {
       return RowData.createFieldGetter(type, index);
     }
+  }
+
+  /**
+   * create unix time getter.
+   * @param fieldType fieldType
+   * @param fieldPos fieldPos
+   * @return UnixFieldGetter
+   */
+  static UnixFieldGetter createUnixTimeGetter(LogicalType fieldType, int fieldPos) {
+    final UnixFieldGetter fieldGetter =
+        switch (fieldType.getTypeRoot()) {
+          case INTEGER, TIME_WITHOUT_TIME_ZONE -> row -> row.getInt(fieldPos);
+          case BIGINT -> row -> (int) (row.getLong(fieldPos) / 1000);
+          case TIMESTAMP_WITHOUT_TIME_ZONE, TIMESTAMP_WITH_LOCAL_TIME_ZONE -> {
+            final int timestampPrecision = getPrecision(fieldType);
+            yield row ->
+                (int) (row.getTimestamp(fieldPos, timestampPrecision).getMillisecond() / 1000);
+          }
+          default -> throw new IllegalArgumentException();
+        };
+    if (!fieldType.isNullable()) {
+      return fieldGetter;
+    }
+    return row -> {
+      if (row.isNullAt(fieldPos)) {
+        return null;
+      }
+      return fieldGetter.getFieldOrNull(row);
+    };
+  }
+
+  @PublicEvolving
+  public interface UnixFieldGetter extends Serializable {
+
+    /**
+     * @param row row
+     * @return int result
+     */
+    Integer getFieldOrNull(RowData row);
   }
 }

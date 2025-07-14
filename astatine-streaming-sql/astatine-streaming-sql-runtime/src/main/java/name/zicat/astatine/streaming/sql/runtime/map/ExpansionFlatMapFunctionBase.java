@@ -18,10 +18,10 @@
 
 package name.zicat.astatine.streaming.sql.runtime.map;
 
+import name.zicat.astatine.streaming.sql.parser.utils.Types;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.data.TimestampData;
 import org.apache.flink.table.data.utils.JoinedRowData;
 import org.apache.flink.util.Collector;
 
@@ -34,18 +34,18 @@ import java.util.TimeZone;
 public abstract class ExpansionFlatMapFunctionBase extends RichFlatMapFunction<RowData, RowData> {
 
   private final String timeZoneStr;
-  private final RowData.FieldGetter startTsFieldGetter;
-  private final RowData.FieldGetter currentTsFieldGetter;
-  private final RowData.FieldGetter endTsFieldGetter;
+  private final Types.UnixFieldGetter startTsFieldGetter;
+  private final Types.UnixFieldGetter currentTsFieldGetter;
+  private final Types.UnixFieldGetter endTsFieldGetter;
 
   protected transient JoinedRowData returnRowData;
   protected transient ZoneId zoneId;
 
   public ExpansionFlatMapFunctionBase(
       String timeZoneStr,
-      RowData.FieldGetter startTsFieldGetter,
-      RowData.FieldGetter currentTsFieldGetter,
-      RowData.FieldGetter endTsFieldGetter) {
+      Types.UnixFieldGetter startTsFieldGetter,
+      Types.UnixFieldGetter currentTsFieldGetter,
+      Types.UnixFieldGetter endTsFieldGetter) {
     this.timeZoneStr = timeZoneStr;
     this.startTsFieldGetter = startTsFieldGetter;
     this.currentTsFieldGetter = currentTsFieldGetter;
@@ -60,9 +60,9 @@ public abstract class ExpansionFlatMapFunctionBase extends RichFlatMapFunction<R
 
   @Override
   public void flatMap(RowData rowData, Collector<RowData> collector) {
-    final var startTs = getUnixTimestamp(startTsFieldGetter, rowData);
-    final var currentTs = getUnixTimestamp(currentTsFieldGetter, rowData);
-    final var endTs = getUnixTimestamp(endTsFieldGetter, rowData);
+    final var startTs = startTsFieldGetter.getFieldOrNull(rowData);
+    final var currentTs = currentTsFieldGetter.getFieldOrNull(rowData);
+    final var endTs = endTsFieldGetter.getFieldOrNull(rowData);
     if (currentTs == null || currentTs == 0) {
       throw new NullPointerException("currentTs is null");
     }
@@ -85,21 +85,6 @@ public abstract class ExpansionFlatMapFunctionBase extends RichFlatMapFunction<R
       LocalDateTime startDate,
       LocalDateTime endDateTime,
       Collector<RowData> collector);
-
-  protected Integer getUnixTimestamp(RowData.FieldGetter tsGetter, RowData rowData) {
-    final var value = tsGetter.getFieldOrNull(rowData);
-    if (value == null) {
-      return null;
-    } else if (value instanceof Long longValue) {
-      return (int) (longValue / 1000);
-    } else if (value instanceof Integer integerValue) {
-      return integerValue;
-    } else if (value instanceof TimestampData timestampData) {
-      return (int) (timestampData.getMillisecond() / 1000);
-    } else {
-      throw new IllegalArgumentException("Unsupported type: " + value.getClass());
-    }
-  }
 
   protected void output(RowData leftRow, RowData rightRow, Collector<RowData> collector) {
     returnRowData.replace(leftRow, rightRow);

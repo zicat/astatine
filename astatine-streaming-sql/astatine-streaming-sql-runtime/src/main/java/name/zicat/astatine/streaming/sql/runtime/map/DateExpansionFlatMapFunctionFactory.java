@@ -31,7 +31,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 
-import static name.zicat.astatine.streaming.sql.parser.utils.Types.fieldGetter;
+import static name.zicat.astatine.streaming.sql.parser.utils.Types.unixTimeFieldGetter;
 
 /** DateExpansionFlatMapFunctionFactory. */
 public class DateExpansionFlatMapFunctionFactory extends ExpansionFlatMapFunctionFactoryBase {
@@ -41,9 +41,10 @@ public class DateExpansionFlatMapFunctionFactory extends ExpansionFlatMapFunctio
   @Override
   protected FlatMapFunction<RowData, RowData> create(TransformContext context, RowType rowType) {
     final var timeZoneStr = context.get(OPTION_TIME_ZONE);
-    final var startTsFieldGetter = fieldGetter(rowType, context.get(OPTION_FIELD_START_TS));
-    final var currentTsFieldGetter = fieldGetter(rowType, context.get(OPTION_FIELD_CURRENT_TS));
-    final var endTsFieldGetter = fieldGetter(rowType, context.get(OPTION_FIELD_END_TS));
+    final var startTsFieldGetter = unixTimeFieldGetter(rowType, context.get(OPTION_FIELD_START_TS));
+    final var currentTsFieldGetter =
+        unixTimeFieldGetter(rowType, context.get(OPTION_FIELD_CURRENT_TS));
+    final var endTsFieldGetter = unixTimeFieldGetter(rowType, context.get(OPTION_FIELD_END_TS));
     final var maxPartitionCount = context.get(OPTION_MAX_COUNT);
 
     return new ExpansionFlatMapFunctionBase(
