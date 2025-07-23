@@ -32,6 +32,7 @@ import org.apache.flink.configuration.ConfigOptions;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.table.api.*;
 import org.apache.flink.table.api.bridge.java.internal.StreamTableEnvironmentImpl;
 import org.apache.flink.table.data.RowData;
@@ -47,6 +48,8 @@ public class PlusSqlTableEnvironment {
   private static final Pattern WATERMARK_PATTERN = Pattern.compile("WATERMARK FOR (.*) AS (.*)");
   public static final ConfigOption<String> OPTION_WATERMARK_EXPRESSION =
       ConfigOptions.key("expression.watermark").stringType().defaultValue(null);
+  public static final ConfigOption<Integer> OPTION_PARALLELISM =
+      ConfigOptions.key("parallelism").intType().defaultValue(-1);
   private static final ConfigOption<String> OPTION_PRODUCT_TYPE =
       ConfigOptions.key("product.type").stringType().defaultValue(Row.class.getName());
 
@@ -96,6 +99,18 @@ public class PlusSqlTableEnvironment {
         final var newType =
             OneTransformFactory.IDENTITY.equals(type) ? TwoTransformFactory.IDENTITY : type;
         stream = findFactory(newType).transform(context, stream, stream2);
+      }
+      final var parallelism = context.get(OPTION_PARALLELISM);
+      if (parallelism > 0) {
+        if (stream instanceof SingleOutputStreamOperator<?> singleOutputStream) {
+          stream = singleOutputStream.setParallelism(parallelism);
+        } else {
+          throw new UnsupportedOperationException(
+              "parallelism only support "
+                  + SingleOutputStreamOperator.class
+                  + ", not support on "
+                  + stream.getClass());
+        }
       }
     }
 

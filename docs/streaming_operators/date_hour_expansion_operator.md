@@ -20,6 +20,7 @@ FROM source WITH(
    'product.type' = 'RowData'
 ) FLAT MAP WITH (
    'identity' = 'date_expansion',
+   'parallelism' = '2',
    'timezone' = 'GMT',
    'field.start-ts' = 'start_ts',
    'field.end-ts' = 'end_ts',
@@ -71,6 +72,7 @@ FROM source WITH(
    'product.type' = 'RowData'
 ) FLAT MAP WITH (
    'identity' = 'date_hour_expansion',
+   'parallelism' = '2',
    'timezone' = 'GMT',
    'field.start-ts' = 'start_ts',
    'field.end-ts' = 'end_ts',
@@ -118,11 +120,12 @@ Output:
    
    If the input row has field `hour`, the operator will output `hour1`.
 
-3. The param `timezone` is the timezone of the date field.
-4. The param `field.start-ts` is the start timestamp(INT/LONG/Timestamp), if not set, the start timestamp is zero.
-5. The param `field.current-ts` is the timestamp(INT/LONG/Timestamp) of rows, it must be not null.
-6. The param `field.end-ts` is the end timestamp(INT/LONG/Timestamp), if not set, the end timestamp is `field.current-ts`.
-7. The param `max-count` is the max count output of a row.
+3. The param `parallelism` is the parallelism of the operator, it must be a positive integer, default -1 means following previous stream parallelism.
+4. The param `timezone` is the timezone of the date field.
+5. The param `field.start-ts` is the start timestamp(INT/LONG/Timestamp), if not set, the start timestamp is zero.
+6. The param `field.current-ts` is the timestamp(INT/LONG/Timestamp) of rows, it must be not null.
+7. The param `field.end-ts` is the end timestamp(INT/LONG/Timestamp), if not set, the end timestamp is `field.current-ts`.
+8. The param `max-count` is the max count output of a row.
 
    The real count of the rows is `MIN(date(COALESCE(field.end-ts, field.ts)) - date(COALESCE(field.start-ts, 0)) + 1, max-count)`, Example of `date_expansion`:
 

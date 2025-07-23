@@ -17,6 +17,7 @@ FROM source WITH(
     'fields' = 'name'
 ) PROCESS WITH(
     'identity' = 'disorder_discard',
+    'parallelism' = '2',
     'eventtime' = 'ts'
 );
 
@@ -52,5 +53,6 @@ Note:
 1. The identity of the operator is `disorder_discard`.
 2. The source of this operator must from a keyed operator.
 3. The row type of the source must be `RowData`.
-4. The `eventtime` is the field name that you want to order by eventtime.
-5. The output type of this operator is same as the source type.
+4. The param `parallelism` is the parallelism of the operator, it must be a positive integer, default -1 means following previous stream parallelism.
+5. The param `eventtime` is the field name that you want to order by eventtime.
+6. The output type of this operator is same as the source type.

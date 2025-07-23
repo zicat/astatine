@@ -23,6 +23,7 @@ CREATE VIEW stream_deduplicate_result WITH (
    'fields' = 'name'
 ) PROCESS WITH (
     'identity' = 'deduplicate',
+    'parallelism' = '2',
     'eventtime' = 'ts',
     'order.type' = 'ASC'
 );
@@ -49,13 +50,15 @@ Note:
 1. The identity of the operator is `deduplicate`.
 2. The source of this operator must from a keyed operator `KEY BY WITH()` like above.
 3. The row type of the source must be `RowData`.
-4. The param `eventtime` is the field name that you want to deduplicate by event time.
-5. The param `order.type` is the order type of the event time, it can be `ASC` or `DESC`.
-6. The default ttl of value stored in ValueState is 2 minutes, user can set ttl by params `table.exec.state.ttl` as below.
+4. The param `parallelism` is the parallelism of the operator, it must be a positive integer, default -1 means following previous stream parallelism.
+5. The param `eventtime` is the field name that you want to deduplicate by event time.
+6. The param `order.type` is the order type of the event time, it can be `ASC` or `DESC`.
+7. The default ttl of value stored in ValueState is 2 minutes, user can set ttl by params `table.exec.state.ttl` as below.
 
    ```sql
    PROCESS WITH (
        'identity' = 'deduplicate',
+       'parallelism' = '2',
        'eventtime' = 'ts',
        'order.type' = 'ASC',
        'table.exec.state.ttl' = '10 min'

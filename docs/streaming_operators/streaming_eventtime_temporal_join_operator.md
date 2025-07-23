@@ -49,6 +49,7 @@ CREATE VIEW temp_join_result WITH (
    'fields' = 'name'
 ) CONNECT stream_keyed_by_name_source2 WITH (
   'identity' = 'temporal_join',
+  'parallelism' = '2',
   'left.eventtime' = 'ts',
   'right.eventtime' = 'ts',
   'left.output.fields' = '*',
@@ -91,10 +92,11 @@ Output:
 
 Note:
 1. The identity of the operator is `temporal_join`.
-2. The `left.eventtime` set the left stream eventtime field name.
-3. The `right.eventtime` set the right stream eventtime field name.
-4. The `left.output.fields` set the left stream output fields, split by `,`, the `*` means output all left input fields, using keyword `AS` to rename fieldName if necessary.
-5. The `right.output.fields` set the right stream output fields, split by `,`, the `*` means output all left input fields, using keyword `AS` to rename fieldName if necessary.
-6. The `join.type` set the join type including `LEFT`, `INNER`.
-7. The `right.order.type` set using the `FIRST` OR `LAST` value of the right stream event to join.
-8. The `table.exec.state.ttl` set the eventtime expired state ttl, the default value is 2 minutes.
+2. The param `parallelism` is the parallelism of the operator, it must be a positive integer, default -1 means following previous stream parallelism.
+3. The `left.eventtime` set the left stream eventtime field name.
+4. The `right.eventtime` set the right stream eventtime field name.
+5. The `left.output.fields` set the left stream output fields, split by `,`, the `*` means output all left input fields, using keyword `AS` to rename fieldName if necessary.
+6. The `right.output.fields` set the right stream output fields, split by `,`, the `*` means output all left input fields, using keyword `AS` to rename fieldName if necessary.
+7. The `join.type` set the join type including `LEFT`, `INNER`.
+8. The `right.order.type` set using the `FIRST` OR `LAST` value of the right stream event to join.
+9. The `table.exec.state.ttl` set the eventtime expired state ttl, the default value is 2 minutes.

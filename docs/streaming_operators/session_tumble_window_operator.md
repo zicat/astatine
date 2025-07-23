@@ -23,6 +23,7 @@ CREATE VIEW view_session_result WITH(
     'fields' = 'sid'
 ) PROCESS WITH(
     'identity' = 'session_tumble_window',
+    'parallelism' = '2',
     'fields' = 'vid AS vendor_id, peer AS peer_id, sid',
     'eventtime' = 'ts',
     'values' = 'score AS score_1',
@@ -74,12 +75,13 @@ Output:
 
 Note:
 1. The identity of the operator is `session_tumble_window`.
-2. The `fields` is the field names that you want to return in the output, only using first value in one session window.
-3. The `eventtime` is the field name that points to the event time.
-4. The `values` is the field names that you want to collect in the session window, the input type of the field must be `INT` OR `LONG`, the output type of the field must be `BINAAY`.
-5. The `time-series.name` is the name of the time series field, the operator will collect the time series in the session window, the type of this field is `BINARY`.
-6. The `session.duration` is the window size.
+2. The param `parallelism` is the parallelism of the operator, it must be a positive integer, default -1 means following previous stream parallelism.
+3. The `fields` is the field names that you want to return in the output, only using first value in one session window.
+4. The `eventtime` is the field name that points to the event time.
+5. The `values` is the field names that you want to collect in the session window, the input type of the field must be `INT` OR `LONG`, the output type of the field must be `BINAAY`.
+6. The `time-series.name` is the name of the time series field, the operator will collect the time series in the session window, the type of this field is `BINARY`.
+7. The `session.duration` is the window size.
 
    The start of window is the eventtime of first value. The session is deleted if no records in session.
 
-7. The diff with sql session window operator is that the operator will output records when the session is expired out of `session.min` or the life cycle of the session is over `session.max`.
+8. The diff with sql session window operator is that the operator will output records when the session is expired out of `session.min` or the life cycle of the session is over `session.max`.

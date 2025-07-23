@@ -23,6 +23,7 @@ CREATE VIEW field_changed_emit_result WITH (
    'fields' = 'name'
 ) PROCESS WITH (
     'identity' = 'field_value_watch_changed_emitter',
+    'parallelism' = '2',
     'watch.field' = 'score',
     'eventtime' = 'ts'
 );
@@ -55,15 +56,17 @@ Output:
 
 Note:
 1. The identity of the operator is `field_value_watch_changed_emitter`.
-2. The `watch.field` is the field name that you want to watch the value change.
-3. The source of this operator must from a keyed operator `KEY BY WITH()` like above.
-4. The row type of the source must be `RowData`.
-5. The operator is based on eventtime trigger, if the record received is disorder, the operator will discard the record.
-6. The default ttl of value stored in ValueState is 2 minutes, user can set ttl by params `table.exec.state.ttl` as below.
+2. The param `parallelism` is the parallelism of the operator, it must be a positive integer, default -1 means following previous stream parallelism.
+3. The `watch.field` is the field name that you want to watch the value change.
+4. The source of this operator must from a keyed operator `KEY BY WITH()` like above.
+5. The row type of the source must be `RowData`.
+6. The operator is based on eventtime trigger, if the record received is disorder, the operator will discard the record.
+7. The default ttl of value stored in ValueState is 2 minutes, user can set ttl by params `table.exec.state.ttl` as below.
 
    ```sql
    PROCESS WITH (
        'identity' = 'field_value_watch_changed_emitter',
+       'parallelism' = '2',
        'watch.field' = 'score',
        'table.exec.state.ttl' = '10 min',
        'eventtime' = 'ts'

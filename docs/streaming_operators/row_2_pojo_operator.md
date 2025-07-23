@@ -13,18 +13,20 @@ CREATE STREAM stream_source
 FROM source
 MAP WITH (
     'identity' = 'row_2_pojo',
+    'parallelism' = '2',
     'mapping.class' = 'name.zicat.astatine.streaming.sql.parser.test.function.NameScore',
     'return.class' = 'name.zicat.astatine.streaming.sql.parser.test.function.NameScore'
 );
 
-PRINT FRO"M stream_source;
+PRINT FROM stream_source;
 ```
 
 Note:
 1. The identity of the operator is `row_2_pojo`.
-2. The `mapping.class` is set the mapping class name.
-3. The `return.class` is set the return class name, the `return.class` must be equals `mapping.class` or it's super class.
-4. If the field name of pojo class is different from the input row, you can use the `@Row2PojoProperty` to alias it.
+2. The param `parallelism` is the parallelism of the operator, it must be a positive integer, default -1 means following previous stream parallelism.
+3. The `mapping.class` is set the mapping class name.
+4. The `return.class` is set the return class name, the `return.class` must be equals `mapping.class` or it's super class.
+5. If the field name of pojo class is different from the input row, you can use the `@Row2PojoProperty` to alias it.
     ```java
     public class NameScore {
         
