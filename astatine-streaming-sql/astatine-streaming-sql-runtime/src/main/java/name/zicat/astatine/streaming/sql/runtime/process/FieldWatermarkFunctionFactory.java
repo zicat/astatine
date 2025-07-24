@@ -100,8 +100,8 @@ public class FieldWatermarkFunctionFactory implements WatermarkFunctionFactory<R
 
     private final RowData.FieldGetter getter;
     private final long delayMills;
+    private final boolean emitOnEvent;
     private long currentWatermark = Long.MIN_VALUE;
-    private boolean emitOnEvent;
 
     public FieldDelayWatermarkGenerator(
         RowData.FieldGetter getter, long delayMills, boolean emitOnEvent) {

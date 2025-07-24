@@ -132,7 +132,7 @@ public class DorisUtils {
         || rootType == LogicalTypeRoot.TIMESTAMP_WITH_LOCAL_TIME_ZONE) {
       sql.append("DATETIME");
     } else if (rootType == LogicalTypeRoot.VARCHAR) {
-      sql.append("VARCHAR(%d)".formatted(Math.min(255, ((VarCharType) rowType).getLength())));
+      sql.append("VARCHAR(65533)");
     } else {
       sql.append(rowType.getTypeRoot().name().toUpperCase());
     }
