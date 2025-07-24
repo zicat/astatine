@@ -191,6 +191,7 @@ public class Row2PojoMapFunction<T> extends RichMapFunction<Row, T> {
             case "float" -> Float.class.getName();
             case "double" -> Double.class.getName();
             case "char" -> Character.class.getName();
+            case "[B" -> "byte []";
             default -> type.getName();
         };
     }
