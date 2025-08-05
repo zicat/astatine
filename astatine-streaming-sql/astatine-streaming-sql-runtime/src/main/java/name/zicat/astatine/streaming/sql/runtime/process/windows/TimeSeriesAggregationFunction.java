@@ -18,49 +18,42 @@
 
 package name.zicat.astatine.streaming.sql.runtime.process.windows;
 
-import static name.zicat.astatine.streaming.sql.runtime.utils.VLongUtils.*;
-
 /** TimeSeriesAggregationFunction. */
-public class TimeSeriesAggregationFunction extends PositiveLong2BytesAggregationFunction<Long> {
-
-  @Override
-  protected long getLongValue(Long value) {
-    return value;
-  }
+public class TimeSeriesAggregationFunction extends Long2BytesAggregationFunction {
 
   public Long firstValue(byte[] value) {
-    return vLongDecode(value, 4);
+    final int offset = BytesAggregationFunction.HEAD_SIZE;
+    return ((long) (value[offset] & 0xFF) << 56)
+        | ((long) (value[offset + 1] & 0xFF) << 48)
+        | ((long) (value[offset + 2] & 0xFF) << 40)
+        | ((long) (value[offset + 3] & 0xFF) << 32)
+        | ((long) (value[offset + 4] & 0xFF) << 24)
+        | ((long) (value[offset + 5] & 0xFF) << 16)
+        | ((long) (value[offset + 6] & 0xFF) << 8)
+        | ((long) (value[offset + 7] & 0xFF));
   }
 
   @Override
   public byte[] output(byte[] acc) {
-    final var size = wholeSize(acc);
+    final var size = bodySize(acc);
     if (size == 0) {
       return acc;
     }
-    final var firstValueSize = firstValueSize(acc, 4);
-    final var realSize = size - firstValueSize;
+    /*
+     The first value in acc is the start ts of session, remove it.
+    */
+    final var realSize = size - valueLength();
     final byte[] result = new byte[realSize];
-    System.arraycopy(acc, 4 + firstValueSize, result, 0, realSize);
+    System.arraycopy(acc, BytesAggregationFunction.HEAD_SIZE + valueLength(), result, 0, realSize);
     return result;
   }
 
   @Override
   public int valueSize(byte[] acc) {
-    final var size = wholeSize(acc);
+    final var size = bodySize(acc);
     if (size == 0) {
       return 0;
     }
-    final var firstValueSize = firstValueSize(acc, 4);
-    return size - firstValueSize;
-  }
-
-  public static int firstValueSize(byte[] bytes, int index) {
-    for (int i = index; i < bytes.length; i++) {
-      if ((bytes[i] & 0x80) == 0) {
-        return i - index + 1;
-      }
-    }
-    throw new RuntimeException("invalid bytes");
+    return size - valueLength();
   }
 }

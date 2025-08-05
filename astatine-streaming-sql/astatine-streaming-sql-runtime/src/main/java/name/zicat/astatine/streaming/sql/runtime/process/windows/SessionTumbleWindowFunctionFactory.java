@@ -30,7 +30,6 @@ import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.DataTypeQueryable;
-import org.apache.flink.table.types.logical.BigIntType;
 import org.apache.flink.table.types.logical.RowType;
 
 import java.time.Duration;
@@ -62,13 +61,6 @@ public class SessionTumbleWindowFunctionFactory
     final var rowType = (RowType) type.getDataType().getLogicalType();
     final var fieldNameTypes = fieldsNameTypes(rowType, context.get(OPTION_FIELDS));
     final var valueNameTypes = fieldsNameTypes(rowType, context.get(OPTION_VALUES));
-    Arrays.stream(valueNameTypes)
-        .forEach(
-            t -> {
-              if (!(t.getType() instanceof BigIntType)) {
-                throw new IllegalArgumentException("value type must be bigint");
-              }
-            });
     final var eventtimeType = fieldsNameTypes(rowType, context.get(OPTION_EVENTTIME))[0];
     final var function =
         new SessionTumbleWindowFunction(

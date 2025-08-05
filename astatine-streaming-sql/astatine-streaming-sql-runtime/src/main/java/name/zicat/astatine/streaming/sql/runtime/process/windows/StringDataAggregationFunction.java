@@ -18,37 +18,17 @@
 
 package name.zicat.astatine.streaming.sql.runtime.process.windows;
 
-import java.io.Serializable;
+import org.apache.flink.table.data.StringData;
 
-/**
- * AggregationFunction.
- *
- * @param <O> O
- */
-public interface AggregationFunction<O> extends Serializable {
+/** StringDataAggregationFunction. */
+public class StringDataAggregationFunction extends BinaryAggregationFunction {
 
-  /**
-   * accumulate value.
-   *
-   * @param acc acc
-   * @param value value
-   */
-  O accumulate(O acc, Object value);
-
-  /**
-   * value size exclude heads.
-   *
-   * @param acc acc
-   * @return value
-   */
-  int valueSize(O acc);
-
-  /**
-   * output.
-   *
-   * @param acc acc
-   * @return result result
-   */
-  O output(O acc);
-
+  @Override
+  protected byte[] getBinary(Object value) {
+    if (value == null) {
+      return EMPTY;
+    }
+    final var stringData = (StringData) value;
+    return stringData.toBytes();
+  }
 }

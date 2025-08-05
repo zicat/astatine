@@ -18,37 +18,29 @@
 
 package name.zicat.astatine.streaming.sql.runtime.process.windows;
 
-import java.io.Serializable;
+/** Byte2BytesAggregationFunction. */
+public class Byte2BytesAggregationFunction extends BytesAggregationFunction {
 
-/**
- * AggregationFunction.
- *
- * @param <O> O
- */
-public interface AggregationFunction<O> extends Serializable {
+  @Override
+  public byte[] accumulate(byte[] acc, Object value) {
+    final var byteValue = getByteValue(value);
+    var resultBytes = initIfNull(acc);
+    final var valueLength = 1; // byte is 1 byte
+    final var offset = nextWritableOffset(resultBytes);
+    final var limit = valueLength + offset;
+    // expand the byte array if necessary
+    while (limit > resultBytes.length) {
+      resultBytes = expand(resultBytes, offset, valueLength);
+    }
+    resultBytes[offset] = byteValue;
+    updateHead(resultBytes, limit);
+    return resultBytes;
+  }
 
-  /**
-   * accumulate value.
-   *
-   * @param acc acc
-   * @param value value
-   */
-  O accumulate(O acc, Object value);
-
-  /**
-   * value size exclude heads.
-   *
-   * @param acc acc
-   * @return value
-   */
-  int valueSize(O acc);
-
-  /**
-   * output.
-   *
-   * @param acc acc
-   * @return result result
-   */
-  O output(O acc);
-
+  protected byte getByteValue(Object value) {
+    if (value == null) {
+      return (byte) (0);
+    }
+    return (byte) value;
+  }
 }

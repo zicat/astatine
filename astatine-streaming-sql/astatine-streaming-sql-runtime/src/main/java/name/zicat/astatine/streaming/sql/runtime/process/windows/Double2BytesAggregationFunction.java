@@ -18,13 +18,14 @@
 
 package name.zicat.astatine.streaming.sql.runtime.process.windows;
 
-import static name.zicat.astatine.streaming.sql.runtime.utils.VLongUtils.*;
-
-/** ULongAggregationFunction. */
-public class ULongAggregationFunction extends PositiveLong2BytesAggregationFunction<Long> {
+/** Double2BytesAggregationFunction. */
+public class Double2BytesAggregationFunction extends Long2BytesAggregationFunction {
 
   @Override
-  protected long getLongValue(Long value) {
-    return value;
+  protected long getLongValue(Object value) {
+    if (value == null) {
+      return 0;
+    }
+    return Double.doubleToLongBits((double) value);
   }
 }

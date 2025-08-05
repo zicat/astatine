@@ -31,3 +31,15 @@ CREATE TEMPORARY SYSTEM FUNCTION IF NOT EXISTS modular AS 'name.zicat.astatine.f
 <#macro udf_basic>
 CREATE TEMPORARY SYSTEM FUNCTION IF NOT EXISTS line_separator AS 'name.zicat.astatine.functions.LineSeparator' LANGUAGE JAVA;
 </#macro>
+
+<#macro udf_session_value>
+CREATE TEMPORARY SYSTEM FUNCTION IF NOT EXISTS session_bool_collect AS 'name.zicat.astatine.functions.SessionBoolValueCollect' LANGUAGE JAVA;
+CREATE TEMPORARY SYSTEM FUNCTION IF NOT EXISTS session_byte_collect AS 'name.zicat.astatine.functions.SessionByteValueCollect' LANGUAGE JAVA;
+CREATE TEMPORARY SYSTEM FUNCTION IF NOT EXISTS session_int_collect AS 'name.zicat.astatine.functions.SessionIntValueCollect' LANGUAGE JAVA;
+CREATE TEMPORARY SYSTEM FUNCTION IF NOT EXISTS session_long_collect AS 'name.zicat.astatine.functions.SessionLongValueCollect' LANGUAGE JAVA;
+CREATE TEMPORARY SYSTEM FUNCTION IF NOT EXISTS session_short_collect AS 'name.zicat.astatine.functions.SessionShortValueCollect' LANGUAGE JAVA;
+CREATE TEMPORARY SYSTEM FUNCTION IF NOT EXISTS session_string_collect AS 'name.zicat.astatine.functions.SessionStringValueCollect' LANGUAGE JAVA;
+CREATE TEMPORARY SYSTEM FUNCTION IF NOT EXISTS session_float_collect AS 'name.zicat.astatine.functions.SessionFloatValueCollect' LANGUAGE JAVA;
+CREATE TEMPORARY SYSTEM FUNCTION IF NOT EXISTS session_double_collect AS 'name.zicat.astatine.functions.SessionDoubleValueCollect' LANGUAGE JAVA;
+CREATE TEMPORARY SYSTEM FUNCTION IF NOT EXISTS session_binary_collect AS 'name.zicat.astatine.functions.SessionBinaryValueCollect' LANGUAGE JAVA;
+</#macro>

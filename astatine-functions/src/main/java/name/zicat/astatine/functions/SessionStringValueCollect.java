@@ -16,32 +16,32 @@
  * limitations under the License.
  */
 
-package name.zicat.astatine.streaming.sql.runtime.utils;
+package name.zicat.astatine.functions;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import org.apache.flink.table.annotation.DataTypeHint;
+import org.apache.flink.table.annotation.FunctionHint;
+import org.apache.flink.table.functions.TableFunction;
+import org.apache.flink.types.Row;
 
-/** VLongUtils. */
-public class VLongUtils {
+/** SessionStringValueCollect. */
+@FunctionHint(output = @DataTypeHint("ROW<collect_result ARRAY<STRING>>"))
+public class SessionStringValueCollect extends TableFunction<Row> {
 
-  public static int calculateVLongLength(long value) {
-    if (value == 0) {
-      return 1;
+  public void eval(byte[] valueSeries) throws Exception {
+    final var result = new ArrayList<String>();
+    final var buffer = ByteBuffer.wrap(valueSeries);
+    while (buffer.hasRemaining()) {
+      final var size = (int) vLongDecode(buffer);
+      final var bytes = new byte[size];
+      buffer.get(bytes);
+      result.add(new String(bytes, StandardCharsets.UTF_8));
     }
-    int bits = Long.SIZE - Long.numberOfLeadingZeros(value);
-    return (bits + 6) / 7;
-  }
-
-  public static long vLongDecode(byte[] bytes, int index) {
-    long value = 0;
-    int shift = 0;
-    for (int i = index; i < bytes.length; i++) {
-      value |= (long) (bytes[i] & 0x7F) << shift;
-      if ((bytes[i] & 0x80) == 0) {
-        break;
-      }
-      shift += 7;
-    }
-    return value;
+    final Row row = new Row(1);
+    row.setField(0, result.toArray(new String[] {}));
+    collect(row);
   }
 
   public static long vLongDecode(ByteBuffer byteBuffer) {
@@ -56,13 +56,5 @@ public class VLongUtils {
       shift += 7;
     }
     return value;
-  }
-
-  public static long zigZagEncode(int n) {
-    return ((long) n << 1) ^ (n >> 31);
-  }
-
-  public static int zigZagDecode(long n) {
-    return (int) ((n >>> 1) ^ -(n & 1));
   }
 }

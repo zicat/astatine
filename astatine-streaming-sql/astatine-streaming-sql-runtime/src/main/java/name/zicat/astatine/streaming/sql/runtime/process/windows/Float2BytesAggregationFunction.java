@@ -18,37 +18,14 @@
 
 package name.zicat.astatine.streaming.sql.runtime.process.windows;
 
-import java.io.Serializable;
+/** Float2BytesAggregationFunction. */
+public class Float2BytesAggregationFunction extends Int2BytesAggregationFunction {
 
-/**
- * AggregationFunction.
- *
- * @param <O> O
- */
-public interface AggregationFunction<O> extends Serializable {
-
-  /**
-   * accumulate value.
-   *
-   * @param acc acc
-   * @param value value
-   */
-  O accumulate(O acc, Object value);
-
-  /**
-   * value size exclude heads.
-   *
-   * @param acc acc
-   * @return value
-   */
-  int valueSize(O acc);
-
-  /**
-   * output.
-   *
-   * @param acc acc
-   * @return result result
-   */
-  O output(O acc);
-
+  @Override
+  protected int getIntValue(Object value) {
+    if (value == null) {
+      return 0;
+    }
+    return Float.floatToIntBits((float) value);
+  }
 }

@@ -57,20 +57,21 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
   protected final int[] valueMapping;
   protected final RowType.RowField[] valueFields;
   protected final RowType valueStateType;
-  protected transient ValueState<RowData> valueState;
-  protected transient ValueState<Long> registeredTimer;
-  protected transient MapState<Long, List<RowData>> inputState;
-  protected transient RowData.FieldGetter[] inputValueFieldGetters;
-  protected transient AggregationFunction<Long, byte[]>[] valueHandles;
-  protected transient TimeSeriesAggregationFunction timeSeriesHandle;
-  protected transient Counter dropCounter;
-  protected transient int[] fieldInProjectRow;
-  private transient ProcessableRows processableRows;
+  protected final RowData.FieldGetter[] inputValueFieldGetters;
+  protected final List<AggregationFunction<byte[]>> valueHandles;
+  protected final TimeSeriesAggregationFunction timeSeriesHandle;
+  protected final int[] fieldInProjectRow;
   protected final long sessionMillis;
   protected final int timeSeriesOffset;
   protected final int eventTimeOffset;
   protected final int fieldsOffset;
   protected final int valuesOffset;
+
+  protected transient ValueState<RowData> valueState;
+  protected transient ValueState<Long> registeredTimer;
+  protected transient MapState<Long, List<RowData>> inputState;
+  protected transient ProcessableRows processableRows;
+  protected transient Counter dropCounter;
 
   public SessionTumbleWindowFunction(
       RowData.FieldGetter eventTimeGetter,
@@ -92,6 +93,19 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
     this.valuesOffset = fieldTypes.length;
     this.eventTimeOffset = valuesOffset + valueFields.length;
     this.timeSeriesOffset = eventTimeOffset + 1;
+    this.fieldInProjectRow = new int[fieldTypes.length];
+    for (int i = 0; i < fieldTypes.length; i++) {
+      this.fieldInProjectRow[i] = i;
+    }
+    this.inputValueFieldGetters = new RowData.FieldGetter[valueFields.length];
+    this.valueHandles = new ArrayList<>(valueFields.length);
+    final var valueOffset = fieldTypes.length;
+    for (int i = 0; i < valueFields.length; i++) {
+      this.inputValueFieldGetters[i] = createFieldGetter(valueFields[i].getType(), valueOffset + i);
+      this.valueHandles.add(
+          BytesAggregationFunction.createAggregationFunction(valueFields[i].getType()));
+    }
+    this.timeSeriesHandle = new TimeSeriesAggregationFunction();
     this.valueStateType =
         createReturnRowType(eventTimeField, fieldTypes, valueFields, timeSeriesFieldName);
   }
@@ -100,34 +114,21 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
   public void open(Configuration parameters) throws Exception {
 
     final var context = getRuntimeContext();
-    valueState =
+    this.valueState =
         context.getState(
             new ValueStateDescriptor<>("valueState", InternalTypeInfo.of(valueStateType)));
-    registeredTimer = context.getState(new ValueStateDescriptor<>("timer", Types.LONG));
-
+    this.registeredTimer = context.getState(new ValueStateDescriptor<>("timer", Types.LONG));
     final var inputFields = new ArrayList<>(Arrays.asList(fieldTypes));
-    fieldInProjectRow = new int[fieldTypes.length];
-    for (int i = 0; i < fieldTypes.length; i++) {
-      fieldInProjectRow[i] = i;
-    }
     inputFields.addAll(Arrays.asList(valueFields));
     inputFields.add(eventTimeField);
-    inputValueFieldGetters = new RowData.FieldGetter[valueFields.length];
-    valueHandles = new ULongAggregationFunction[valueFields.length];
-    final var valueOffset = fieldTypes.length;
-    for (int i = 0; i < valueFields.length; i++) {
-      inputValueFieldGetters[i] = createFieldGetter(valueFields[i].getType(), valueOffset + i);
-      valueHandles[i] = new ULongAggregationFunction();
-    }
-    timeSeriesHandle = new TimeSeriesAggregationFunction();
     inputState =
         context.getMapState(
             new MapStateDescriptor<>(
                 "inputState",
                 Types.LONG,
                 new ListTypeInfo<>(InternalTypeInfo.of(new RowType(inputFields)))));
-    dropCounter = context.getMetricGroup().counter(LATE_ELEMENTS_DROPPED_METRIC_NAME);
-    processableRows = new ProcessableRows();
+    this.dropCounter = context.getMetricGroup().counter(LATE_ELEMENTS_DROPPED_METRIC_NAME);
+    this.processableRows = new ProcessableRows();
   }
 
   @Override
@@ -289,7 +290,7 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
       final var value = inputValueFieldGetters[i].getFieldOrNull(rowData);
       final var valueOffset = i + valuesOffset;
       final var valueInstate = rowInState.getBinary(valueOffset);
-      rowInState.setField(valueOffset, valueHandles[i].accumulate(valueInstate, (Long) value));
+      rowInState.setField(valueOffset, valueHandles.get(i).accumulate(valueInstate, value));
     }
     rowInState.setField(
         timeSeriesOffset,
@@ -301,7 +302,7 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
     for (int i = 0; i < valueFields.length; i++) {
       final var valueOffset = i + valuesOffset;
       final var value = rowInState.getBinary(valueOffset);
-      rowInState.setField(valueOffset, valueHandles[i].output(value));
+      rowInState.setField(valueOffset, valueHandles.get(i).output(value));
     }
     rowInState.setField(
         timeSeriesOffset, timeSeriesHandle.output(rowInState.getBinary(timeSeriesOffset)));
@@ -377,7 +378,7 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
   }
 
   /** ProcessableRow. */
-  private static class ProcessableRows {
+  protected static class ProcessableRows {
     public Long lastUnprocessedTime = Long.MAX_VALUE;
     public List<Map.Entry<Long, List<RowData>>> processableRows = Collections.emptyList();
 
