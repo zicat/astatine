@@ -18,6 +18,9 @@
 
 package name.zicat.astatine.streaming.sql.runtime.process.windows;
 
+import java.nio.ByteBuffer;
+import java.util.Iterator;
+
 /** Float2BytesAggregationFunction. */
 public class Float2BytesAggregationFunction extends Int2BytesAggregationFunction {
 
@@ -27,5 +30,24 @@ public class Float2BytesAggregationFunction extends Int2BytesAggregationFunction
       return 0;
     }
     return Float.floatToIntBits((float) value);
+  }
+
+  @Override
+  public Iterator<Object> outputIterator(byte[] acc) {
+    if (acc == null || acc.length == 0) {
+      return EMPTY_ITERATOR;
+    }
+    final var buffer = ByteBuffer.wrap(acc);
+    return new Iterator<>() {
+      @Override
+      public boolean hasNext() {
+        return buffer.hasRemaining();
+      }
+
+      @Override
+      public Object next() {
+        return Float.intBitsToFloat(buffer.getInt());
+      }
+    };
   }
 }

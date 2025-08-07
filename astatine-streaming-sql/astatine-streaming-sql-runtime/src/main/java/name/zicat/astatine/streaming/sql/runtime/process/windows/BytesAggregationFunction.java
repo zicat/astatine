@@ -19,10 +19,25 @@
 package name.zicat.astatine.streaming.sql.runtime.process.windows;
 
 import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.LogicalTypeRoot;
+
+import java.util.Iterator;
 
 /** BytesAggregationFunction. */
 public abstract class BytesAggregationFunction implements AggregationFunction<byte[]> {
 
+  protected static final Iterator<Object> EMPTY_ITERATOR =
+      new Iterator<>() {
+        @Override
+        public boolean hasNext() {
+          return false;
+        }
+
+        @Override
+        public Object next() {
+          return null;
+        }
+      };
   protected static final int HEAD_SIZE = 4;
   protected static final int DEFAULT_SIZE = 64;
 
@@ -37,6 +52,14 @@ public abstract class BytesAggregationFunction implements AggregationFunction<by
     System.arraycopy(acc, HEAD_SIZE, result, 0, size);
     return result;
   }
+
+  /**
+   * output the iterator of values.
+   *
+   * @param acc acc
+   * @return Iterator of values
+   */
+  public abstract Iterator<Object> outputIterator(byte[] acc);
 
   @Override
   public int valueSize(byte[] acc) {
@@ -75,16 +98,27 @@ public abstract class BytesAggregationFunction implements AggregationFunction<by
     acc[3] = (byte) (size & 0xFF);
   }
 
-    /**
-     * create aggregation function.
-     * @param fieldType fieldType
-     * @return AggregationFunction
-     */
-  static AggregationFunction<byte[]> createAggregationFunction(LogicalType fieldType) {
-    return switch (fieldType.getTypeRoot()) {
-      case CHAR, VARCHAR -> new StringDataAggregationFunction();
+  /**
+   * create aggregation function.
+   *
+   * @param fieldType fieldType
+   * @return AggregationFunction
+   */
+  static BytesAggregationFunction createAggregationFunction(LogicalType fieldType) {
+    return createAggregationFunction(fieldType.getTypeRoot());
+  }
+
+  /**
+   * create aggregation function.
+   *
+   * @param rootType rootType
+   * @return AggregationFunction
+   */
+  static BytesAggregationFunction createAggregationFunction(LogicalTypeRoot rootType) {
+    return switch (rootType) {
+      case CHAR, VARCHAR -> new StringData2BytesAggregationFunction();
       case BOOLEAN -> new Boolean2BytesAggregationFunction();
-      case BINARY, VARBINARY -> new BinaryAggregationFunction();
+      case BINARY, VARBINARY -> new Binary2BytesAggregationFunction();
       case TINYINT -> new Byte2BytesAggregationFunction();
       case SMALLINT -> new Short2BytesAggregationFunction();
       case INTEGER, DATE, TIME_WITHOUT_TIME_ZONE, INTERVAL_YEAR_MONTH, INTERVAL_DAY_TIME ->

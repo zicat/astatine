@@ -18,10 +18,14 @@
 
 package name.zicat.astatine.streaming.sql.runtime.process.windows;
 
+import java.nio.ByteBuffer;
+import java.util.Iterator;
+
 import static name.zicat.astatine.streaming.sql.runtime.utils.VLongUtils.calculateVLongLength;
+import static name.zicat.astatine.streaming.sql.runtime.utils.VLongUtils.vLongDecode;
 
 /** BinaryAggregationFunction. */
-public class BinaryAggregationFunction extends BytesAggregationFunction {
+public class Binary2BytesAggregationFunction extends BytesAggregationFunction {
 
   protected static final byte[] EMPTY = new byte[0];
 
@@ -53,5 +57,27 @@ public class BinaryAggregationFunction extends BytesAggregationFunction {
       return EMPTY;
     }
     return (byte[]) value;
+  }
+
+  @Override
+  public Iterator<Object> outputIterator(byte[] acc) {
+    if (acc == null || acc.length == 0) {
+      return EMPTY_ITERATOR;
+    }
+    final var buffer = ByteBuffer.wrap(acc);
+    return new Iterator<>() {
+      @Override
+      public boolean hasNext() {
+        return buffer.hasRemaining();
+      }
+
+      @Override
+      public Object next() {
+        final var length = (int) vLongDecode(buffer);
+        final var value = new byte[length];
+        buffer.get(value);
+        return value;
+      }
+    };
   }
 }

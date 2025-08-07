@@ -16,38 +16,27 @@
  * limitations under the License.
  */
 
-package name.zicat.astatine.streaming.sql.runtime.process.windows;
+package name.zicat.astatine.streaming.sql.runtime.test.process.window;
 
-import java.io.Serializable;
+import name.zicat.astatine.streaming.sql.runtime.process.windows.BytesAggregationFunction;
 
-/**
- * AggregationFunction.
- *
- * @param <O> O
- */
-public interface AggregationFunction<O> extends Serializable {
+import java.util.Iterator;
+
+/** BytesAggregationFunctionTestBase. */
+public class BytesAggregationFunctionTestBase {
 
   /**
-   * accumulate value.
+   * Create an iterator for the given BytesAggregationFunction and values.
    *
-   * @param acc acc
-   * @param value value
+   * @param function function
+   * @param values values
+   * @return Iterator of values
    */
-  O accumulate(O acc, Object value);
-
-  /**
-   * value size exclude heads.
-   *
-   * @param acc acc
-   * @return value
-   */
-  int valueSize(O acc);
-
-  /**
-   * output.
-   *
-   * @param acc acc
-   * @return result result
-   */
-  O output(O acc);
+  public Iterator<Object> createIterator(BytesAggregationFunction function, Object... values) {
+    byte[] acc = null;
+    for (Object value : values) {
+      acc = function.accumulate(acc, value);
+    }
+    return function.outputIterator(function.output(acc));
+  }
 }

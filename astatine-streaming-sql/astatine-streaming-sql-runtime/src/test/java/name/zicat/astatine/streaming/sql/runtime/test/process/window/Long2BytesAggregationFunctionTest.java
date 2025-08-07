@@ -16,19 +16,24 @@
  * limitations under the License.
  */
 
-package name.zicat.astatine.streaming.sql.runtime.process.windows;
+package name.zicat.astatine.streaming.sql.runtime.test.process.window;
 
-import org.apache.flink.table.data.StringData;
+import java.util.Arrays;
 
-/** StringDataAggregationFunction. */
-public class StringDataAggregationFunction extends BinaryAggregationFunction {
+import name.zicat.astatine.streaming.sql.runtime.process.windows.Long2BytesAggregationFunction;
+import org.junit.Assert;
+import org.junit.Test;
 
-  @Override
-  protected byte[] getBinary(Object value) {
-    if (value == null) {
-      return EMPTY;
+public class Long2BytesAggregationFunctionTest extends BytesAggregationFunctionTestBase {
+
+  @Test
+  public void test() {
+    final var function = new Long2BytesAggregationFunction();
+    final var it = createIterator(function, null, 10L, 11L, null);
+    final var expectIt = Arrays.asList(0L, 10L, 11L, 0L).iterator();
+    while (it.hasNext()) {
+      Assert.assertEquals(expectIt.next(), it.next());
     }
-    final var stringData = (StringData) value;
-    return stringData.toBytes();
+    Assert.assertFalse(expectIt.hasNext());
   }
 }

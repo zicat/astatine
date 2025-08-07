@@ -44,6 +44,7 @@ import java.util.Arrays;
 import static name.zicat.astatine.streaming.sql.runtime.utils.VLongUtils.vLongDecode;
 import static org.apache.flink.table.data.TimestampData.fromEpochMillis;
 
+/** SessionTumbleWindowFunctionFactoryTest. */
 public class SessionTumbleWindowFunctionFactoryTest extends TransformFactoryTestBase {
 
   @Test

@@ -19,10 +19,13 @@
 package name.zicat.astatine.streaming.sql.runtime.process.windows;
 
 /** TimeSeriesAggregationFunction. */
-public class TimeSeriesAggregationFunction extends Long2BytesAggregationFunction {
+public class TimeSeries2BytesAggregationFunction extends Long2BytesAggregationFunction {
 
   public Long firstValue(byte[] value) {
-    final int offset = BytesAggregationFunction.HEAD_SIZE;
+    return getValue(value, BytesAggregationFunction.HEAD_SIZE);
+  }
+
+  public Long getValue(byte[] value, int offset) {
     return ((long) (value[offset] & 0xFF) << 56)
         | ((long) (value[offset + 1] & 0xFF) << 48)
         | ((long) (value[offset + 2] & 0xFF) << 40)

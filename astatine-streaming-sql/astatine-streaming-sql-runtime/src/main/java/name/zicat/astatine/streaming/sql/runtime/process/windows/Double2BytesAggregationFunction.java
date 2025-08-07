@@ -18,6 +18,9 @@
 
 package name.zicat.astatine.streaming.sql.runtime.process.windows;
 
+import java.nio.ByteBuffer;
+import java.util.Iterator;
+
 /** Double2BytesAggregationFunction. */
 public class Double2BytesAggregationFunction extends Long2BytesAggregationFunction {
 
@@ -27,5 +30,24 @@ public class Double2BytesAggregationFunction extends Long2BytesAggregationFuncti
       return 0;
     }
     return Double.doubleToLongBits((double) value);
+  }
+
+  @Override
+  public Iterator<Object> outputIterator(byte[] acc) {
+    if (acc == null || acc.length == 0) {
+      return EMPTY_ITERATOR;
+    }
+    final var buffer = ByteBuffer.wrap(acc);
+    return new Iterator<>() {
+      @Override
+      public boolean hasNext() {
+        return buffer.hasRemaining();
+      }
+
+      @Override
+      public Object next() {
+        return Double.longBitsToDouble(buffer.getLong());
+      }
+    };
   }
 }

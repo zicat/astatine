@@ -39,9 +39,11 @@ import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.VarBinaryType;
 import org.apache.flink.util.Collector;
 
-import java.io.IOException;
 import java.util.*;
 
+import static name.zicat.astatine.streaming.sql.runtime.utils.RowUtils.toUpdatable;
+import static name.zicat.astatine.streaming.sql.runtime.utils.StateUtils.registerSmallestTimer;
+import static name.zicat.astatine.streaming.sql.runtime.utils.StateUtils.registerTimer;
 import static org.apache.flink.table.data.RowData.createFieldGetter;
 import static org.apache.flink.table.data.TimestampData.fromEpochMillis;
 
@@ -58,8 +60,8 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
   protected final RowType.RowField[] valueFields;
   protected final RowType valueStateType;
   protected final RowData.FieldGetter[] inputValueFieldGetters;
-  protected final List<AggregationFunction<byte[]>> valueHandles;
-  protected final TimeSeriesAggregationFunction timeSeriesHandle;
+  protected final List<BytesAggregationFunction> valueHandles;
+  protected final TimeSeries2BytesAggregationFunction timeSeriesHandle;
   protected final int[] fieldInProjectRow;
   protected final long sessionMillis;
   protected final int timeSeriesOffset;
@@ -105,7 +107,7 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
       this.valueHandles.add(
           BytesAggregationFunction.createAggregationFunction(valueFields[i].getType()));
     }
-    this.timeSeriesHandle = new TimeSeriesAggregationFunction();
+    this.timeSeriesHandle = new TimeSeries2BytesAggregationFunction();
     this.valueStateType =
         createReturnRowType(eventTimeField, fieldTypes, valueFields, timeSeriesFieldName);
   }
@@ -211,7 +213,7 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
     }
     final var nextEventTime =
         windowEnd == null ? lastUnprocessedTime : Math.min(windowEnd, lastUnprocessedTime);
-    registerTimer(nextEventTime, timerService);
+    registerTimer(registeredTimer, nextEventTime, timerService);
     valueState.update(stateRow);
   }
 
@@ -261,15 +263,6 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
     return new UpdatableRowData(joinedRowData, joinedRowData.getArity());
   }
 
-  private static UpdatableRowData toUpdatable(RowData rowData) {
-    if (rowData == null) {
-      return null;
-    }
-    return rowData instanceof UpdatableRowData
-        ? (UpdatableRowData) rowData
-        : new UpdatableRowData(rowData, rowData.getArity());
-  }
-
   protected void cleanUpdateState() {
     registeredTimer.clear();
     valueState.clear();
@@ -314,7 +307,7 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
     if (listRows == null) {
       listRows = new ArrayList<>();
       inputState.put(eventTime, listRows);
-      registerSmallestTimer(eventTime, timeService);
+      registerSmallestTimer(registeredTimer, eventTime, timeService);
     }
     listRows.add(rowData);
   }
@@ -334,21 +327,6 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
             ProjectedRowData.from(fieldMapping).replaceRow(rowData),
             ProjectedRowData.from(valueMapping).replaceRow(rowData),
             eventTimeRow);
-  }
-
-  private void registerSmallestTimer(long timestamp, TimerService timerService) throws IOException {
-    Long currentRegisteredTimer = registeredTimer.value();
-    if (currentRegisteredTimer == null) {
-      registerTimer(timestamp, timerService);
-    } else if (currentRegisteredTimer > timestamp) {
-      timerService.deleteEventTimeTimer(currentRegisteredTimer);
-      registerTimer(timestamp, timerService);
-    }
-  }
-
-  private void registerTimer(long timestamp, TimerService timerService) throws IOException {
-    registeredTimer.update(timestamp);
-    timerService.registerEventTimeTimer(timestamp);
   }
 
   public RowType returnRowType() {

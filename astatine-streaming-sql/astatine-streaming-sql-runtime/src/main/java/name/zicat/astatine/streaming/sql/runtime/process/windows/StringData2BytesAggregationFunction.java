@@ -18,34 +18,23 @@
 
 package name.zicat.astatine.streaming.sql.runtime.process.windows;
 
+import org.apache.flink.table.data.StringData;
+
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
-/** Short2BytesAggregationFunction. */
-public class Short2BytesAggregationFunction extends BytesAggregationFunction {
+import static name.zicat.astatine.streaming.sql.runtime.utils.VLongUtils.vLongDecode;
+
+/** StringDataAggregationFunction. */
+public class StringData2BytesAggregationFunction extends Binary2BytesAggregationFunction {
 
   @Override
-  public byte[] accumulate(byte[] acc, Object value) {
-    final var shortValue = getValue(value);
-    var resultBytes = initIfNull(acc);
-    final var valueLength = 2; // int is 2 bytes
-    final var offset = nextWritableOffset(resultBytes);
-    final var limit = valueLength + offset;
-    // expand the byte array if necessary
-    while (limit > resultBytes.length) {
-      resultBytes = expand(resultBytes, offset, valueLength);
-    }
-    resultBytes[offset] = (byte) (shortValue >>> 8);
-    resultBytes[offset + 1] = (byte) (shortValue);
-    updateHead(resultBytes, limit);
-    return resultBytes;
-  }
-
-  protected short getValue(Object value) {
+  protected byte[] getBinary(Object value) {
     if (value == null) {
-      return 0;
+      return EMPTY;
     }
-    return (short) value;
+    final var stringData = (StringData) value;
+    return stringData.toBytes();
   }
 
   @Override
@@ -62,7 +51,10 @@ public class Short2BytesAggregationFunction extends BytesAggregationFunction {
 
       @Override
       public Object next() {
-        return buffer.getShort();
+        final var length = (int) vLongDecode(buffer);
+        final var value = new byte[length];
+        buffer.get(value);
+        return StringData.fromBytes(value);
       }
     };
   }

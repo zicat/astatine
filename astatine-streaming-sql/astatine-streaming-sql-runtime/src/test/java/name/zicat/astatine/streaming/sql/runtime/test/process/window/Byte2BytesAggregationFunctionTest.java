@@ -16,38 +16,24 @@
  * limitations under the License.
  */
 
-package name.zicat.astatine.streaming.sql.runtime.process.windows;
+package name.zicat.astatine.streaming.sql.runtime.test.process.window;
 
-import java.io.Serializable;
+import name.zicat.astatine.streaming.sql.runtime.process.windows.Byte2BytesAggregationFunction;
+import org.junit.Assert;
+import org.junit.Test;
 
-/**
- * AggregationFunction.
- *
- * @param <O> O
- */
-public interface AggregationFunction<O> extends Serializable {
+import java.util.Arrays;
 
-  /**
-   * accumulate value.
-   *
-   * @param acc acc
-   * @param value value
-   */
-  O accumulate(O acc, Object value);
+public class Byte2BytesAggregationFunctionTest extends BytesAggregationFunctionTestBase {
 
-  /**
-   * value size exclude heads.
-   *
-   * @param acc acc
-   * @return value
-   */
-  int valueSize(O acc);
-
-  /**
-   * output.
-   *
-   * @param acc acc
-   * @return result result
-   */
-  O output(O acc);
+  @Test
+  public void test() {
+    final var function = new Byte2BytesAggregationFunction();
+    final var it = createIterator(function, null, (byte) 1, (byte) 2, null);
+    final var expectIt = Arrays.asList((byte) 0, (byte) 1, (byte) 2, (byte) 0).iterator();
+    while (it.hasNext()) {
+      Assert.assertEquals(expectIt.next(), it.next());
+    }
+    Assert.assertFalse(expectIt.hasNext());
+  }
 }

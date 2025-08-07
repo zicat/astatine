@@ -19,6 +19,7 @@
 package name.zicat.astatine.streaming.sql.runtime.utils;
 
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.data.UpdatableRowData;
 
 /** RowUtils. */
 public class RowUtils {
@@ -32,5 +33,20 @@ public class RowUtils {
    */
   public static UpdatableProjectRowData projectRow(RowData row, int[] indexMapping) {
     return UpdatableProjectRowData.from(indexMapping).replaceRow(row);
+  }
+
+  /**
+   * Convert a RowData to an UpdatableRowData.
+   *
+   * @param rowData rowData
+   * @return UpdatableRowData
+   */
+  public static UpdatableRowData toUpdatable(RowData rowData) {
+    if (rowData == null) {
+      return null;
+    }
+    return rowData instanceof UpdatableRowData
+        ? (UpdatableRowData) rowData
+        : new UpdatableRowData(rowData, rowData.getArity());
   }
 }

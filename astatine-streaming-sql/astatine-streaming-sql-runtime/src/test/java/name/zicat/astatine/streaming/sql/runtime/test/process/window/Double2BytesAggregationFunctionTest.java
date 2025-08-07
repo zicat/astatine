@@ -16,38 +16,25 @@
  * limitations under the License.
  */
 
-package name.zicat.astatine.streaming.sql.runtime.process.windows;
+package name.zicat.astatine.streaming.sql.runtime.test.process.window;
 
-import java.io.Serializable;
+import name.zicat.astatine.streaming.sql.runtime.process.windows.Double2BytesAggregationFunction;
+import org.junit.Assert;
+import org.junit.Test;
 
-/**
- * AggregationFunction.
- *
- * @param <O> O
- */
-public interface AggregationFunction<O> extends Serializable {
+import java.util.Arrays;
 
-  /**
-   * accumulate value.
-   *
-   * @param acc acc
-   * @param value value
-   */
-  O accumulate(O acc, Object value);
+/** Double2BytesAggregationFunctionTest. */
+public class Double2BytesAggregationFunctionTest extends BytesAggregationFunctionTestBase {
 
-  /**
-   * value size exclude heads.
-   *
-   * @param acc acc
-   * @return value
-   */
-  int valueSize(O acc);
-
-  /**
-   * output.
-   *
-   * @param acc acc
-   * @return result result
-   */
-  O output(O acc);
+  @Test
+  public void test() {
+    final var function = new Double2BytesAggregationFunction();
+    final var it = createIterator(function, null, 1.1, 2.2, null);
+    final var expectIt = Arrays.asList(0d, 1.1d, 2.2d, 0d).iterator();
+    while (it.hasNext()) {
+      Assert.assertEquals(expectIt.next(), (double) it.next(), 0.01d);
+    }
+    Assert.assertFalse(expectIt.hasNext());
+  }
 }
