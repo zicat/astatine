@@ -1,6 +1,6 @@
 # Session Tumble 2 Tumble Window Operator
 
-The session tumble window operator is an eventtime-based streaming keyed operator that supports session-tumble windowing on the specified field.
+The session tumble window operator is an eventtime-based rowdata-type streaming keyed operator that supports session-tumble windowing on the specified field.
 
 ```sql
 <@template.udf_session_value />
@@ -110,10 +110,14 @@ Output:
 Note:
 1. The identity of the operator is `session_tumble_2_tumble_window`.
 2. The param `parallelism` is the parallelism of the operator, it must be a positive integer, default -1 means following previous stream parallelism.
-3. The `fields` is the fields that output from `values` in session_tumble_window.
+3. The `fields` is the fields from `fields` in session_tumble_window.
 4. The `eventtime` is the field name that points to the event time.
-5. The `values` is the fields that output from `values` in session_tumble_window.
-6. The `time-series.name` is the fields that output from `time-series.name` in session_tumble_window.
-7. The `session.duration` is the fields that output from `session.duration` in session_tumble_window.
+5. The `values` is the fields from `values` in session_tumble_window.
+6. The `time-series.name` is the fields from `time-series.name` in session_tumble_window.
+7. The `session.duration` is the fields from `session.duration` in session_tumble_window.
 8. The `values.origin-type` is the input type of the `values` in session_tumble_window.
+   
+    The `session_tumble_2_tumble_window` will iterate the values records in binary type outputted by `session_tumble_window` operator,
+    so you must specify the origin type of the values. 
+    
 9. The `tumble.interval` is the interval of the tumble window, it must be a valid time unit like `1min`, `1h`, etc.

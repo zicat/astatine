@@ -104,7 +104,7 @@ public abstract class BytesAggregationFunction implements AggregationFunction<by
    * @param fieldType fieldType
    * @return AggregationFunction
    */
-  static BytesAggregationFunction createAggregationFunction(LogicalType fieldType) {
+  public static BytesAggregationFunction createAggregationFunction(LogicalType fieldType) {
     return createAggregationFunction(fieldType.getTypeRoot());
   }
 
@@ -114,7 +114,7 @@ public abstract class BytesAggregationFunction implements AggregationFunction<by
    * @param rootType rootType
    * @return AggregationFunction
    */
-  static BytesAggregationFunction createAggregationFunction(LogicalTypeRoot rootType) {
+  public static BytesAggregationFunction createAggregationFunction(LogicalTypeRoot rootType) {
     return switch (rootType) {
       case CHAR, VARCHAR -> new StringData2BytesAggregationFunction();
       case BOOLEAN -> new Boolean2BytesAggregationFunction();

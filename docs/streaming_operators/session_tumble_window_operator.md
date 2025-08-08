@@ -1,6 +1,6 @@
 # Session Tumble Window Operator
 
-The session tumble window operator is an eventtime-based streaming keyed operator that supports session-tumble windowing on the specified field.
+The session tumble window operator is an eventtime-based rowdata-type streaming keyed operator that supports session-tumble windowing on the specified field.
 
 ```sql
 <@template.udf_session_value />
