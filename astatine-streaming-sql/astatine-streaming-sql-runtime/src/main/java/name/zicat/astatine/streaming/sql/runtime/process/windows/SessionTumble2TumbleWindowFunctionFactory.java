@@ -31,12 +31,14 @@ import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.DataTypeQueryable;
+import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.utils.LogicalTypeParser;
 
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Collections;
 
 import static name.zicat.astatine.streaming.sql.parser.utils.Types.fieldsNameTypes;
 
@@ -48,7 +50,7 @@ public class SessionTumble2TumbleWindowFunctionFactory
   public static final ConfigOption<String> OPTION_FIELDS =
       ConfigOptions.key("fields").stringType().noDefaultValue();
   public static final ConfigOption<String> OPTION_VALUES =
-      ConfigOptions.key("values").stringType().noDefaultValue();
+      ConfigOptions.key("values").stringType().defaultValue(null);
   public static final ConfigOption<String> OPTION_TIME_SERIES_NAME =
       ConfigOptions.key("time-series.name")
           .stringType()
@@ -60,7 +62,7 @@ public class SessionTumble2TumbleWindowFunctionFactory
   public static final ConfigOption<Duration> OPTION_SESSION_DURATION =
       ConfigOptions.key("session.duration").durationType().noDefaultValue();
   public static final ConfigOption<String> OPTION_VALUES_ORIGIN_TYPE =
-      ConfigOptions.key("values.origin-type").stringType().noDefaultValue();
+      ConfigOptions.key("values.origin-type").stringType().defaultValue(null);
 
   @Override
   public DataStream<RowData> transform(
@@ -69,7 +71,11 @@ public class SessionTumble2TumbleWindowFunctionFactory
     final var rowType = (RowType) type.getDataType().getLogicalType();
 
     final var fieldNameTypes = fieldsNameTypes(rowType, context.get(OPTION_FIELDS));
-    final var valueNameTypes = fieldsNameTypes(rowType, context.get(OPTION_VALUES));
+    final var values = context.get(OPTION_VALUES);
+    final var valueNameTypes =
+        values == null || values.isBlank()
+            ? new Types.FieldNameType[0]
+            : fieldsNameTypes(rowType, context.get(OPTION_VALUES));
     final var timeSeriesType = fieldsNameTypes(rowType, context.get(OPTION_TIME_SERIES_NAME))[0];
     final var eventtimeType = fieldsNameTypes(rowType, context.get(OPTION_EVENTTIME))[0];
     final var tumbleIntervalMs = context.get(OPTION_TUMBLE_INTERVAL).toMillis();
@@ -77,13 +83,15 @@ public class SessionTumble2TumbleWindowFunctionFactory
 
     final var valuesOriginType = context.get(OPTION_VALUES_ORIGIN_TYPE);
     final var valueOriginTypes =
-        Arrays.stream(valuesOriginType.split(","))
-            .map(String::toUpperCase)
-            .map(
-                v ->
-                    LogicalTypeParser.parse(v, Thread.currentThread().getContextClassLoader())
-                        .getTypeRoot())
-            .toList();
+        valuesOriginType == null
+            ? Collections.<LogicalTypeRoot>emptyList()
+            : Arrays.stream(valuesOriginType.split(","))
+                .map(String::toUpperCase)
+                .map(
+                    v ->
+                        LogicalTypeParser.parse(v, Thread.currentThread().getContextClassLoader())
+                            .getTypeRoot())
+                .toList();
 
     final var function =
         new SessionTumble2TumbleWindowFunction(

@@ -100,7 +100,7 @@ Note:
 2. The param `parallelism` is the parallelism of the operator, it must be a positive integer, default -1 means following previous stream parallelism.
 3. The `fields` is the field names that you want to return in the output, only using first value in one session window.
 4. The `eventtime` is the field name that points to the event time.
-5. The `values` is the field names that you want to collect in the session window, the return type is `BINARY`.
+5. The `values` is the field names that you want to collect in the session window, the return type is `BINARY`, default null.
 6. The `time-series.name` is the name of the time series field, the operator will collect the time series in the session window, the type of this field is `BINARY`.
 7. The `session.duration` is the window size.
 

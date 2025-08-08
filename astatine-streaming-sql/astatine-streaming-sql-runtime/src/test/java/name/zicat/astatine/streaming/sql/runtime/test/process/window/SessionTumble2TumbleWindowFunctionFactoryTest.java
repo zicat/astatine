@@ -23,10 +23,7 @@ import name.zicat.astatine.streaming.sql.parser.test.transform.TransformFactoryT
 import name.zicat.astatine.streaming.sql.parser.transform.ProcessTransformFactory;
 import name.zicat.astatine.streaming.sql.parser.transform.TransformContext;
 import name.zicat.astatine.streaming.sql.parser.transform.TransformFactory;
-import name.zicat.astatine.streaming.sql.runtime.process.windows.Int2BytesAggregationFunction;
-import name.zicat.astatine.streaming.sql.runtime.process.windows.Long2BytesAggregationFunction;
-import name.zicat.astatine.streaming.sql.runtime.process.windows.SessionTumble2TumbleWindowFunctionFactory;
-import name.zicat.astatine.streaming.sql.runtime.process.windows.SessionTumbleWindowFunctionFactory;
+import name.zicat.astatine.streaming.sql.runtime.process.windows.*;
 import name.zicat.astatine.streaming.sql.runtime.test.utils.TimestampWatermarkGenerator;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.configuration.Configuration;
@@ -51,6 +48,7 @@ import java.io.InputStreamReader;
 import java.time.Duration;
 import java.util.*;
 
+import static name.zicat.astatine.streaming.sql.runtime.test.utils.TestCollections.serializableIterator;
 import static org.apache.flink.table.data.TimestampData.fromEpochMillis;
 
 /** SessionTumble2TumbleWindowFunctionFactoryTest. */
@@ -96,6 +94,95 @@ public class SessionTumble2TumbleWindowFunctionFactoryTest extends TransformFact
           for (int i = 0; i < data.size(); i++) {
             Assert.assertEquals(i * 4L + 1, (int) data.get(i));
           }
+        });
+  }
+
+  @Test
+  public void testEmptyValues() throws Exception {
+    final var configuration = new Configuration();
+    configuration.set(
+        FunctionFactory.OPTION_FUNCTION_IDENTITY,
+        SessionTumble2TumbleWindowFunctionFactory.IDENTITY);
+    configuration.set(SessionTumble2TumbleWindowFunctionFactory.OPTION_FIELDS, "id,f1");
+    configuration.set(SessionTumble2TumbleWindowFunctionFactory.OPTION_EVENTTIME, "ts");
+    configuration.set(
+        SessionTumble2TumbleWindowFunctionFactory.OPTION_SESSION_DURATION, Duration.ofSeconds(10));
+    configuration.set(
+        SessionTumble2TumbleWindowFunctionFactory.OPTION_TUMBLE_INTERVAL, Duration.ofSeconds(2));
+    final var context = createContext(configuration);
+    final var keySelect =
+        new KeySelector<RowData, StringData>() {
+          @Override
+          public StringData getKey(RowData rowData) {
+            return rowData.getString(0);
+          }
+        };
+
+    final var longHandler = new Long2BytesAggregationFunction();
+    final List<RowData> rows = new ArrayList<>();
+
+    final var rowData1 = new GenericRowData(4);
+    var tsAcc = longHandler.accumulate(null, 1741583360000L); // 13:09:20
+    tsAcc = longHandler.accumulate(tsAcc, 1741583365000L); // 13:09:25
+    rowData1.setField(0, StringData.fromString("s1"));
+    rowData1.setField(1, StringData.fromString("f1"));
+    rowData1.setField(2, fromEpochMillis(1741583370000L)); // 13:09:30
+    rowData1.setField(3, longHandler.output(tsAcc));
+
+    final var rowData2 = new GenericRowData(4);
+    var tsAcc2 = longHandler.accumulate(null, 1741583370000L); // 13:09:30
+    tsAcc2 = longHandler.accumulate(tsAcc2, 1741583375000L); // 13:09:35
+    rowData2.setField(0, StringData.fromString("s1"));
+    rowData2.setField(1, StringData.fromString("f1"));
+    rowData2.setField(2, fromEpochMillis(1741583380000L)); // 13:09:40
+    rowData2.setField(3, longHandler.output(tsAcc2));
+
+    rows.add(rowData1);
+    rows.add(rowData2);
+
+    final var source =
+        env.fromCollection(rows)
+            .assignTimestampsAndWatermarks(TimestampWatermarkGenerator.create(2))
+            .returns(
+                InternalTypeInfo.of(
+                    new RowType(
+                        Arrays.asList(
+                            new RowType.RowField("id", new VarCharType()),
+                            new RowType.RowField("f1", new VarCharType()),
+                            new RowType.RowField("ts", new TimestampType(3)),
+                            new RowType.RowField("time_series", new BinaryType())))));
+
+    final var factory =
+        TransformFactory.findFactory(ProcessTransformFactory.IDENTITY)
+            .cast(ProcessTransformFactory.class);
+
+    final DataStream<RowData> sessionStream =
+        (DataStream<RowData>) factory.transform(context, source.keyBy(keySelect));
+    // 13:09:21.999,13:09:25.999,13:09:31.999,13:09:35.999
+    final var expectedEventTimeIterator =
+        serializableIterator(
+            Arrays.asList(1741583361999L, 1741583365999L, 1741583371999L, 1741583375999L));
+    // 13:09:20.000,13:09:25.000,13:09:30.000,13:09:35.000
+    final var expectTimeSeriesIterator =
+        serializableIterator(
+            Arrays.asList(1741583360000L, 1741583365000L, 1741583370000L, 1741583375000L));
+
+    execAndAssert(
+        sessionStream,
+        data -> {
+          for (var row : data) {
+            Assert.assertEquals("s1", row.getString(0).toString());
+            Assert.assertEquals("f1", row.getString(1).toString());
+            Assert.assertEquals(
+                expectedEventTimeIterator.next().longValue(),
+                row.getTimestamp(2, 3).getMillisecond());
+            final var timeSeriesIt = longHandler.outputIterator(row.getBinary(3));
+            while (timeSeriesIt.hasNext()) {
+              Assert.assertEquals(expectTimeSeriesIterator.next(), timeSeriesIt.next());
+            }
+          }
+          Assert.assertFalse(expectedEventTimeIterator.hasNext());
+          Assert.assertFalse(expectTimeSeriesIterator.hasNext());
         });
   }
 

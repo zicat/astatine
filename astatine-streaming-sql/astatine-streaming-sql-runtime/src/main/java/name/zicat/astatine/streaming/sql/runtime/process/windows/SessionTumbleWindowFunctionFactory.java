@@ -60,7 +60,11 @@ public class SessionTumbleWindowFunctionFactory
     final var type = (DataTypeQueryable) keyedStream.getType();
     final var rowType = (RowType) type.getDataType().getLogicalType();
     final var fieldNameTypes = fieldsNameTypes(rowType, context.get(OPTION_FIELDS));
-    final var valueNameTypes = fieldsNameTypes(rowType, context.get(OPTION_VALUES));
+    final var values = context.get(OPTION_VALUES);
+    final var valueNameTypes =
+        values == null || values.isBlank()
+            ? new Types.FieldNameType[0]
+            : fieldsNameTypes(rowType, context.get(OPTION_VALUES));
     final var eventtimeType = fieldsNameTypes(rowType, context.get(OPTION_EVENTTIME))[0];
     final var function =
         new SessionTumbleWindowFunction(
