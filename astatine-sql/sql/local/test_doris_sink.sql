@@ -14,7 +14,7 @@ CREATE TABLE sink_doris(
   ts                BIGINT,
   `date`            DATE
 ) <@template.table_doris_sink_property
-    fenodes = 'local:9030'
+    fenodes = 'http://localhost:9030'
     table\.identifier = 'demo.name_score_test'
     username = 'root'
     password = '******'

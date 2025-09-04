@@ -73,6 +73,7 @@ public class DorisSinkFunction extends RichSinkFunction<RowData> implements Chec
   private transient DorisHealthChecker dorisHealthChecker;
   private transient DorisStreamLoadContext dorisStreamLoadContext;
   private final Map<String, String> headers;
+  private final long groupCommitIntervalMs;
 
   public DorisSinkFunction(
       ReadableConfig config,
@@ -103,12 +104,15 @@ public class DorisSinkFunction extends RichSinkFunction<RowData> implements Chec
     this.autoCreateFieldsFunctions = autoCreateFieldsFunctions;
     this.dataType = dataType;
     this.headers = headers;
+    this.groupCommitIntervalMs =
+        config.get(AUTO_CREATE_TABLE_PROPERTIES_GROUP_COMMIT_INTERVAL_DURATION).toMillis();
   }
 
   @Override
   public void open(Configuration parameters) throws SQLException {
     autoCreateTable();
-    this.dorisHealthChecker = new DorisHealthChecker(fenodes, username, password, db, table);
+    this.dorisHealthChecker =
+        new DorisHealthChecker(fenodes, username, password, db, table, groupCommitIntervalMs);
     this.dorisStreamLoadContext =
         new DorisStreamLoadContext(
             dorisHealthChecker,

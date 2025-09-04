@@ -21,7 +21,7 @@ package name.zicat.astatine.connector.doris.table;
 import java.io.Closeable;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Random;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -37,33 +37,49 @@ public class DorisHealthChecker implements Closeable {
 
   private static final int DEFAULT_REFRESH_MILLS = 30000;
   private static final Logger LOG = LoggerFactory.getLogger(DorisHealthChecker.class);
-  private final Random random = new Random();
   private final String fenodes;
   private final String username;
   private final String password;
   private final String db;
   private final String tbl;
   private final ScheduledExecutorService beRefreshExecutorService;
+  private final long groupCommitIntervalMs;
   private long preConnectionTs = System.currentTimeMillis();
   private volatile List<String> backends;
+  private final int dbTblHash;
 
   public DorisHealthChecker(
-      String fenodes, String username, String password, String db, String tbl) {
+      String fenodes,
+      String username,
+      String password,
+      String db,
+      String tbl,
+      long groupCommitIntervalMs) {
     this.fenodes = fenodes;
     this.username = username;
     this.password = password;
     this.db = db;
     this.tbl = tbl;
+    this.dbTblHash = ((Objects.hash(db, tbl)) & 0x7fffffff) % 1024;
+    this.groupCommitIntervalMs = groupCommitIntervalMs;
     this.backends = sortedActiveBackends(fenodes, username, password);
     LOG.info("active be list {}", backends);
     this.beRefreshExecutorService = createAndInitRefreshService();
   }
 
-  public String random() {
-    final var backends = this.backends;
-    return backends.get(random.nextInt(backends.size()));
+  public String selectOneHealthyBE() {
+    // for group commit async sink, in one interval use the same BE to avoid small rowset
+    // for different table, try to select different BEs to the greatest extent possible
+    final long currentMin = System.currentTimeMillis() / groupCommitIntervalMs + dbTblHash;
+    final List<String> backends = this.backends;
+    return backends.get((int) (currentMin % backends.size()));
   }
 
+  /**
+   * refresh be list sync.
+   *
+   * @param force force
+   */
   public synchronized void refresh(boolean force) {
     final var current = System.currentTimeMillis();
     if (current - preConnectionTs >= DEFAULT_REFRESH_MILLS || force) {
@@ -97,7 +113,7 @@ public class DorisHealthChecker implements Closeable {
   }
 
   public String loadUrlStr() {
-    return "http://" + random() + "/api/" + db + "/" + tbl + "/_stream_load?";
+    return "http://" + selectOneHealthyBE() + "/api/" + db + "/" + tbl + "/_stream_load?";
   }
 
   /**
