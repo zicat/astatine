@@ -60,7 +60,7 @@ public class DorisHealthChecker implements Closeable {
     this.password = password;
     this.db = db;
     this.tbl = tbl;
-    this.dbTblHash = ((Objects.hash(db, tbl)) & 0x7fffffff) % 1024;
+    this.dbTblHash = Objects.hash(db, tbl);
     this.groupCommitIntervalMs = groupCommitIntervalMs;
     this.backends = sortedActiveBackends(fenodes, username, password);
     LOG.info("active be list {}", backends);
@@ -70,9 +70,9 @@ public class DorisHealthChecker implements Closeable {
   public String selectOneHealthyBE() {
     // for group commit async sink, in one interval use the same BE to avoid small rowset
     // for different table, try to select different BEs to the greatest extent possible
-    final long currentMin = System.currentTimeMillis() / groupCommitIntervalMs + dbTblHash;
+    final int currentMin = ((int) (System.currentTimeMillis() / groupCommitIntervalMs)) + dbTblHash;
     final List<String> backends = this.backends;
-    return backends.get((int) (currentMin % backends.size()));
+    return backends.get((currentMin & 0x7fffffff) % backends.size());
   }
 
   /**
