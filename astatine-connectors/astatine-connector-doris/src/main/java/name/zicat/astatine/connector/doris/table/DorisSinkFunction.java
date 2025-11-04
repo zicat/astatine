@@ -18,6 +18,7 @@
 
 package name.zicat.astatine.connector.doris.table;
 
+import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.*;
@@ -170,8 +171,12 @@ public class DorisSinkFunction extends RichSinkFunction<RowData> implements Chec
       if (field == null) {
         stringJoiner.add(NULL_VALUE);
       } else if (field.getClass().isArray()) {
-        var data = Arrays.toString((Object[]) field);
-        stringJoiner.add(replaceIllegalCharacters(data));
+        final var length = Array.getLength(field);
+        final var joiner = new StringJoiner(", ", "[", "]");
+        for (int j = 0; j < length; j++) {
+          joiner.add(String.valueOf(Array.get(field, j)));
+        }
+        stringJoiner.add(replaceIllegalCharacters(joiner.toString()));
       } else if (field instanceof Map<?, ?> map) {
         final var node = OBJECT_MAPPER.createObjectNode();
         for (var entry : map.entrySet()) {
