@@ -33,115 +33,122 @@ import java.util.Optional;
 /** ConfigBuilder. */
 public class ConfigBuilder {
 
+  private final ReadableConfig readableConfig;
+  private final Map<String, Object> newData = new HashMap<>();
+
+  private ConfigBuilder(ReadableConfig readableConfig) {
+    this.readableConfig = readableConfig;
+  }
+
+  public static ConfigBuilder newBuilder(ReadableConfig readableConfig) {
+    return new ConfigBuilder(readableConfig);
+  }
+
+  /**
+   * put new key value.
+   *
+   * @param key key
+   * @param value value
+   * @return ReadableConfigBuilder
+   */
+  public ConfigBuilder putNewKeyValue(String key, Object value) {
+    newData.put(key, value);
+    return this;
+  }
+
+  /**
+   * put new function identity.
+   *
+   * @param identity identity
+   * @return ReadableConfigBuilder
+   */
+  public ConfigBuilder functionIdentity(String identity) {
+    return putNewKeyValue(FunctionFactory.OPTION_FUNCTION_IDENTITY.key(), identity);
+  }
+
+  /**
+   * get readable config.
+   *
+   * @return readable config
+   */
+  public ReadableConfig build() {
+    return new ReadableConfigWrapper(readableConfig, newData);
+  }
+
+  /** ReadableConfigWrapper. */
+  private static final class ReadableConfigWrapper implements ReadableConfig, Serializable {
+    @Serial private static final long serialVersionUID = 0L;
     private final ReadableConfig readableConfig;
-    private final Map<String, Object> newData = new HashMap<>();
-
-    private ConfigBuilder(ReadableConfig readableConfig) {
-        this.readableConfig = readableConfig;
-    }
-
-    public static ConfigBuilder newBuilder(ReadableConfig readableConfig) {
-        return new ConfigBuilder(readableConfig);
-    }
+    private final Map<String, Object> newData;
 
     /**
-     * put new key value.
-     *
-     * @param key key
-     * @param value value
-     * @return ReadableConfigBuilder
+     * @param readableConfig readableConfig
+     * @param newData newData
      */
-    public ConfigBuilder putNewKeyValue(String key, Object value) {
-        newData.put(key, value);
-        return this;
+    private ReadableConfigWrapper(ReadableConfig readableConfig, Map<String, Object> newData) {
+      this.readableConfig = readableConfig;
+      this.newData = newData;
     }
 
-    /**
-     * put new function identity.
-     *
-     * @param identity identity
-     * @return ReadableConfigBuilder
-     */
-    public ConfigBuilder functionIdentity(String identity) {
-        return putNewKeyValue(FunctionFactory.OPTION_FUNCTION_IDENTITY.key(), identity);
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T get(ConfigOption<T> configOption) {
+      if (newData.containsKey(configOption.key())) {
+        return (T) newData.get(configOption.key());
+      }
+      return readableConfig.get(configOption);
     }
 
-    /**
-     * get readable config.
-     *
-     * @return readable config
-     */
-    public ReadableConfig build() {
-        return new ReadableConfigWrapper(readableConfig, newData);
+    @Override
+    public <T> Optional<T> getOptional(ConfigOption<T> configOption) {
+      if (newData.containsKey(configOption.key())) {
+        return Optional.of(get(configOption));
+      }
+      return readableConfig.getOptional(configOption);
     }
 
-    /** ReadableConfigWrapper. */
-    private static final class ReadableConfigWrapper implements ReadableConfig, Serializable {
-        @Serial private static final long serialVersionUID = 0L;
-        private final ReadableConfig readableConfig;
-        private final Map<String, Object> newData;
-
-        /**
-         * @param readableConfig readableConfig
-         * @param newData newData
-         */
-        private ReadableConfigWrapper(ReadableConfig readableConfig, Map<String, Object> newData) {
-            this.readableConfig = readableConfig;
-            this.newData = newData;
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public <T> T get(ConfigOption<T> configOption) {
-            if (newData.containsKey(configOption.key())) {
-                return (T) newData.get(configOption.key());
-            }
-            return readableConfig.get(configOption);
-        }
-
-        @Override
-        public <T> Optional<T> getOptional(ConfigOption<T> configOption) {
-            if (newData.containsKey(configOption.key())) {
-                return Optional.of(get(configOption));
-            }
-            return readableConfig.getOptional(configOption);
-        }
-
-        public ReadableConfig readableConfig() {
-            return readableConfig;
-        }
-
-        public Map<String, Object> newData() {
-            return newData;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == this) {
-                return true;
-            }
-            if (obj == null || obj.getClass() != this.getClass()) {
-                return false;
-            }
-            var that = (ReadableConfigWrapper) obj;
-            return Objects.equals(this.readableConfig, that.readableConfig)
-                    && Objects.equals(this.newData, that.newData);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(readableConfig, newData);
-        }
-
-        @Override
-        public String toString() {
-            return "ReadableConfigWrapper["
-                    + "readableConfig="
-                    + readableConfig
-                    + ", "
-                    + "newData="
-                    + newData
-                    + ']';
-        }
+    @Override
+    public Map<String, String> toMap() {
+      final Map<String, String> result = readableConfig.toMap();
+      newData.forEach((k, v) -> result.put(k, String.valueOf(v)));
+      return result;
     }
+
+    public ReadableConfig readableConfig() {
+      return readableConfig;
+    }
+
+    public Map<String, Object> newData() {
+      return newData;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (obj == this) {
+        return true;
+      }
+      if (obj == null || obj.getClass() != this.getClass()) {
+        return false;
+      }
+      var that = (ReadableConfigWrapper) obj;
+      return Objects.equals(this.readableConfig, that.readableConfig)
+          && Objects.equals(this.newData, that.newData);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(readableConfig, newData);
+    }
+
+    @Override
+    public String toString() {
+      return "ReadableConfigWrapper["
+          + "readableConfig="
+          + readableConfig
+          + ", "
+          + "newData="
+          + newData
+          + ']';
+    }
+  }
 }

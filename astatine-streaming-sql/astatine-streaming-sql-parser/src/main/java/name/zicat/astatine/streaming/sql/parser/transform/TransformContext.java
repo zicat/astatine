@@ -22,6 +22,7 @@ import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.table.api.bridge.java.internal.StreamTableEnvironmentImpl;
 
+import java.util.Map;
 import java.util.Optional;
 
 /** TransformContext. */
@@ -62,5 +63,10 @@ public class TransformContext implements ReadableConfig {
   @Override
   public <T> Optional<T> getOptional(ConfigOption<T> configOption) {
     return config.getOptional(configOption);
+  }
+
+  @Override
+  public Map<String, String> toMap() {
+    return config.toMap();
   }
 }

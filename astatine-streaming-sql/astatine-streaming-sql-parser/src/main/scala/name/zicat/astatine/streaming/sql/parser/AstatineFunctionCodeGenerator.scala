@@ -39,7 +39,7 @@ object AstatineFunctionCodeGenerator extends Logging{
       processCode: String,
       inputType: LogicalType,
       inputTerm: String = CodeGenUtils.DEFAULT_INPUT1_TERM): GeneratedOperator[OneInputStreamOperator[IN, OUT]] = {
-    val operatorName = newName(name)
+    val operatorName = newName(ctx, name)
     val inputTypeTerm = boxedTypeTermForType(inputType)
 
     val operatorCode =
@@ -76,7 +76,7 @@ object AstatineFunctionCodeGenerator extends Logging{
      processCode: String,
      inputType: LogicalType,
      inputTerm: String = CodeGenUtils.DEFAULT_INPUT1_TERM): GeneratedOperator[OneInputStreamOperator[IN, OUT]] = {
-    val operatorName = newName(name)
+    val operatorName = newName(ctx, name)
     val inputTypeTerm = boxedTypeTermForType(inputType)
 
     val operatorCode =

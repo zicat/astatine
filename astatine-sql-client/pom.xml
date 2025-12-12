@@ -134,8 +134,8 @@
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-connector-kafka</artifactId>
-            <version>${flink.version}</version>
+            <artifactId>flink-sql-connector-kafka</artifactId>
+            <version>3.4.0-${flink.build.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -224,19 +224,18 @@
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-sql-connector-hbase-2.2</artifactId>
-            <version>${flink.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-sql-connector-kafka</artifactId>
-            <version>${flink.version}</version>
+            <version>${flink.hbase.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-statebackend-rocksdb</artifactId>
             <version>${flink.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.26.1</version>
         </dependency>
     </dependencies>
     <build>
