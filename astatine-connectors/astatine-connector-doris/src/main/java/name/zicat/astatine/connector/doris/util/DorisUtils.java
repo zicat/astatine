@@ -131,6 +131,8 @@ public class DorisUtils {
         || rootType == LogicalTypeRoot.TIMESTAMP_WITHOUT_TIME_ZONE
         || rootType == LogicalTypeRoot.TIMESTAMP_WITH_LOCAL_TIME_ZONE) {
       sql.append("DATETIME");
+    } else if (rootType == LogicalTypeRoot.BINARY || rootType == LogicalTypeRoot.VARBINARY) {
+      sql.append("Array<tinyint>");
     } else if (rootType == LogicalTypeRoot.VARCHAR) {
       sql.append("VARCHAR(65533)");
     } else {
