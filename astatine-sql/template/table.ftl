@@ -68,7 +68,7 @@ WITH (
     async\.queue\.size = '1024'
     async\.threads = '5'
     sink\.parallelism = '1'
-    code\.400\.fail = 'false'>
+    code\.ignore = 'false'>
 WITH (
     'connector' = 'http',
     'request.type' = '${request\.type}',
@@ -80,7 +80,7 @@ WITH (
     'async.queue.size' = '${async\.queue\.size}',
     'async.threads' = '${async\.threads}',
     'sink.parallelism' = '${sink\.parallelism}',
-    'code.400.fail' = '${code\.400\.fail}'
+    'code.ignore' = '${code\.ignore}'
 );
 </#macro>
 

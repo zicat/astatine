@@ -72,11 +72,11 @@ public class HttpTableOptions {
           .defaultValue(5)
           .withDescription("set async thread count, default 5");
 
-  public static final ConfigOption<Boolean> CODE_400_FAIL =
-      ConfigOptions.key("code.400.fail")
-          .booleanType()
-          .defaultValue(false)
-          .withDescription("fail on 400 status code");
+  public static final ConfigOption<Boolean> CODE_IGNORE =
+          ConfigOptions.key("code.ignore")
+                  .booleanType()
+                  .defaultValue(false)
+                  .withDescription("ignore server response code");
 
   /** RequestType. */
   public enum RequestType {

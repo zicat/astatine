@@ -21,7 +21,7 @@ CREATE TABLE http_sink_table (
     'async.queue.size' = '1024',
     'async.threads' = '5',
     'sink.parallelism' = '1',
-    'code.400.fail' = 'false'
+    'code.ignore' = 'false'
 );
 
 -- define with template
@@ -39,23 +39,23 @@ CREATE TABLE http_sink_table (
     async\.queue_size = '1024'
     async\.threads = '5'
     sink\.parallelism = '1' 
-    code\.400\.fail = 'false'/>
+    code\.ignore = 'false'/>
 ```
 
 ## Connector Options
 
-| Option            | Type     | Default | Description                                                                                    |
-|-------------------|----------|---------|------------------------------------------------------------------------------------------------|
-| request\.type     | enum     |         | Specify the http request type, supported type includes `GET`,`POST`,`PUT`,`DELETE`             |
-| proxy             | string   | ''      | Specify the http proxy like: localhost:3333, default ''                                        |
-| connect\.timeout  | duration | 10s     | Specify the socket connection timeout, default 10s                                             |
-| read\.timeout     | duration | 10s     | Specify the socket read server response data timeout, default 10s                              |
-| retry\.interval   | duration | 1s      | Specify the retry interval after previous http request failed, default 1s                      |
-| retry\.count      | int      | 1       | Specify the retry count if request throw IOException OR response status code >= 500, default 1 |
-| async\.queue.size | int      | 1024    | Specify the async http request queue size, default 1024                                        |
-| async\.threads    | int      | 5       | Specify the async http thread pool size, default 5                                             |
-| sink\.parallelism | Integer  | null    | Specify the http sink parallelism, default is extends previous operator parallelism            |
-| code\.400\.fail   | boolean  | false   | Specify whether to fail the job if response status code is 400+, default false                 |
+| Option            | Type     | Default | Description                                                                                                                         |
+|-------------------|----------|---------|-------------------------------------------------------------------------------------------------------------------------------------|
+| request\.type     | enum     |         | Specify the http request type, supported type includes `GET`,`POST`,`PUT`,`DELETE`                                                  |
+| proxy             | string   | ''      | Specify the http proxy like: localhost:3333, default ''                                                                             |
+| connect\.timeout  | duration | 10s     | Specify the socket connection timeout, default 10s                                                                                  |
+| read\.timeout     | duration | 10s     | Specify the socket read server response data timeout, default 10s                                                                   |
+| retry\.interval   | duration | 1s      | Specify the retry interval after previous http request failed, default 1s                                                           |
+| retry\.count      | int      | 1       | Specify the retry count if request throw IOException OR response status code >= 500, default 1                                      |
+| async\.queue.size | int      | 1024    | Specify the async http request queue size, default 1024                                                                             |
+| async\.threads    | int      | 5       | Specify the async http thread pool size, default 5                                                                                  |
+| sink\.parallelism | Integer  | null    | Specify the http sink parallelism, default is extends previous operator parallelism                                                 |
+| code\.ignore      | boolean  | false   | Specify whether to ignore the job if response status code is 400+, default false meaning job fail when response status code is 400+ |
 
 ## Example
 

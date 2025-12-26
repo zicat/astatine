@@ -53,6 +53,7 @@ public class HttpSinkFunction extends RichSinkFunction<RowData> {
   private transient HttpClient client;
   private transient volatile AtomicReference<Exception> state;
   private transient Function<HttpResponse<Void>, Void> responseHandler;
+  private transient HttpSinkMetric metric;
 
   public HttpSinkFunction(int[] metadataPositions, ReadableConfig tableOptions) {
     this.metadataPositions = metadataPositions;
@@ -68,18 +69,21 @@ public class HttpSinkFunction extends RichSinkFunction<RowData> {
     if (retryCount < 0) {
       retryCount = 0;
     }
-    final var code400Fail = tableOptions.get(CODE_400_FAIL);
+    final var codeIgnore = tableOptions.get(CODE_IGNORE);
+    this.metric = new HttpSinkMetric(getRuntimeContext());
     responseHandler =
         response -> {
           final var code = response.statusCode();
-          if (code >= 500) {
-            throw new RuntimeException("Target server error, code " + code);
-          } else {
-            if (code >= 400 && code400Fail) {
-              throw new RuntimeException("Bad Request code " + code);
+          if (codeIgnore) {
+            if (code >= 400) {
+              metric.writeFailInc(code);
             }
             return response.body();
           }
+          if (code >= 400) {
+            throw new RuntimeException("Unexpected code " + code);
+          }
+          return response.body();
         };
     state = new AtomicReference<>();
     client = createHttpClient();
