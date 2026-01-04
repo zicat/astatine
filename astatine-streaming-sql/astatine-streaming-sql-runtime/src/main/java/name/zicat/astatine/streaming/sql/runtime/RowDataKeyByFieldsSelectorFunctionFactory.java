@@ -26,8 +26,8 @@ import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.data.utils.ProjectedRowData;
 import org.apache.flink.table.runtime.typeutils.InternalSerializers;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.runtime.typeutils.RowDataSerializer;
@@ -35,7 +35,6 @@ import org.apache.flink.table.types.logical.RowType;
 
 import java.io.Serial;
 import java.util.Arrays;
-import java.util.List;
 
 /** RowDataKeyByFieldsSelectorFunctionFactory. */
 public class RowDataKeyByFieldsSelectorFunctionFactory
@@ -69,7 +68,7 @@ public class RowDataKeyByFieldsSelectorFunctionFactory
     final var returnType = new RowType(rowFields);
     return stream.keyBy(
         new RowDataKeySelector(
-            Arrays.stream(fieldNameTypes).map(Types.FieldNameType::fieldGetter).toList(),
+            Arrays.stream(fieldNameTypes).mapToInt(Types.FieldNameType::getIndex).toArray(),
             InternalSerializers.create(returnType)),
         InternalTypeInfo.of(returnType));
   }
@@ -82,26 +81,25 @@ public class RowDataKeyByFieldsSelectorFunctionFactory
   /** RowDataKeySelector. */
   public static final class RowDataKeySelector implements KeySelector<RowData, RowData> {
     @Serial private static final long serialVersionUID = 0L;
-    private final List<RowData.FieldGetter> fieldGetters;
+    private final int[] projectMapping;
     private final RowDataSerializer keySerializer;
+    private transient ProjectedRowData projectedRowData;
 
     /**
-     * @param fieldGetters fieldGetters
+     * @param projectMapping projectMapping
      * @param keySerializer keySerializer
      */
-    public RowDataKeySelector(
-        List<RowData.FieldGetter> fieldGetters, RowDataSerializer keySerializer) {
-      this.fieldGetters = fieldGetters;
+    public RowDataKeySelector(int[] projectMapping, RowDataSerializer keySerializer) {
+      this.projectMapping = projectMapping;
       this.keySerializer = keySerializer;
     }
 
     @Override
     public RowData getKey(RowData row) {
-      final var key = new GenericRowData(fieldGetters.size());
-      for (int i = 0; i < fieldGetters.size(); i++) {
-        key.setField(i, fieldGetters.get(i).getFieldOrNull(row));
+      if (projectedRowData == null) {
+        projectedRowData = ProjectedRowData.from(projectMapping);
       }
-      return keySerializer.toBinaryRow(key).copy();
+      return keySerializer.toBinaryRow(projectedRowData.replaceRow(row)).copy();
     }
   }
 }
