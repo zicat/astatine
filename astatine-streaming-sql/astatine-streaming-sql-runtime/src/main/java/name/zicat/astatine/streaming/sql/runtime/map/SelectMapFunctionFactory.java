@@ -20,6 +20,7 @@ package name.zicat.astatine.streaming.sql.runtime.map;
 
 import name.zicat.astatine.streaming.sql.parser.function.MapFunctionFactory;
 import name.zicat.astatine.streaming.sql.parser.transform.TransformContext;
+import name.zicat.astatine.streaming.sql.parser.utils.AstatineCompileUtils;
 import name.zicat.astatine.streaming.sql.runtime.CalcCodeGenerator;
 import org.apache.calcite.rel.logical.LogicalProject;
 import org.apache.flink.api.common.functions.MapFunction;
@@ -115,7 +116,7 @@ public class SelectMapFunctionFactory implements MapFunctionFactory<RowData, Row
     public void open(Configuration parameters) throws Exception {
       final var classLoader = getRuntimeContext().getUserCodeClassLoader();
       final Class<MapFunction<Object, Object>> dynamicClass =
-          CompileUtils.compile(
+          AstatineCompileUtils.compile(
               classLoader, generatedClass.getClassName(), generatedClass.getCode());
       mapFunction =
           dynamicClass
