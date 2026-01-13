@@ -30,9 +30,6 @@ public class StringData2BytesAggregationFunction extends Binary2BytesAggregation
 
   @Override
   protected byte[] getBinary(Object value) {
-    if (value == null) {
-      return EMPTY;
-    }
     final var stringData = (StringData) value;
     return stringData.toBytes();
   }

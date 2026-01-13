@@ -31,17 +31,19 @@ public class Binary2BytesAggregationFunction extends BytesAggregationFunction {
 
   @Override
   public byte[] accumulate(byte[] acc, Object originalValue) {
-    var resultBytes = initIfNull(acc);
+    if (originalValue == null) {
+      return acc;
+    }
+    var resultBytes = getOrCreateAcc(acc);
     final var valueBytes = getBinary(originalValue);
     final var vlongLength = calculateVLongLength(valueBytes.length);
-    final var valueLength = valueBytes.length + vlongLength;
+    final var valueTotalLength = valueBytes.length + vlongLength;
     final var offset = nextWritableOffset(resultBytes);
-    final var limit = valueLength + offset;
+    final var limit = valueTotalLength + offset;
     // expand the byte array if necessary
-    while (limit > resultBytes.length) {
-      resultBytes = expand(resultBytes, offset, valueLength);
+    if (limit > resultBytes.length) {
+      resultBytes = expand(resultBytes, offset, valueTotalLength);
     }
-
     var longValue = valueBytes.length;
     for (int i = 0; i < vlongLength; i++) {
       resultBytes[offset + i] = (byte) ((longValue & 0x7F));
@@ -52,10 +54,13 @@ public class Binary2BytesAggregationFunction extends BytesAggregationFunction {
     return resultBytes;
   }
 
+  /**
+   * convert value to binary.
+   *
+   * @param value value
+   * @return binary
+   */
   protected byte[] getBinary(Object value) {
-    if (value == null) {
-      return EMPTY;
-    }
     return (byte[]) value;
   }
 

@@ -26,14 +26,17 @@ public class Long2BytesAggregationFunction extends BytesAggregationFunction {
 
   @Override
   public byte[] accumulate(byte[] acc, Object value) {
+    if (value == null) {
+      return acc;
+    }
     final var longValue = getLongValue(value);
-    var resultBytes = initIfNull(acc);
-    final var valueLength = valueLength(); // long is 8 bytes
+    var resultBytes = getOrCreateAcc(acc);
+    final var valueTotalLength = valueTotalLength(); // long is 8 bytes
     final var offset = nextWritableOffset(resultBytes);
-    final var limit = valueLength + offset;
+    final var limit = valueTotalLength + offset;
     // expand the byte array if necessary
     while (limit > resultBytes.length) {
-      resultBytes = expand(resultBytes, offset, valueLength);
+      resultBytes = expand(resultBytes, offset, valueTotalLength);
     }
     resultBytes[offset] = (byte) (longValue >>> 56);
     resultBytes[offset + 1] = (byte) (longValue >>> 48);
@@ -67,13 +70,10 @@ public class Long2BytesAggregationFunction extends BytesAggregationFunction {
   }
 
   protected long getLongValue(Object value) {
-    if (value == null) {
-      return 0L;
-    }
     return (long) value;
   }
 
-  protected int valueLength() {
+  protected int valueTotalLength() {
     return 8;
   }
 }

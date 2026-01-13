@@ -26,9 +26,6 @@ public class Double2BytesAggregationFunction extends Long2BytesAggregationFuncti
 
   @Override
   protected long getLongValue(Object value) {
-    if (value == null) {
-      return 0;
-    }
     return Double.doubleToLongBits((double) value);
   }
 

@@ -45,9 +45,9 @@ public class TimeSeries2BytesAggregationFunction extends Long2BytesAggregationFu
     /*
      The first value in acc is the start ts of session, remove it.
     */
-    final var realSize = size - valueLength();
+    final var realSize = size - valueTotalLength();
     final byte[] result = new byte[realSize];
-    System.arraycopy(acc, BytesAggregationFunction.HEAD_SIZE + valueLength(), result, 0, realSize);
+    System.arraycopy(acc, BytesAggregationFunction.HEAD_SIZE + valueTotalLength(), result, 0, realSize);
     return result;
   }
 
@@ -57,6 +57,6 @@ public class TimeSeries2BytesAggregationFunction extends Long2BytesAggregationFu
     if (size == 0) {
       return 0;
     }
-    return size - valueLength();
+    return size - valueTotalLength();
   }
 }

@@ -26,9 +26,6 @@ public class Float2BytesAggregationFunction extends Int2BytesAggregationFunction
 
   @Override
   protected int getIntValue(Object value) {
-    if (value == null) {
-      return 0;
-    }
     return Float.floatToIntBits((float) value);
   }
 

@@ -26,14 +26,17 @@ public class Short2BytesAggregationFunction extends BytesAggregationFunction {
 
   @Override
   public byte[] accumulate(byte[] acc, Object value) {
+    if (value == null) {
+      return acc;
+    }
     final var shortValue = getValue(value);
-    var resultBytes = initIfNull(acc);
-    final var valueLength = 2; // int is 2 bytes
+    var resultBytes = getOrCreateAcc(acc);
+    final var valueTotalLength = 2; // int is 2 bytes
     final var offset = nextWritableOffset(resultBytes);
-    final var limit = valueLength + offset;
+    final var limit = valueTotalLength + offset;
     // expand the byte array if necessary
     while (limit > resultBytes.length) {
-      resultBytes = expand(resultBytes, offset, valueLength);
+      resultBytes = expand(resultBytes, offset, valueTotalLength);
     }
     resultBytes[offset] = (byte) (shortValue >>> 8);
     resultBytes[offset + 1] = (byte) (shortValue);
@@ -42,9 +45,6 @@ public class Short2BytesAggregationFunction extends BytesAggregationFunction {
   }
 
   protected short getValue(Object value) {
-    if (value == null) {
-      return 0;
-    }
     return (short) value;
   }
 

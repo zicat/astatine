@@ -26,9 +26,6 @@ public class Boolean2BytesAggregationFunction extends Byte2BytesAggregationFunct
 
   @Override
   protected byte getByteValue(Object value) {
-    if (value == null) {
-      return (byte) (0);
-    }
     return (byte) ((boolean) value ? 1 : 0);
   }
 

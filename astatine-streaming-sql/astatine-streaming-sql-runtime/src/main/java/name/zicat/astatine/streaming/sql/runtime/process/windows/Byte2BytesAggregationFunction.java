@@ -26,14 +26,17 @@ public class Byte2BytesAggregationFunction extends BytesAggregationFunction {
 
   @Override
   public byte[] accumulate(byte[] acc, Object value) {
+    if (value == null) {
+      return acc;
+    }
     final var byteValue = getByteValue(value);
-    var resultBytes = initIfNull(acc);
-    final var valueLength = 1; // byte is 1 byte
+    var resultBytes = getOrCreateAcc(acc);
+    final var valueTotalLength = 1; // byte is 1 byte
     final var offset = nextWritableOffset(resultBytes);
-    final var limit = valueLength + offset;
+    final var limit = valueTotalLength + offset;
     // expand the byte array if necessary
-    while (limit > resultBytes.length) {
-      resultBytes = expand(resultBytes, offset, valueLength);
+    if (limit > resultBytes.length) {
+      resultBytes = expand(resultBytes, offset, valueTotalLength);
     }
     resultBytes[offset] = byteValue;
     updateHead(resultBytes, limit);
@@ -60,9 +63,6 @@ public class Byte2BytesAggregationFunction extends BytesAggregationFunction {
   }
 
   protected byte getByteValue(Object value) {
-    if (value == null) {
-      return (byte) (0);
-    }
     return (byte) value;
   }
 }

@@ -67,7 +67,7 @@ public abstract class BytesAggregationFunction implements AggregationFunction<by
   }
 
   protected int bodySize(byte[] acc) {
-    if (acc == null || acc.length < 4) {
+    if (acc == null || acc.length <= HEAD_SIZE) {
       return 0;
     }
     return ((acc[0] & 0xFF) << 24)
@@ -76,16 +76,33 @@ public abstract class BytesAggregationFunction implements AggregationFunction<by
         | (acc[3] & 0xFF);
   }
 
+  /**
+   * next writable offset.
+   * @param acc acc
+   * @return int
+   */
   protected int nextWritableOffset(byte[] acc) {
-    return acc == null || acc.length < HEAD_SIZE ? HEAD_SIZE : bodySize(acc) + HEAD_SIZE;
+    return bodySize(acc) + HEAD_SIZE;
   }
 
-  protected byte[] initIfNull(byte[] acc) {
+  /**
+   * get or create acc.
+   * @param acc acc
+   * @return byte array
+   */
+  protected byte[] getOrCreateAcc(byte[] acc) {
     return acc == null || acc.length < HEAD_SIZE ? new byte[DEFAULT_SIZE] : acc;
   }
 
+  /**
+   * expand byte array.
+   * @param acc acc
+   * @param copySize size
+   * @param minSize min size
+   * @return new byte array
+   */
   protected byte[] expand(byte[] acc, int copySize, int minSize) {
-    var newBytes = new byte[acc.length + Math.max(minSize, DEFAULT_SIZE)];
+    var newBytes = new byte[copySize + Math.max(minSize, DEFAULT_SIZE)];
     System.arraycopy(acc, 0, newBytes, 0, copySize);
     return newBytes;
   }

@@ -22,7 +22,6 @@ import name.zicat.astatine.streaming.sql.parser.utils.AstatineCompileUtils;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.table.runtime.generated.CompileUtils;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
