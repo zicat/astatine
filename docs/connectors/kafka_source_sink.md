@@ -26,4 +26,4 @@ CREATE TABLE kafka_sink (
 
 ## Connector Options
 
-The Kafka Connector is used Flink Kafka Sink Connector, so all options can be found in [Flink Kafka SQL Connector](https://nightlies.apache.org/flink/flink-docs-release-1.17/docs/connectors/table/kafka/)
+The Kafka Connector is used Flink Kafka Sink Connector, so all options can be found in [Flink Kafka SQL Connector](https://nightlies.apache.org/flink/flink-docs-release-1.20/docs/connectors/table/kafka/)

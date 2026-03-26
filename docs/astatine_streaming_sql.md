@@ -184,11 +184,6 @@ The following is the list of supported transforms:
   a [keyed process function factory](../astatine-streaming-sql/astatine-streaming-sql-parser/src/main/java/name/zicat/astatine/streaming/sql/parser/function/KeyedProcessFunctionFactory.java)
   registering by spi to process the keyed input stream.
 
-- WATERMARK
-
-  Define a [watermark function factory](../astatine-streaming-sql/astatine-streaming-sql-parser/src/main/java/name/zicat/astatine/streaming/sql/parser/function/WatermarkFunctionFactory.java)
-  registering by spi to generate the watermark for the input stream.  
-
 - FORWARD
 
   The forward operator is used to forward the input stream to the output stream.

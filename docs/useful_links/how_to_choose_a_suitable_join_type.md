@@ -1,6 +1,6 @@
 # Temporal Join VS Interval Join in Streaming Job
 
-In streaming jobs, the join operation is a very common operation. Flink provides a variety of join types, Go to [Joins](https://nightlies.apache.org/flink/flink-docs-release-1.17/docs/dev/table/sql/queries/joins/) for more details.
+In streaming jobs, the join operation is a very common operation. Flink provides a variety of join types, Go to [Joins](https://nightlies.apache.org/flink/flink-docs-release-1.20/docs/dev/table/sql/queries/joins/) for more details.
 
 For this section, we will focus on the following join types:
 

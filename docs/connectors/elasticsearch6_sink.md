@@ -25,7 +25,7 @@ FROM source;
 
 ### Connector Options
 
-The Astatine ElasticSearch Sink Connector is based on the Flink ElasticSearch6 Sink Connector, so all options can be found in [Flink Elasticsearch SQL Connector](https://nightlies.apache.org/flink/flink-docs-release-1.17/docs/connectors/table/elasticsearch/)
+The Astatine ElasticSearch Sink Connector is based on the Flink ElasticSearch6 Sink Connector, so all options can be found in [Flink Elasticsearch SQL Connector](https://nightlies.apache.org/flink/flink-docs-release-1.20/docs/connectors/table/elasticsearch/)
 
 The Astatine ElasticSearch Sink Connector also supports the following options:
 

@@ -67,7 +67,7 @@ Goto [Compile and Build astatine](build_project.md) to build astatine first befo
 
 3. Learning more about SQL expressions
 
-   Astatine SQL is fully compatible with Flink-SQL. To learn more about SQL expressions, please refer to [Flink-Sql-1.17.1](https://nightlies.apache.org/flink/flink-docs-release-1.17/docs/dev/table/sql/queries/overview/)
+   Astatine SQL is fully compatible with Flink-SQL. To learn more about SQL expressions, please refer to [Flink-Sql](https://nightlies.apache.org/flink/flink-docs-release-1.20/docs/dev/table/sql/queries/overview/)
 
 4. Using template
 

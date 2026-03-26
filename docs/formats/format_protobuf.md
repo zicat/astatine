@@ -2,7 +2,7 @@
 
 The ProtoBuf Format is a binary format that is used to serialize structured data. It is a popular format for serializing data in a compact and efficient way.
 
-Flink supports reading and writing data in the [ProtoBuf Format](https://nightlies.apache.org/flink/flink-docs-release-1.17/docs/connectors/table/formats/protobuf/).
+Flink supports reading and writing data in the [ProtoBuf Format](https://nightlies.apache.org/flink/flink-docs-release-1.20/docs/connectors/table/formats/protobuf/).
 
 Astatine support to manage the Proto File and build as java class in the module of [astatine-format-protobuf](../../astatine-formats/astatine-format-protobuf).
 
@@ -53,4 +53,4 @@ This document introduces how to use the ProtoBuf Format in Astatine.
    Note: 
    - The `format` is `protobuf`.
    - The `protobuf.message-class-name` is the full class name of the message defined in the proto file.
-   - All options supported by the ProtoBuf Format can be found in [Flink ProtoBuf Format](https://nightlies.apache.org/flink/flink-docs-release-1.17/docs/connectors/table/formats/protobuf/).
+   - All options supported by the ProtoBuf Format can be found in [Flink ProtoBuf Format](https://nightlies.apache.org/flink/flink-docs-release-1.20/docs/connectors/table/formats/protobuf/).

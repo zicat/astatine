@@ -1,6 +1,6 @@
 # Streaming Eventtime Temporal Join Operator
 
-The streaming eventtime temporal join operator is an eventtime-based streaming keyed operator that support to join two streams by eventtime like [Sql Eventtime Temporal Join](https://nightlies.apache.org/flink/flink-docs-release-1.17/docs/dev/table/sql/queries/joins/#temporal-joins).
+The streaming eventtime temporal join operator is an eventtime-based streaming keyed operator that support to join two streams by eventtime like [Sql Eventtime Temporal Join](https://nightlies.apache.org/flink/flink-docs-release-1.20/docs/dev/table/sql/queries/joins/#temporal-joins).
 
 ## Diff with Flink Sql Temporal Join:
 

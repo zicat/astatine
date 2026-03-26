@@ -28,7 +28,7 @@ FROM source;
 ```
 ## Connector Options
 
-The HBase Sink Connector is based on the Flink HBase Sink Connector, so all options can be found in [Flink HBase SQL Connector](https://nightlies.apache.org/flink/flink-docs-release-1.17/docs/connectors/table/hbase/)
+The HBase Sink Connector is based on the Flink HBase Sink Connector, so all options can be found in [Flink HBase SQL Connector](https://nightlies.apache.org/flink/flink-docs-release-1.20/docs/connectors/table/hbase/)
 
 ## Others
 

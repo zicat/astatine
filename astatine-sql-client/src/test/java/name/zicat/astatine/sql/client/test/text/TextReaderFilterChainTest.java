@@ -37,7 +37,7 @@ public class TextReaderFilterChainTest {
 
     final var sql =
         """
-                --  /usr/flink/flink-1.17.1/bin/flink-la run-application -p 4 -Dtaskmanager.memory.network.fraction=0.1
+                --  /usr/flink/flink-1.20.3/bin/flink-la run-application -p 4 -Dtaskmanager.memory.network.fraction=0.1
                 <#import "env_utest.ftl" as template>
                 <@template.setting tf_idle_state_retention_time='2' />""";
     final Reader filterReader =

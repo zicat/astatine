@@ -1,6 +1,6 @@
 # Develop User Defined Functions in Astatine
 
-Flink allow user to [develop functions](https://nightlies.apache.org/flink/flink-docs-release-1.17/docs/dev/table/functions/udfs/), Astatine support to manage user-defined functions and register in sql.
+Flink allow user to [develop functions](https://nightlies.apache.org/flink/flink-docs-release-1.20/docs/dev/table/functions/udfs/), Astatine support to manage user-defined functions and register in sql.
 
 This document introduces how to develop user-defined functions and register in sql.
 

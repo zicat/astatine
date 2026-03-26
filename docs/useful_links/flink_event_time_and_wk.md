@@ -1,6 +1,6 @@
 # Flink Event Time and Watermark
 
-[Event Time and Watermark](https://nightlies.apache.org/flink/flink-docs-release-1.17/docs/concepts/time/#event-time-and-watermarks) is very important concept in Flink. It can effectively control data latency and out-of-order issues, which can affect the accuracy and timeliness of jobs.
+[Event Time and Watermark](https://nightlies.apache.org/flink/flink-docs-release-1.20/docs/concepts/time/#event-time-and-watermarks) is very important concept in Flink. It can effectively control data latency and out-of-order issues, which can affect the accuracy and timeliness of jobs.
 
 In this section, Let's use some examples to learn how to use Event Time and Watermark in Flink.
 

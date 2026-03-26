@@ -19,7 +19,7 @@ export FLINK_ENV_JAVA_OPTS="${FLINK_ENV_JAVA_OPTS} -Dtemplate.default=env_local 
 
 hdfs_base_dir='/user/flink/checkpoints'
 hdfs_host='hdfs://default'
-flink_job_command='/usr/flink/flink-1.17.1/bin/flink-local run'
+flink_job_command='/usr/flink/flink-1.20.3/bin/flink-local run'
 
 kill_all_application_by_name_on_yarn(){
   job_name=$1
