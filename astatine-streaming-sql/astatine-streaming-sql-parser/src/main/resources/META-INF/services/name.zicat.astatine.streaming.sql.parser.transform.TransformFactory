@@ -18,4 +18,3 @@ name.zicat.astatine.streaming.sql.parser.transform.IntervalJoinTransformFactory
 name.zicat.astatine.streaming.sql.parser.transform.ConnectTransformFactory
 name.zicat.astatine.streaming.sql.parser.transform.ForwardTransformFactory
 name.zicat.astatine.streaming.sql.parser.transform.AggregateTransformFactory
-name.zicat.astatine.streaming.sql.parser.transform.WatermarkTransformFactory

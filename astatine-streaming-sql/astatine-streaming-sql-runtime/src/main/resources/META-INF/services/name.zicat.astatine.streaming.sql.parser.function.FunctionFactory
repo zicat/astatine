@@ -8,5 +8,4 @@ name.zicat.astatine.streaming.sql.runtime.map.DateExpansionFlatMapFunctionFactor
 name.zicat.astatine.streaming.sql.runtime.map.DateHourExpansionFlatMapFunctionFactory
 name.zicat.astatine.streaming.sql.runtime.process.windows.SessionTumbleWindowFunctionFactory
 name.zicat.astatine.streaming.sql.runtime.map.SelectMapFunctionFactory
-name.zicat.astatine.streaming.sql.runtime.process.FieldWatermarkFunctionFactory
 name.zicat.astatine.streaming.sql.runtime.process.windows.SessionTumble2TumbleWindowFunctionFactory
