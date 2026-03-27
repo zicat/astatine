@@ -54,4 +54,4 @@ PRINT FROM paimon.ods.test_paimon;
 ```
 ## Connector Options
 
-The Paimon Connector is used Flink Paimon Sink Connector, so all options can be found in [Flink Paimon SQL Connector](https://paimon.apache.org/docs/0.9/flink/sql-ddl/)
+The Paimon Connector is used Flink Paimon Sink Connector, so all options can be found in [Flink Paimon SQL Connector](https://paimon.apache.org/docs/1.0/flink/sql-ddl/)
