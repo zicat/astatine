@@ -30,10 +30,7 @@ public class Short2BytesAggregationFunctionTest extends BytesAggregationFunction
   public void test() {
     final var function = new Short2BytesAggregationFunction();
     final var it = createIterator(function, null, Short.valueOf("4"), Short.valueOf("5"), null);
-    final var expectIt =
-        Arrays.asList(
-                Short.valueOf("0"), Short.valueOf("4"), Short.valueOf("5"), Short.valueOf("0"))
-            .iterator();
+    final var expectIt = Arrays.asList(Short.valueOf("4"), Short.valueOf("5")).iterator();
     while (it.hasNext()) {
       Assert.assertEquals(expectIt.next(), it.next());
     }

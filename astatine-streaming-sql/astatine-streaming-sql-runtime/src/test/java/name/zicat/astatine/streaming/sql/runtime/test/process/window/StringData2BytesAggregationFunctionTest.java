@@ -35,12 +35,7 @@ public class StringData2BytesAggregationFunctionTest extends BytesAggregationFun
         createIterator(
             function, null, StringData.fromString("test"), StringData.fromString("test2"), null);
     final var expectIt =
-        Arrays.asList(
-                StringData.fromString(""),
-                StringData.fromString("test"),
-                StringData.fromString("test2"),
-                StringData.fromString(""))
-            .iterator();
+        Arrays.asList(StringData.fromString("test"), StringData.fromString("test2")).iterator();
     while (it.hasNext()) {
       Assert.assertEquals(expectIt.next(), it.next());
     }

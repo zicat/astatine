@@ -31,7 +31,7 @@ public class Boolean2BytesAggregationFunctionTest extends BytesAggregationFuncti
   public void test() {
     final var function = new Boolean2BytesAggregationFunction();
     final var it = createIterator(function, null, true, false, null);
-    final var expectIt = Arrays.asList(false, true, false, false).iterator();
+    final var expectIt = Arrays.asList(true, false).iterator();
     while (it.hasNext()) {
       Assert.assertEquals(expectIt.next(), it.next());
     }

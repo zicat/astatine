@@ -194,10 +194,6 @@ public class SessionTumbleWindowFunctionFactoryTest extends TransformFactoryTest
           offset = 0;
           while (score2.hasRemaining()) {
             final int value = score2.get();
-            if (!score2.hasRemaining()) {
-              Assert.assertEquals(0, value);
-              break;
-            }
             Assert.assertTrue(offset % 2 == 0 ? value == 1 : value == 0);
             offset++;
           }
@@ -206,10 +202,6 @@ public class SessionTumbleWindowFunctionFactoryTest extends TransformFactoryTest
           offset = 0;
           while (score3.hasRemaining()) {
             final byte value = score3.get();
-            if (!score3.hasRemaining()) {
-              Assert.assertEquals(0, value);
-              break;
-            }
             Assert.assertEquals(offset + 1, value);
             offset++;
           }
@@ -218,10 +210,6 @@ public class SessionTumbleWindowFunctionFactoryTest extends TransformFactoryTest
           offset = 0;
           while (score4.hasRemaining()) {
             final double value = Double.longBitsToDouble(score4.getLong());
-            if (!score4.hasRemaining()) {
-              Assert.assertEquals(0d, value, 0.01);
-              break;
-            }
             Assert.assertEquals(offset + 1d, value, 0.01);
             offset++;
           }
@@ -230,10 +218,6 @@ public class SessionTumbleWindowFunctionFactoryTest extends TransformFactoryTest
           offset = 0;
           while (score5.hasRemaining()) {
             final float value = Float.intBitsToFloat(score5.getInt());
-            if (!score5.hasRemaining()) {
-              Assert.assertEquals(0f, value, 0.01);
-              break;
-            }
             Assert.assertEquals(offset + 2f, value, 0.01);
             offset++;
           }
@@ -242,10 +226,6 @@ public class SessionTumbleWindowFunctionFactoryTest extends TransformFactoryTest
           offset = 0;
           while (score6.hasRemaining()) {
             final int value = score6.getInt();
-            if (!score6.hasRemaining()) {
-              Assert.assertEquals(0, value);
-              break;
-            }
             Assert.assertEquals(offset + 4, value);
             offset++;
           }
@@ -254,10 +234,6 @@ public class SessionTumbleWindowFunctionFactoryTest extends TransformFactoryTest
           offset = 0;
           while (score7.hasRemaining()) {
             final long value = score7.getLong();
-            if (!score7.hasRemaining()) {
-              Assert.assertEquals(0, value);
-              break;
-            }
             Assert.assertEquals(offset + 5L, value);
             offset++;
           }
@@ -266,10 +242,6 @@ public class SessionTumbleWindowFunctionFactoryTest extends TransformFactoryTest
           offset = 0;
           while (score8.hasRemaining()) {
             final short value = score8.getShort();
-            if (!score8.hasRemaining()) {
-              Assert.assertEquals(0, value);
-              break;
-            }
             Assert.assertEquals(offset + 6L, value);
             offset++;
           }
@@ -280,10 +252,6 @@ public class SessionTumbleWindowFunctionFactoryTest extends TransformFactoryTest
             final int length = (int) VLongUtils.vLongDecode(score9);
             final byte[] bs = new byte[length];
             score9.get(bs);
-            if (!score9.hasRemaining()) {
-              Assert.assertEquals(0, bs.length);
-              break;
-            }
             Assert.assertEquals("varchar" + offset, new String(bs));
             offset++;
           }

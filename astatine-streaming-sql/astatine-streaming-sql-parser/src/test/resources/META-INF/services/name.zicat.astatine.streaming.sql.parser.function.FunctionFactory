@@ -14,4 +14,3 @@ name.zicat.astatine.streaming.sql.parser.test.function.NameSexScoreJoinFunctionF
 name.zicat.astatine.streaming.sql.parser.test.function.NameSexScoreIntervalJoinFunctionFactory
 name.zicat.astatine.streaming.sql.parser.test.function.NameScoreSexTsConnectFactionFactory
 name.zicat.astatine.streaming.sql.parser.test.function.NameScore2StringScoreMapFunctionFactory
-name.zicat.astatine.streaming.sql.parser.test.function.WatermarkTestFunctionFactory

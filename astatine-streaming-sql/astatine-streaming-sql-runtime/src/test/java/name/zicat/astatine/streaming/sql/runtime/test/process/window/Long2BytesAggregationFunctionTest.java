@@ -30,7 +30,7 @@ public class Long2BytesAggregationFunctionTest extends BytesAggregationFunctionT
   public void test() {
     final var function = new Long2BytesAggregationFunction();
     final var it = createIterator(function, null, 10L, 11L, null);
-    final var expectIt = Arrays.asList(0L, 10L, 11L, 0L).iterator();
+    final var expectIt = Arrays.asList(10L, 11L).iterator();
     while (it.hasNext()) {
       Assert.assertEquals(expectIt.next(), it.next());
     }

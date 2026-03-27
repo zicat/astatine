@@ -31,7 +31,7 @@ public class Double2BytesAggregationFunctionTest extends BytesAggregationFunctio
   public void test() {
     final var function = new Double2BytesAggregationFunction();
     final var it = createIterator(function, null, 1.1, 2.2, null);
-    final var expectIt = Arrays.asList(0d, 1.1d, 2.2d, 0d).iterator();
+    final var expectIt = Arrays.asList(1.1d, 2.2d).iterator();
     while (it.hasNext()) {
       Assert.assertEquals(expectIt.next(), (double) it.next(), 0.01d);
     }

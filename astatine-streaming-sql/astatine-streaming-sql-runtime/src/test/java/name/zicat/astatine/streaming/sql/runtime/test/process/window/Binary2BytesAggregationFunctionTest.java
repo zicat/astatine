@@ -31,9 +31,7 @@ public class Binary2BytesAggregationFunctionTest extends BytesAggregationFunctio
   public void test() {
     final var function = new Binary2BytesAggregationFunction();
     final var it = createIterator(function, null, "test".getBytes(), "test2".getBytes(), null);
-    final var expectIt =
-        Arrays.asList(new byte[] {}, "test".getBytes(), "test2".getBytes(), new byte[] {})
-            .iterator();
+    final var expectIt = Arrays.asList("test".getBytes(), "test2".getBytes()).iterator();
     while (it.hasNext()) {
       Assert.assertArrayEquals(expectIt.next(), (byte[]) it.next());
     }

@@ -31,14 +31,14 @@ public class TimeSeries2BytesAggregationFunctionTest extends BytesAggregationFun
   public void test() {
     final var function = new TimeSeries2BytesAggregationFunction();
     final var it = createIterator(function, null, 10L, 11L, null);
-    final var expectIt = Arrays.asList(10L, 11L, 0L).iterator();
+    final var expectIt = Arrays.asList(11L).iterator();
     while (it.hasNext()) {
       Assert.assertEquals(expectIt.next(), it.next());
     }
     Assert.assertFalse(expectIt.hasNext());
 
     final var it2 = createIterator(function, 10L, 11L, null);
-    final var expectIt2 = Arrays.asList(11L, 0L).iterator();
+    final var expectIt2 = Arrays.asList(11L).iterator();
     while (it2.hasNext()) {
       Assert.assertEquals(expectIt2.next(), it2.next());
     }

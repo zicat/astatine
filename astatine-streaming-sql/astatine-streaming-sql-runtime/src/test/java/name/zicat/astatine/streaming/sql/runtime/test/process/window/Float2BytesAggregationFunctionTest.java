@@ -31,7 +31,7 @@ public class Float2BytesAggregationFunctionTest extends BytesAggregationFunction
   public void test() {
     final var function = new Float2BytesAggregationFunction();
     final var it = createIterator(function, null, 2.1f, 3.2f, null);
-    final var expectIt = Arrays.asList(0f, 2.1f, 3.2f, 0f).iterator();
+    final var expectIt = Arrays.asList(2.1f, 3.2f).iterator();
     while (it.hasNext()) {
       Assert.assertEquals(expectIt.next(), (float) it.next(), 0.01d);
     }

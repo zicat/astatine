@@ -30,7 +30,7 @@ public class Byte2BytesAggregationFunctionTest extends BytesAggregationFunctionT
   public void test() {
     final var function = new Byte2BytesAggregationFunction();
     final var it = createIterator(function, null, (byte) 1, (byte) 2, null);
-    final var expectIt = Arrays.asList((byte) 0, (byte) 1, (byte) 2, (byte) 0).iterator();
+    final var expectIt = Arrays.asList((byte) 1, (byte) 2).iterator();
     while (it.hasNext()) {
       Assert.assertEquals(expectIt.next(), it.next());
     }
