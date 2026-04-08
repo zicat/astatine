@@ -75,7 +75,10 @@ public final class DorisDynamicTableFactory implements DynamicTableSinkFactory {
   public DynamicTableSink createDynamicTableSink(Context context) {
     final var helper = FactoryUtil.createTableFactoryHelper(this, context);
     helper.validateExcept(
-        AUTO_CREATE_TABLE_PROPERTIES, HEADER_PROPERTIES, AUTO_CREATE_TABLE_ENGINE_AGGREGATE_FUNCTION);
+        AUTO_CREATE_TABLE_PROPERTIES,
+        HEADER_PROPERTIES,
+        AUTO_CREATE_TABLE_ENGINE_AGGREGATE_FUNCTION,
+        AUTO_CREATE_TABLE_FIELDS_TYPE);
     final var config = helper.getOptions();
     return new DorisDynamicTableSink(config, context.getCatalogTable());
   }

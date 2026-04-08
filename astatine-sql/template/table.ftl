@@ -172,6 +172,9 @@ WITH(
         <#if p?starts_with("auto-create-table.engine.aggregate-function.")>
     '${p}' = '${dynamic_key_value[p]}',
         </#if>
+        <#if p?starts_with("auto-create-table.fields.type.")>
+    '${p}' = '${dynamic_key_value[p]}',
+        </#if>
     </#list>
     'auto-create-table' = '${auto\-create\-table}',
     'auto-create-table.engine' = '${auto\-create\-table\.engine}',

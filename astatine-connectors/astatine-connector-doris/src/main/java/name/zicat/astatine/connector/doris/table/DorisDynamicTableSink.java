@@ -57,6 +57,7 @@ public class DorisDynamicTableSink implements DynamicTableSink {
             context.createDataStructureConverter(dataType),
             getDorisAutoCreateTableProperties(catalogTable.getOptions(), config),
             getDorisAutoCreateAggregationFieldFunctions(catalogTable.getOptions()),
+            getDorisAutoCreateTableFieldsType(catalogTable.getOptions()),
             dataType,
             getHeaders(catalogTable.getOptions()));
     return SinkFunctionProvider.of(function, config.get(SINK_PARALLELISM));
@@ -104,6 +105,17 @@ public class DorisDynamicTableSink implements DynamicTableSink {
       }
     }
     return headers;
+  }
+
+  public static Map<String, String> getDorisAutoCreateTableFieldsType(
+      Map<String, String> tableOptions) {
+    return tableOptions.entrySet().stream()
+        .filter(e -> e.getKey().startsWith(AUTO_CREATE_TABLE_FIELDS_TYPE))
+        .collect(
+            HashMap::new,
+            (m, e) ->
+                m.put(e.getKey().substring(AUTO_CREATE_TABLE_FIELDS_TYPE.length()), e.getValue()),
+            HashMap::putAll);
   }
 
   @Override

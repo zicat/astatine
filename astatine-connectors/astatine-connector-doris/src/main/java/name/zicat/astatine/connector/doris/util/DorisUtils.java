@@ -74,18 +74,23 @@ public class DorisUtils {
   }
 
   public static String createFieldsDDLSql(
-      List<RowType.RowField> fields, Map<String, String> autoCreateFieldsFunctions) {
+      List<RowType.RowField> fields,
+      Map<String, String> autoCreateFieldsFunctions,
+      Map<String, String> autoCreateTableFieldsType) {
     final var it = fields.iterator();
     final var sql = new StringBuilder();
     while (it.hasNext()) {
       final var rowField = it.next();
       final var function = autoCreateFieldsFunctions.get(rowField.getName());
+      final var autoCreateTableFieldType = autoCreateTableFieldsType.get(rowField.getName());
+      final String type =
+          autoCreateTableFieldType == null
+              ? columnDDL(rowField.getType()).toString()
+              : autoCreateTableFieldType;
       if (function == null) {
-        sql.append("    `%s`    %s".formatted(rowField.getName(), columnDDL(rowField.getType())));
+        sql.append("    `%s`    %s".formatted(rowField.getName(), type));
       } else {
-        sql.append(
-            "    `%s`    %s   %s"
-                .formatted(rowField.getName(), columnDDL(rowField.getType()), function));
+        sql.append("    `%s`    %s   %s".formatted(rowField.getName(), type, function));
       }
       if (it.hasNext()) {
         sql.append(",");

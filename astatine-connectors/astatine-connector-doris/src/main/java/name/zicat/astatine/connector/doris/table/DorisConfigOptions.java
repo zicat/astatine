@@ -114,12 +114,14 @@ public class DorisConfigOptions {
   public static final String HEADER_PROPERTIES = "header.properties.";
   public static final String AUTO_CREATE_TABLE_ENGINE_AGGREGATE_FUNCTION =
       "auto-create-table.engine.aggregate-function.";
+  public static final String AUTO_CREATE_TABLE_FIELDS_TYPE = "auto-create-table.fields.type.";
 
-  protected static final ConfigOption<Duration> AUTO_CREATE_TABLE_PROPERTIES_GROUP_COMMIT_INTERVAL_DURATION =
+  protected static final ConfigOption<Duration>
+      AUTO_CREATE_TABLE_PROPERTIES_GROUP_COMMIT_INTERVAL_DURATION =
           ConfigOptions.key(AUTO_CREATE_TABLE_PROPERTIES + "group_commit_interval_ms")
-                  .durationType()
-                  .defaultValue(Duration.ofMinutes(1))
-                  .withDescription("the group commit interval ms properties for auto create table");
+              .durationType()
+              .defaultValue(Duration.ofMinutes(1))
+              .withDescription("the group commit interval ms properties for auto create table");
 
   /**
    * group commit mode.

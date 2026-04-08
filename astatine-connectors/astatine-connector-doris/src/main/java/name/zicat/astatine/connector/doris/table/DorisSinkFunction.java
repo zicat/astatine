@@ -71,6 +71,7 @@ public class DorisSinkFunction extends RichSinkFunction<RowData> implements Chec
   private final DataType dataType;
   private final Map<String, String> autoCreateTableProperties;
   private final Map<String, String> autoCreateFieldsFunctions;
+  private final Map<String, String> autoCreateTableFieldsType;
   private transient DorisHealthChecker dorisHealthChecker;
   private transient DorisStreamLoadContext dorisStreamLoadContext;
   private final Map<String, String> headers;
@@ -82,6 +83,7 @@ public class DorisSinkFunction extends RichSinkFunction<RowData> implements Chec
       DynamicTableSink.DataStructureConverter converter,
       Map<String, String> autoCreateTableProperties,
       Map<String, String> autoCreateFieldsFunctions,
+      Map<String, String> autoCreateTableFieldsType,
       DataType dataType,
       Map<String, String> headers) {
     this.db = db(config);
@@ -103,6 +105,7 @@ public class DorisSinkFunction extends RichSinkFunction<RowData> implements Chec
     this.threads = config.get(SINK_THREADS);
     this.autoCreateTableProperties = autoCreateTableProperties;
     this.autoCreateFieldsFunctions = autoCreateFieldsFunctions;
+    this.autoCreateTableFieldsType = autoCreateTableFieldsType;
     this.dataType = dataType;
     this.headers = headers;
     this.groupCommitIntervalMs =
@@ -245,7 +248,8 @@ public class DorisSinkFunction extends RichSinkFunction<RowData> implements Chec
       }
     }
 
-    final var fieldsSql = createFieldsDDLSql(rowFields, autoCreateFieldsFunctions);
+    final var fieldsSql =
+        createFieldsDDLSql(rowFields, autoCreateFieldsFunctions, autoCreateTableFieldsType);
 
     final var sql =
         partition == null

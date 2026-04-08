@@ -14,6 +14,7 @@ CREATE TABLE source (
 CREATE TABLE sink_doris(
   name              STRING,
   score             INT,
+  json_value        STRING, 
   ts                BIGINT,
   `date`            DATE
 ) <@template.table_doris_sink_property
@@ -33,6 +34,7 @@ CREATE TABLE sink_doris(
     sink\.column\-separator = '\t'
     sink\.line\-delimiter = '\n'
     auto\-create\-table = 'true'
+    auto\-create\-table\.fields\.type\.json_value = 'JSON'
     auto\-create\-table\.engine = 'AGGREGATE KEY(date,name,ts)'
     auto\-create\-table\.engine\.aggregate\-function\.score= 'REPLACE DEFAULT "0"'
     auto\-create\-table\.partition = 'PARTITION BY RANGE(`date`) ()'
@@ -50,7 +52,11 @@ CREATE TABLE sink_doris(
     auto\-create\-table\.properties\.group_commit_data_bytes = '655360000'/>
 
 INSERT INTO  sink_doris
-SELECT name, score, ts, to_date(ts, 'GMT')
+SELECT name, score
+     ,JSON_OBJECT(
+            'name' VALUE name
+           ,'score' VALUE score
+     ), ts, to_date(ts, 'GMT')
 FROM source;
 ```
 
@@ -81,7 +87,7 @@ FROM source;
 | auto\-create\-table\.bucket                         | string   |            | Specify the bucket when auto-create-table is true                                                                                                                                                                                     |
 | auto\-create\-table\.properties\.*                  | string   |            | Specify the table properties when auto-create-table is true, like `compression`, `replication_allocation`, `dynamic_partition.enable`, `dynamic_partition.time_unit`, `dynamic_partition.start`, `dynamic_partition.end`, etc.        |
 | auto\-create\-table\.engine\.aggregate\-function\.* | string   |            | Specify the aggregate function when auto-create-table is true and the auto\-create\-table\.engine is `AGGREGATE KEY(...)`                                                                                                             |
-
+| auto\-create\-table\.fields\.type\.*                | string   |            | Specity doris table field type that not supportted by flink like `JSON`                                                                                                                                                               |
 NOTE:
 1. Some header properties are not supported to set include: `label`, `group_commit`, `columns`, `format`, `column_separator`, `line_delimiter`, `Expect`, `Authorization`.
 2. The username must have the permission to create table if `auto-create-table` is true.
