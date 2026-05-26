@@ -51,6 +51,7 @@ import static org.apache.flink.table.data.TimestampData.fromEpochMillis;
 public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, RowData, RowData> {
 
   private static final String LATE_ELEMENTS_DROPPED_METRIC_NAME = "numLateRecordsDropped";
+  private static final String DISORDER_COUNTER_METRIC_NAME = "numRecordsDisorder";
 
   protected final RowData.FieldGetter eventTimeGetter;
   protected final RowType.RowField eventTimeField;
@@ -68,12 +69,14 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
   protected final int eventTimeOffset;
   protected final int fieldsOffset;
   protected final int valuesOffset;
+  protected final long disorderMaxToleranceMillis;
 
   protected transient ValueState<RowData> valueState;
   protected transient ValueState<Long> registeredTimer;
   protected transient MapState<Long, List<RowData>> inputState;
   protected transient ProcessableRows processableRows;
   protected transient Counter dropCounter;
+  protected transient Counter disorderCounter;
 
   public SessionTumbleWindowFunction(
       RowData.FieldGetter eventTimeGetter,
@@ -83,7 +86,8 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
       int[] valueMapping,
       RowType.RowField[] valueFields,
       String timeSeriesFieldName,
-      long sessionMillis) {
+      long sessionMillis,
+      long disorderMaxToleranceMillis) {
     this.eventTimeGetter = eventTimeGetter;
     this.eventTimeField = eventTimeField;
     this.fieldMapping = fieldMapping;
@@ -91,6 +95,7 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
     this.valueMapping = valueMapping;
     this.valueFields = valueFields;
     this.sessionMillis = sessionMillis;
+    this.disorderMaxToleranceMillis = disorderMaxToleranceMillis;
     this.fieldsOffset = 0;
     this.valuesOffset = fieldTypes.length;
     this.eventTimeOffset = valuesOffset + valueFields.length;
@@ -130,6 +135,7 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
                 Types.LONG,
                 new ListTypeInfo<>(InternalTypeInfo.of(new RowType(inputFields)))));
     this.dropCounter = context.getMetricGroup().counter(LATE_ELEMENTS_DROPPED_METRIC_NAME);
+    this.disorderCounter = context.getMetricGroup().counter(DISORDER_COUNTER_METRIC_NAME);
     this.processableRows = new ProcessableRows();
   }
 
@@ -146,24 +152,44 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
     final var timeService = context.timerService();
     final var currentWatermark = timeService.currentWatermark();
     final long eventTime = eventTimestampData.getMillisecond();
-    if (eventTime < currentWatermark) {
+    if (currentWatermark != Long.MIN_VALUE
+        && eventTime < currentWatermark - disorderMaxToleranceMillis) {
       dropCounter.inc();
       return;
     }
     rowData = projectInputRowData(rowData, eventTimestampData);
     var rowInState = valueState.value();
     if (rowInState == null) {
-      putAndRegisterSmallestTimer(rowData, eventTime, timeService);
+      if (eventTime < currentWatermark) {
+        processDisorderData(rowData, eventTimestampData, collector, currentWatermark);
+      } else {
+        putAndRegisterSmallestTimer(rowData, eventTime, timeService);
+      }
       return;
     }
     final var delta = eventTime - getStartTime(rowInState);
     if (delta >= sessionMillis) {
       putAndRegisterSmallestTimer(rowData, eventTime, timeService);
-      return;
+    } else if (delta < 0) {
+      processDisorderData(rowData, eventTimestampData, collector, currentWatermark);
+    } else {
+      // in-order accumulate values and time series directly
+      valueState.update(
+          accumulateValuesTimeSeries(toUpdatable(rowInState), rowData, eventTimestampData));
     }
-    // in-order accumulate values and time series directly
-    valueState.update(
-        accumulateValuesTimeSeries(toUpdatable(rowInState), rowData, eventTimestampData));
+  }
+
+  private void processDisorderData(
+      RowData rowData, TimestampData timestampData, Collector<RowData> collector, long watermark) {
+    final var eventTime = timestampData.getMillisecond();
+    disorderCounter.inc();
+    var disorderRow = initStateRowData(rowData, eventTime, eventTime);
+    disorderRow = accumulateValuesTimeSeries(disorderRow, rowData, timestampData);
+    long end =
+        watermark == Long.MIN_VALUE
+            ? eventTime + sessionMillis
+            : Math.min(watermark, eventTime + sessionMillis);
+    collectIfNeed(disorderRow, end, collector);
   }
 
   @Override
@@ -192,7 +218,7 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
         if (windowEnd == null) {
           stateRow = initStateRowData(row, eventTime, eventTime);
           windowEnd = eventTime + sessionMillis;
-        } else if (windowEnd < eventTime) {
+        } else if (windowEnd <= eventTime) {
           final var notEmpty = collectIfNeed(stateRow, windowEnd, out);
           if (notEmpty && eventTime < windowEnd + sessionMillis) {
             stateRow = initStateRowData(row, eventTime, windowEnd);

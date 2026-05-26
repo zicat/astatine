@@ -53,6 +53,10 @@ public class SessionTumbleWindowFunctionFactory
       ConfigOptions.key("time-series.name").stringType().defaultValue("time_series");
   public static final ConfigOption<Duration> OPTION_SESSION_DURATION =
       ConfigOptions.key("session.duration").durationType().noDefaultValue();
+  public static final ConfigOption<Duration> OPTION_DISORDER_MAX_TOLERANCE =
+      ConfigOptions.key("disorder.max-tolerance.duration")
+          .durationType()
+          .defaultValue(Duration.ZERO);
 
   @Override
   public DataStream<RowData> transform(
@@ -81,7 +85,8 @@ public class SessionTumbleWindowFunctionFactory
                 .toList()
                 .toArray(new RowType.RowField[] {}),
             context.get(OPTION_TIME_SERIES_NAME),
-            context.get(OPTION_SESSION_DURATION).toMillis());
+            context.get(OPTION_SESSION_DURATION).toMillis(),
+            context.get(OPTION_DISORDER_MAX_TOLERANCE).toMillis());
     return keyedStream
         .process(function)
         .returns(InternalTypeInfo.of(function.returnRowType()))

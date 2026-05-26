@@ -33,7 +33,7 @@ CREATE VIEW view_session_result WITH(
 );
 
 CREATE VIEW aa AS
-SELECT a.id,a.f1
+SELECT a.id,a.f1,a.ts
       ,t1.collect_result AS vv1_list
       ,t2.collect_result AS vv2_list
       ,t3.collect_result AS vv3_list

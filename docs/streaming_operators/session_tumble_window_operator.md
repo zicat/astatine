@@ -38,7 +38,7 @@ CREATE VIEW view_session_result WITH(
 );
 
 CREATE VIEW aa AS
-SELECT a.id,a.f1
+SELECT a.id,a.f1,a.ts
       ,t1.collect_result AS vv1_list 
       ,t2.collect_result AS vv2_list 
       ,t3.collect_result AS vv3_list 
@@ -86,13 +86,13 @@ $ nc -l 9999
 Output:
 
 ```text
-+I[s1, fv1, [111, 112], [s1, s2], [1101, 1102], [1.1, 1.2], [1.001, 1.002], [true, false], [1, 2], [11, 12], [1741611610000, 1741611669000]]
-+I[s1, fv1, [113, 114], [s3, s4], [1103, 1104], [1.3, 1.4], [1.003, 1.004], [true, false], [3, 4], [13, 14], [1741611670000, 1741611729000]]
-+I[s1, fv1, [115, 116, 117], [s5, s6, s7], [1105, 1106, 1107], [1.5, 1.6, 1.7], [1.005, 1.006, 1.007], [true, false, true], [5, 6, 7], [15, 16, 17], [1741611730000, 1741611731000, 1741611731000]]
-+I[s1, fv1, [118], [s8], [1108], [1.8], [1.008], [false], [8], [18], [1741611790000]]
-+I[s1, fv1, [119], [s9], [1109], [1.9], [1.009], [true], [9], [19], [1741612213000]]
-+I[s1, fv1, [111], [s1], [1101], [1.1], [1.001], [false], [1], [11], [1741612273000]]
-+I[s1, fv1, [113, 114], [s3, s4], [1103, 1104], [1.3, 1.4], [1.003, 1.004], [false, true], [3, 4], [13, 14], [1741612395000, 1741612453000]]
++I[s1, fv1, 2025-03-10T13:01:10, [111, 112], [s1, s2], [1101, 1102], [1.1, 1.2], [1.001, 1.002], [true, false], [1, 2], [11, 12], [1741611610000, 1741611669000]]
++I[s1, fv1, 2025-03-10T13:02:10, [113, 114], [s3, s4], [1103, 1104], [1.3, 1.4], [1.003, 1.004], [true, false], [3, 4], [13, 14], [1741611670000, 1741611729000]]
++I[s1, fv1, 2025-03-10T13:03:10, [115, 116, 117], [s5, s6, s7], [1105, 1106, 1107], [1.5, 1.6, 1.7], [1.005, 1.006, 1.007], [true, false, true], [5, 6, 7], [15, 16, 17], [1741611730000, 1741611731000, 1741611731000]]
++I[s1, fv1, 2025-03-10T13:04:10, [118], [s8], [1108], [1.8], [1.008], [false], [8], [18], [1741611790000]]
++I[s1, fv1, 2025-03-10T13:11:13, [119], [s9], [1109], [1.9], [1.009], [true], [9], [19], [1741612213000]]
++I[s1, fv1, 2025-03-10T13:12:13, [111], [s1], [1101], [1.1], [1.001], [false], [1], [11], [1741612273000]]
++I[s1, fv1, 2025-03-10T13:14:15, [113, 114], [s3, s4], [1103, 1104], [1.3, 1.4], [1.003, 1.004], [false, true], [3, 4], [13, 14], [1741612395000, 1741612453000]]
 ```
 
 Note:
@@ -105,7 +105,8 @@ Note:
 7. The `session.duration` is the window size.
 
    The start of window is the eventtime of first value. The session is deleted if no records in session.
-8. The support types of values and the functions to collect them are:
+8. The `disorder.max-tolerance.duration` is the max tolerance duration to make the delay record as a series that only contains itself, if the record is over this duration, the record is dropped.
+9. The support types of values and the functions to collect them are:
    - `INT`/`DATE`/`TIME_WITHOUT_TIME_ZONE`/`INTERVAL_YEAR_MONTH`/`INTERVAL_DAY_TIME` -> `session_int_collect`
    - `STRING`/`VARCHAR`/`CHAR` -> `session_string_collect`
    - `LONG` -> `session_long_collect`
