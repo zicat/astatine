@@ -27,6 +27,7 @@ import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.api.java.typeutils.ListTypeInfo;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.metrics.Counter;
+import org.apache.flink.runtime.state.heap.AbstractHeapState;
 import org.apache.flink.streaming.api.TimerService;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.table.data.GenericRowData;
@@ -77,6 +78,7 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
   protected transient ProcessableRows processableRows;
   protected transient Counter dropCounter;
   protected transient Counter disorderCounter;
+  protected transient boolean isHeapBackend;
 
   public SessionTumbleWindowFunction(
       RowData.FieldGetter eventTimeGetter,
@@ -137,6 +139,7 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
     this.dropCounter = context.getMetricGroup().counter(LATE_ELEMENTS_DROPPED_METRIC_NAME);
     this.disorderCounter = context.getMetricGroup().counter(DISORDER_COUNTER_METRIC_NAME);
     this.processableRows = new ProcessableRows();
+    this.isHeapBackend = (registeredTimer instanceof AbstractHeapState);
   }
 
   @Override
@@ -336,6 +339,9 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
       registerSmallestTimer(registeredTimer, eventTime, timeService);
     }
     listRows.add(rowData);
+    if (!isHeapBackend) {
+      inputState.put(eventTime, listRows);
+    }
   }
 
   /**
