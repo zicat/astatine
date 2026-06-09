@@ -31,6 +31,7 @@ import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.metrics.Counter;
+import org.apache.flink.runtime.state.heap.AbstractHeapState;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
@@ -74,6 +75,7 @@ public class DisorderDiscardFunctionFactory
               private transient MapState<Long, List<RowData>> valueState;
               private transient ValueState<Long> registeredTimer;
               private transient Counter dropCounter;
+              private transient boolean isHeapBackend;
 
               @Override
               public void open(Configuration parameters) {
@@ -85,6 +87,7 @@ public class DisorderDiscardFunctionFactory
                 registeredTimer =
                     context.getState(new ValueStateDescriptor<>("registerTime", Types.LONG));
                 dropCounter = context.getMetricGroup().counter(LATE_ELEMENTS_DROPPED_METRIC_NAME);
+                isHeapBackend = (registeredTimer instanceof AbstractHeapState);
               }
 
               @Override
@@ -99,7 +102,8 @@ public class DisorderDiscardFunctionFactory
                     valueState,
                     registeredTimer,
                     context.timerService(),
-                    true)) {
+                    true,
+                    isHeapBackend)) {
                   dropCounter.inc();
                 }
               }

@@ -87,10 +87,11 @@ public class ProcessUtils {
       RowData rowData,
       MapState<Long, List<RowData>> valueState,
       ValueState<Long> registeredTimer,
-      TimerService timerService)
+      TimerService timerService,
+      boolean isHeadState)
       throws Exception {
     addRowDataInListStateAndRegisterTimer(
-        eventTimeGetter, rowData, valueState, registeredTimer, timerService, false);
+        eventTimeGetter, rowData, valueState, registeredTimer, timerService, false, isHeadState);
   }
 
   /**
@@ -109,7 +110,8 @@ public class ProcessUtils {
       MapState<Long, List<RowData>> valueState,
       ValueState<Long> registeredTimer,
       TimerService timerService,
-      boolean discardDisorder)
+      boolean discardDisorder,
+      boolean isHeapState)
       throws Exception {
     final var eventTime = eventTime(eventTimeGetter, rowData);
     if (discardDisorder && eventTime < timerService.currentWatermark()) {
@@ -118,6 +120,9 @@ public class ProcessUtils {
     var values = valueState.get(eventTime);
     if (values != null) {
       values.add(rowData);
+      if (!isHeapState) {
+        valueState.put(eventTime, values);
+      }
       return true;
     }
     values = new ArrayList<>();

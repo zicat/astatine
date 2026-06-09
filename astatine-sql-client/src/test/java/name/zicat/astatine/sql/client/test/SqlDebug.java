@@ -23,8 +23,6 @@ import static name.zicat.astatine.sql.client.SqlClient.createStatementSet;
 import name.zicat.astatine.sql.client.register.PlusSqlRegisterFactory;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
-import java.io.File;
-import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.util.Objects;
 import java.util.TimeZone;

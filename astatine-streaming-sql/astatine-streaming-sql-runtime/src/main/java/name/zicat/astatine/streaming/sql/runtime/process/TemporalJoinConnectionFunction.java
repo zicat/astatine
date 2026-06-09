@@ -27,6 +27,7 @@ import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.api.java.typeutils.ListTypeInfo;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.runtime.state.heap.AbstractHeapState;
 import org.apache.flink.streaming.api.functions.co.KeyedCoProcessFunction;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -66,6 +67,7 @@ public class TemporalJoinConnectionFunction<T>
   protected transient ValueState<Long> registeredTimer;
   protected transient RowData rightNullRow;
   protected transient JoinedRowData returnRowData;
+  protected transient boolean isHeapBackend;
 
   public TemporalJoinConnectionFunction(
       InternalTypeInfo<RowData> leftReturnRowTypeInfo,
@@ -108,6 +110,7 @@ public class TemporalJoinConnectionFunction<T>
             .getState(new ValueStateDescriptor<>(REGISTERED_TIMER_STATE_NAME, Types.LONG));
     rightNullRow = new GenericRowData(rightReturnIndexMapping.length);
     returnRowData = new JoinedRowData();
+    isHeapBackend = (registeredTimer instanceof AbstractHeapState);
   }
 
   @Override
@@ -117,7 +120,12 @@ public class TemporalJoinConnectionFunction<T>
       Collector<RowData> collector)
       throws Exception {
     ProcessUtils.addRowDataInListStateAndRegisterTimer(
-        leftEventTimeGetter, row, leftState, registeredTimer, context.timerService());
+        leftEventTimeGetter,
+        row,
+        leftState,
+        registeredTimer,
+        context.timerService(),
+        isHeapBackend);
   }
 
   @Override
