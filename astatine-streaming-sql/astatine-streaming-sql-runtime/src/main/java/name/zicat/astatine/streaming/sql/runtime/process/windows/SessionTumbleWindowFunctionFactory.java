@@ -84,6 +84,10 @@ public class SessionTumbleWindowFunctionFactory
                 .map(Types.FieldNameType::targetNullableRowField)
                 .toList()
                 .toArray(new RowType.RowField[] {}),
+            Arrays.stream(valueNameTypes)
+                .map(Types.FieldNameType::targetRowField)
+                .toList()
+                .toArray(new RowType.RowField[] {}),
             context.get(OPTION_TIME_SERIES_NAME),
             context.get(OPTION_SESSION_DURATION).toMillis(),
             context.get(OPTION_DISORDER_MAX_TOLERANCE).toMillis());

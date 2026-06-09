@@ -27,8 +27,6 @@ import static name.zicat.astatine.streaming.sql.runtime.utils.VLongUtils.vLongDe
 /** BinaryAggregationFunction. */
 public class Binary2BytesAggregationFunction extends BytesAggregationFunction {
 
-  protected static final byte[] EMPTY = new byte[0];
-
   @Override
   public byte[] accumulate(byte[] acc, Object originalValue) {
     if (originalValue == null) {

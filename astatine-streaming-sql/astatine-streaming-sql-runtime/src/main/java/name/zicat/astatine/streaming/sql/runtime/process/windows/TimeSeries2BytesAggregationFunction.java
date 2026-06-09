@@ -18,45 +18,13 @@
 
 package name.zicat.astatine.streaming.sql.runtime.process.windows;
 
+import org.apache.flink.table.data.TimestampData;
+
 /** TimeSeriesAggregationFunction. */
 public class TimeSeries2BytesAggregationFunction extends Long2BytesAggregationFunction {
 
-  public Long firstValue(byte[] value) {
-    return getValue(value, BytesAggregationFunction.HEAD_SIZE);
-  }
-
-  public Long getValue(byte[] value, int offset) {
-    return ((long) (value[offset] & 0xFF) << 56)
-        | ((long) (value[offset + 1] & 0xFF) << 48)
-        | ((long) (value[offset + 2] & 0xFF) << 40)
-        | ((long) (value[offset + 3] & 0xFF) << 32)
-        | ((long) (value[offset + 4] & 0xFF) << 24)
-        | ((long) (value[offset + 5] & 0xFF) << 16)
-        | ((long) (value[offset + 6] & 0xFF) << 8)
-        | ((long) (value[offset + 7] & 0xFF));
-  }
-
   @Override
-  public byte[] output(byte[] acc) {
-    final var size = bodySize(acc);
-    if (size == 0) {
-      return acc;
-    }
-    /*
-     The first value in acc is the start ts of session, remove it.
-    */
-    final var realSize = size - valueTotalLength();
-    final byte[] result = new byte[realSize];
-    System.arraycopy(acc, BytesAggregationFunction.HEAD_SIZE + valueTotalLength(), result, 0, realSize);
-    return result;
-  }
-
-  @Override
-  public int valueSize(byte[] acc) {
-    final var size = bodySize(acc);
-    if (size == 0) {
-      return 0;
-    }
-    return size - valueTotalLength();
+  protected long getLongValue(Object value) {
+    return ((TimestampData) value).getMillisecond();
   }
 }

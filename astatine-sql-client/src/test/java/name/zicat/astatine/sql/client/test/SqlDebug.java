@@ -23,7 +23,10 @@ import static name.zicat.astatine.sql.client.SqlClient.createStatementSet;
 import name.zicat.astatine.sql.client.register.PlusSqlRegisterFactory;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
+import java.io.File;
 import java.io.FileReader;
+import java.io.InputStreamReader;
+import java.util.Objects;
 import java.util.TimeZone;
 
 /** SqlDebug. */
@@ -34,7 +37,12 @@ public class SqlDebug {
        add vm param: --add-opens java.base/java.nio=ALL-UNNAMED --add-opens java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-exports java.base/sun.net.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED
     */
     TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
-    final var reader = new FileReader("astatine-sql-client/src/test/resources/test_first_job.sql");
+    final var reader =
+        new InputStreamReader(
+            Objects.requireNonNull(
+                Thread.currentThread()
+                    .getContextClassLoader()
+                    .getResourceAsStream("test_first_job.sql")));
     createStatementSet(
             new PlusSqlRegisterFactory(
                 StreamExecutionEnvironment.getExecutionEnvironment().setParallelism(1)),
