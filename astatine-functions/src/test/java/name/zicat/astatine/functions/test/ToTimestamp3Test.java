@@ -29,9 +29,9 @@ public class ToTimestamp3Test {
   public void test() {
     final var toTimestamp3 = new ToTimestamp3();
     final var ts1 = 100L;
-    Assert.assertEquals(ts1, toTimestamp3.eval(ts1).getTime());
+    Assert.assertEquals(ts1, toTimestamp3.eval(ts1).toEpochMilli());
 
     final var ts2 = 200;
-    Assert.assertEquals(ts2 * 1000L, toTimestamp3.eval(ts2).getTime());
+    Assert.assertEquals(ts2 * 1000L, toTimestamp3.eval(ts2).toEpochMilli());
   }
 }

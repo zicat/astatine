@@ -18,14 +18,20 @@
 
 package name.zicat.astatine.functions;
 
+import org.apache.flink.table.annotation.DataTypeHint;
 import org.apache.flink.table.functions.ScalarFunction;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 
 /** ToLongTimestamp. */
 public class ToLongTimestamp extends ScalarFunction {
 
   public Long eval(Timestamp time) {
     return time.getTime();
+  }
+
+  public Long eval(@DataTypeHint("TIMESTAMP_LTZ(3)") Instant time) {
+    return time.toEpochMilli();
   }
 }

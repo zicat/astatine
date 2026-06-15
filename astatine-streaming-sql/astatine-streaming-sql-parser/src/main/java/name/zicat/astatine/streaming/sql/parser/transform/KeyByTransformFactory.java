@@ -19,6 +19,11 @@
 package name.zicat.astatine.streaming.sql.parser.transform;
 
 import name.zicat.astatine.streaming.sql.parser.function.KeyByFunctionFactory;
+import name.zicat.astatine.streaming.sql.parser.function.RowDataKeyByFieldsSelectorFunctionFactory;
+import name.zicat.astatine.streaming.sql.parser.utils.ConfigBuilder;
+import org.apache.flink.streaming.api.datastream.DataStream;
+
+import static name.zicat.astatine.streaming.sql.parser.function.FunctionFactory.OPTION_FUNCTION_IDENTITY;
 
 /** KeyByTransformFactory. */
 public class KeyByTransformFactory extends OneTransformFactory {
@@ -28,6 +33,19 @@ public class KeyByTransformFactory extends OneTransformFactory {
   @Override
   public String identity() {
     return IDENTITY;
+  }
+
+  @Override
+  public DataStream<?> transform(TransformContext context, DataStream<?> stream) {
+    final String id = context.get(OPTION_FUNCTION_IDENTITY);
+    if (id == null) {
+      context =
+          context.withConfig(
+              ConfigBuilder.newBuilder(context.config)
+                  .put(OPTION_FUNCTION_IDENTITY, RowDataKeyByFieldsSelectorFunctionFactory.IDENTITY)
+                  .build());
+    }
+    return super.transform(context, stream);
   }
 
   @SuppressWarnings("rawtypes")

@@ -16,9 +16,8 @@
  * limitations under the License.
  */
 
-package name.zicat.astatine.streaming.sql.runtime;
+package name.zicat.astatine.streaming.sql.parser.function;
 
-import name.zicat.astatine.streaming.sql.parser.function.KeyByFunctionFactory;
 import name.zicat.astatine.streaming.sql.parser.transform.TransformContext;
 import name.zicat.astatine.streaming.sql.parser.utils.Types;
 import org.apache.flink.api.common.typeinfo.TypeInformation;

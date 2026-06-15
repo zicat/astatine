@@ -3,3 +3,4 @@ name.zicat.astatine.streaming.sql.parser.function.aggregation.MaxFunctionFactory
 name.zicat.astatine.streaming.sql.parser.function.aggregation.MaxByFunctionFactory
 name.zicat.astatine.streaming.sql.parser.function.aggregation.MinFunctionFactory
 name.zicat.astatine.streaming.sql.parser.function.aggregation.MinByFunctionFactory
+name.zicat.astatine.streaming.sql.parser.function.RowDataKeyByFieldsSelectorFunctionFactory

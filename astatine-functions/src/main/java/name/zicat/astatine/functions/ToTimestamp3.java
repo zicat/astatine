@@ -21,7 +21,7 @@ package name.zicat.astatine.functions;
 import org.apache.flink.table.annotation.DataTypeHint;
 import org.apache.flink.table.functions.ScalarFunction;
 
-import java.sql.Timestamp;
+import java.time.Instant;
 
 /** ToTimestamp3. */
 public class ToTimestamp3 extends ScalarFunction {
@@ -32,9 +32,8 @@ public class ToTimestamp3 extends ScalarFunction {
    * @param ts ts
    * @return timestamp
    */
-  public @DataTypeHint(value = "TIMESTAMP(3)", bridgedTo = java.sql.Timestamp.class) Timestamp eval(
-      Long ts) {
-    return new Timestamp(ts);
+  public @DataTypeHint("TIMESTAMP_LTZ(3) NOT NULL") Instant eval(Long ts) {
+    return Instant.ofEpochMilli(ts);
   }
 
   /**
@@ -43,8 +42,7 @@ public class ToTimestamp3 extends ScalarFunction {
    * @param ts ts
    * @return timestamp
    */
-  public @DataTypeHint(value = "TIMESTAMP(3)", bridgedTo = java.sql.Timestamp.class) Timestamp eval(
-      Integer ts) {
-    return new Timestamp(ts * 1000L);
+  public @DataTypeHint("TIMESTAMP_LTZ(3) NOT NULL") Instant eval(Integer ts) {
+    return Instant.ofEpochMilli(ts * 1000L);
   }
 }

@@ -49,7 +49,7 @@ public class ConfigBuilder {
    *
    * @param key key
    * @param value value
-   * @return ReadableConfigBuilder
+   * @return ConfigBuilder
    */
   public ConfigBuilder putNewKeyValue(String key, Object value) {
     newData.put(key, value);
@@ -57,10 +57,22 @@ public class ConfigBuilder {
   }
 
   /**
+   * put new key value.
+   *
+   * @param option option
+   * @param value value
+   * @return ConfigBuilder
+   */
+  public ConfigBuilder put(ConfigOption<?> option, Object value) {
+    newData.put(option.key(), value);
+    return this;
+  }
+
+  /**
    * put new function identity.
    *
    * @param identity identity
-   * @return ReadableConfigBuilder
+   * @return ConfigBuilder
    */
   public ConfigBuilder functionIdentity(String identity) {
     return putNewKeyValue(FunctionFactory.OPTION_FUNCTION_IDENTITY.key(), identity);
