@@ -14,9 +14,9 @@ CREATE TABLE target (
    ts              BIGINT
 ) <@template.table_kafka_sink
     topic = 'test_topic_output'
-    format = 'protobuf'
-    protobuf\.message\-class\-name = 'name.zicat.astatine.formats.protobuf.Test$NameScoreTs'
-    protobuf\.ignore\-parse\-errors = 'true' />
+    format = 'protobuf_v2'
+    protobuf_v2\.message\-class\-name = 'name.zicat.astatine.formats.protobuf.Test$NameScoreTs'
+    protobuf_v2\.ignore\-parse\-errors = 'true' />
 
 INSERT INTO target
 SELECT name, score* 2, to_long_timestamp(event_time)
