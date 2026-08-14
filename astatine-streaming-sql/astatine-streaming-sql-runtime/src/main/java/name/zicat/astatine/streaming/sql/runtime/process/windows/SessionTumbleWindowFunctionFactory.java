@@ -51,6 +51,8 @@ public class SessionTumbleWindowFunctionFactory
       ConfigOptions.key("values").stringType().defaultValue(null);
   public static final ConfigOption<String> OPTION_TIME_SERIES_NAME =
       ConfigOptions.key("time-series.name").stringType().defaultValue("time_series");
+  public static final ConfigOption<String> OPTION_TIME_SERIES_FIELD =
+      ConfigOptions.key("time-series.field").stringType().defaultValue(null);
   public static final ConfigOption<Duration> OPTION_SESSION_DURATION =
       ConfigOptions.key("session.duration").durationType().noDefaultValue();
   public static final ConfigOption<Duration> OPTION_DISORDER_MAX_TOLERANCE =
@@ -70,27 +72,16 @@ public class SessionTumbleWindowFunctionFactory
             ? new Types.FieldNameType[0]
             : fieldsNameTypes(rowType, context.get(OPTION_VALUES));
     final var eventtimeType = fieldsNameTypes(rowType, context.get(OPTION_EVENTTIME))[0];
+    final var timeSeriesField = context.get(OPTION_TIME_SERIES_FIELD);
     final var function =
-        new SessionTumbleWindowFunction(
-            eventtimeType.fieldGetter(),
-            eventtimeType.targetRowField(),
-            Arrays.stream(fieldNameTypes).mapToInt(Types.FieldNameType::getIndex).toArray(),
-            Arrays.stream(fieldNameTypes)
-                .map(Types.FieldNameType::targetNullableRowField)
-                .toList()
-                .toArray(new RowType.RowField[] {}),
-            Arrays.stream(valueNameTypes).mapToInt(Types.FieldNameType::getIndex).toArray(),
-            Arrays.stream(valueNameTypes)
-                .map(Types.FieldNameType::targetNullableRowField)
-                .toList()
-                .toArray(new RowType.RowField[] {}),
-            Arrays.stream(valueNameTypes)
-                .map(Types.FieldNameType::targetRowField)
-                .toList()
-                .toArray(new RowType.RowField[] {}),
-            context.get(OPTION_TIME_SERIES_NAME),
-            context.get(OPTION_SESSION_DURATION).toMillis(),
-            context.get(OPTION_DISORDER_MAX_TOLERANCE).toMillis());
+        timeSeriesField == null || timeSeriesField.isBlank()
+            ? createFunction(context, eventtimeType, fieldNameTypes, valueNameTypes)
+            : createCustomTimeSeriesFunction(
+                context,
+                eventtimeType,
+                fieldsNameTypes(rowType, timeSeriesField)[0],
+                fieldNameTypes,
+                valueNameTypes);
     return keyedStream
         .process(function)
         .returns(InternalTypeInfo.of(function.returnRowType()))
@@ -111,5 +102,62 @@ public class SessionTumbleWindowFunctionFactory
   @Override
   public String identity() {
     return IDENTITY;
+  }
+
+  private SessionTumbleWindowFunction createFunction(
+      TransformContext context,
+      Types.FieldNameType eventtimeType,
+      Types.FieldNameType[] fieldNameTypes,
+      Types.FieldNameType[] valueNameTypes) {
+    return new SessionTumbleWindowFunction(
+        eventtimeType.fieldGetter(),
+        eventtimeType.targetRowField(),
+        Arrays.stream(fieldNameTypes).mapToInt(Types.FieldNameType::getIndex).toArray(),
+        Arrays.stream(fieldNameTypes)
+            .map(Types.FieldNameType::targetNullableRowField)
+            .toList()
+            .toArray(new RowType.RowField[] {}),
+        Arrays.stream(valueNameTypes).mapToInt(Types.FieldNameType::getIndex).toArray(),
+        Arrays.stream(valueNameTypes)
+            .map(Types.FieldNameType::targetNullableRowField)
+            .toList()
+            .toArray(new RowType.RowField[] {}),
+        Arrays.stream(valueNameTypes)
+            .map(Types.FieldNameType::targetRowField)
+            .toList()
+            .toArray(new RowType.RowField[] {}),
+        context.get(OPTION_TIME_SERIES_NAME),
+        context.get(OPTION_SESSION_DURATION).toMillis(),
+        context.get(OPTION_DISORDER_MAX_TOLERANCE).toMillis());
+  }
+
+  private SessionTumbleWindowFunction createCustomTimeSeriesFunction(
+      TransformContext context,
+      Types.FieldNameType eventtimeType,
+      Types.FieldNameType timeSeriesFieldType,
+      Types.FieldNameType[] fieldNameTypes,
+      Types.FieldNameType[] valueNameTypes) {
+    return new CustomTimeSeriesFieldSessionTumbleWindowFunction(
+        eventtimeType.fieldGetter(),
+        eventtimeType.targetRowField(),
+        timeSeriesFieldType.fieldGetter(),
+        timeSeriesFieldType.targetRowField(),
+        Arrays.stream(fieldNameTypes).mapToInt(Types.FieldNameType::getIndex).toArray(),
+        Arrays.stream(fieldNameTypes)
+            .map(Types.FieldNameType::targetNullableRowField)
+            .toList()
+            .toArray(new RowType.RowField[] {}),
+        Arrays.stream(valueNameTypes).mapToInt(Types.FieldNameType::getIndex).toArray(),
+        Arrays.stream(valueNameTypes)
+            .map(Types.FieldNameType::targetNullableRowField)
+            .toList()
+            .toArray(new RowType.RowField[] {}),
+        Arrays.stream(valueNameTypes)
+            .map(Types.FieldNameType::targetRowField)
+            .toList()
+            .toArray(new RowType.RowField[] {}),
+        context.get(OPTION_TIME_SERIES_NAME),
+        context.get(OPTION_SESSION_DURATION).toMillis(),
+        context.get(OPTION_DISORDER_MAX_TOLERANCE).toMillis());
   }
 }

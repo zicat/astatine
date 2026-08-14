@@ -49,7 +49,13 @@ import static name.zicat.astatine.streaming.sql.runtime.utils.StateUtils.registe
 import static org.apache.flink.table.data.RowData.createFieldGetter;
 import static org.apache.flink.table.data.TimestampData.fromEpochMillis;
 
-/** SessionTumbleWindowFunction. */
+/**
+ * SessionTumbleWindowFunction.
+ *
+ * <p>ValueState Struct:
+ *
+ * <p>[Field Rows, ValueSeries Rows, EventTime, TimeSeries, WindowStartTime]
+ */
 public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, RowData, RowData> {
 
   private static final String LATE_ELEMENTS_DROPPED_METRIC_NAME = "numLateRecordsDropped";
@@ -121,15 +127,12 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
         context.getState(
             new ValueStateDescriptor<>("valueState", InternalTypeInfo.of(valueStateType)));
     this.registeredTimer = context.getState(new ValueStateDescriptor<>("timer", Types.LONG));
-    final var inputFields = new ArrayList<>(Arrays.asList(fieldTypes));
-    inputFields.addAll(Arrays.asList(valueFields));
-    inputFields.add(eventTimeField);
     inputState =
         context.getMapState(
             new MapStateDescriptor<>(
                 "inputState",
                 Types.LONG,
-                new ListTypeInfo<>(InternalTypeInfo.of(new RowType(inputFields)))));
+                new ListTypeInfo<>(InternalTypeInfo.of(new RowType(inputStateFields())))));
     this.dropCounter = context.getMetricGroup().counter(LATE_ELEMENTS_DROPPED_METRIC_NAME);
     this.disorderCounter = context.getMetricGroup().counter(DISORDER_COUNTER_METRIC_NAME);
     this.processableRows = new ProcessableRows();
@@ -146,7 +149,7 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
       this.valueHandles.add(
           BytesAggregationFunction.createAggregationFunction(originalValueFields[i].getType()));
     }
-    this.timeSeriesHandle = new TimeSeries2BytesAggregationFunction();
+    this.timeSeriesHandle = createTimeSeriesHandle();
     this.isHeapBackend = (registeredTimer instanceof AbstractHeapState);
   }
 
@@ -315,7 +318,6 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
       final var startTime = getStartTime(rowInState);
       rowInState = initStateRowData(rowData, preEventTime.getMillisecond(), startTime);
     }
-    final var eventTimeMs = eventTime.getMillisecond();
     rowInState.setTimestamp(eventTimeOffset, eventTime, 3);
     for (int i = 0; i < valueFields.length; i++) {
       final var value = inputValueFieldGetters[i].getFieldOrNull(rowData);
@@ -325,7 +327,8 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
     }
     rowInState.setField(
         timeSeriesOffset,
-        timeSeriesHandle.accumulate(rowInState.getBinary(timeSeriesOffset), eventTime));
+        timeSeriesHandle.accumulate(
+            rowInState.getBinary(timeSeriesOffset), timeSeriesValue(rowData, eventTime)));
     return rowInState;
   }
 
@@ -360,7 +363,7 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
    * @param eventTime eventTime
    * @return RowData
    */
-  private RowData projectInputRowData(RowData rowData, TimestampData eventTime) {
+  protected RowData projectInputRowData(RowData rowData, TimestampData eventTime) {
     var eventTimeRow = new GenericRowData(1);
     eventTimeRow.setField(0, eventTime);
     return new MultiJoinedRowData()
@@ -368,6 +371,21 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
             ProjectedRowData.from(fieldMapping).replaceRow(rowData),
             ProjectedRowData.from(valueMapping).replaceRow(rowData),
             eventTimeRow);
+  }
+
+  protected Object timeSeriesValue(RowData rowData, TimestampData eventTime) {
+    return eventTime;
+  }
+
+  protected BytesAggregationFunction createTimeSeriesHandle() {
+    return new TimeSeries2BytesAggregationFunction();
+  }
+
+  protected List<RowType.RowField> inputStateFields() {
+    final var inputFields = new ArrayList<>(Arrays.asList(fieldTypes));
+    inputFields.addAll(Arrays.asList(valueFields));
+    inputFields.add(eventTimeField);
+    return inputFields;
   }
 
   public RowType returnRowType() {

@@ -45,6 +45,7 @@ import static name.zicat.astatine.streaming.sql.runtime.utils.VLongUtils.vLongDe
 import static org.apache.flink.table.data.TimestampData.fromEpochMillis;
 
 /** SessionTumbleWindowFunctionFactoryTest. */
+@SuppressWarnings("deprecation")
 public class SessionTumbleWindowFunctionFactoryTest extends TransformFactoryTestBase {
 
   @Test
@@ -559,6 +560,61 @@ public class SessionTumbleWindowFunctionFactoryTest extends TransformFactoryTest
           Assert.assertArrayEquals(new Long[] {5L}, parseValue(resultRow2.getBinary(1)));
           Assert.assertEquals(fromEpochMillis(ts + 180000), resultRow2.getTimestamp(2, 3));
           Assert.assertArrayEquals(new Long[] {ts + 120000}, parseValue(resultRow2.getBinary(3)));
+        });
+  }
+
+  @Test
+  public void testCustomTimeSeriesField() throws Exception {
+    final var ts = System.currentTimeMillis();
+
+    final var configuration = new Configuration();
+    configuration.set(
+        FunctionFactory.OPTION_FUNCTION_IDENTITY, SessionTumbleWindowFunctionFactory.IDENTITY);
+    configuration.set(SessionTumbleWindowFunctionFactory.OPTION_FIELDS, "name");
+    configuration.set(SessionTumbleWindowFunctionFactory.OPTION_VALUES, "score AS score_1");
+    configuration.set(SessionTumbleWindowFunctionFactory.OPTION_EVENTTIME, "ts");
+    configuration.set(SessionTumbleWindowFunctionFactory.OPTION_TIME_SERIES_FIELD, "series_point");
+    configuration.set(
+        SessionTumbleWindowFunctionFactory.OPTION_SESSION_DURATION, Duration.ofMinutes(1));
+    final var context = createContext(configuration);
+    final var factory =
+        TransformFactory.findFactory(ProcessTransformFactory.IDENTITY)
+            .cast(ProcessTransformFactory.class);
+
+    final var row1 =
+        GenericRowData.of(StringData.fromString("n1"), fromEpochMillis(ts), 1000L, 1L);
+    final var row2 =
+        GenericRowData.of(StringData.fromString("n1"), fromEpochMillis(ts + 10000), 1001L, 2L);
+
+    final var keySelect =
+        new KeySelector<RowData, StringData>() {
+          @Override
+          public StringData getKey(RowData rowData) {
+            return rowData.getString(0);
+          }
+        };
+
+    final var source =
+        env.fromCollection(Arrays.<RowData>asList(row1, row2))
+            .assignTimestampsAndWatermarks(TimestampWatermarkGenerator.create(1))
+            .returns(
+                InternalTypeInfo.of(
+                    new RowType(
+                        Arrays.asList(
+                            new RowType.RowField("name", new VarCharType()),
+                            new RowType.RowField("ts", new TimestampType(3)),
+                            new RowType.RowField("series_point", new BigIntType()),
+                            new RowType.RowField("score", new BigIntType())))));
+    final var result = factory.transform(context, source.keyBy(keySelect));
+    TransformFactoryTestBase.execAndAssert(
+        result,
+        data -> {
+          Assert.assertEquals(1, data.size());
+          final var resultRow = (RowData) data.get(0);
+          Assert.assertEquals("n1", resultRow.getString(0).toString());
+          Assert.assertArrayEquals(new Long[] {1L, 2L}, parseValue(resultRow.getBinary(1)));
+          Assert.assertEquals(fromEpochMillis(ts + 60000), resultRow.getTimestamp(2, 3));
+          Assert.assertArrayEquals(new Long[] {1000L, 1001L}, parseValue(resultRow.getBinary(3)));
         });
   }
 

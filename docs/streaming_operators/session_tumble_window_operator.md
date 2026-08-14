@@ -34,6 +34,8 @@ CREATE VIEW view_session_result WITH(
     'eventtime' = 'ts',
     'values' = 'v1 AS vv1,v2 AS vv2,v3 AS vv3,v4 AS vv4,v5 AS vv5,v6 AS vv6,v7 AS vv7,v8 AS vv8',
     'time-series.name' = 'time_series',
+    -- Optional, defaults to `eventtime`. Supports TIMESTAMP(3) and BIGINT.
+    'time-series.field' = 'ts',
     'session.duration' = '1min'
 );
 
@@ -102,11 +104,12 @@ Note:
 4. The `eventtime` is the field name that points to the event time.
 5. The `values` is the field names that you want to collect in the session window, the return type is `BINARY`, default null.
 6. The `time-series.name` is the name of the time series field, the operator will collect the time series in the session window, the type of this field is `BINARY`.
-7. The `session.duration` is the window size.
+7. The `time-series.field` is the input field used to build the time series, default is `eventtime`. It supports `TIMESTAMP(3)` and `BIGINT`.
+8. The `session.duration` is the window size.
 
    The start of window is the eventtime of first value. The session is deleted if no records in session.
-8. The `disorder.max-tolerance.duration` is the max tolerance duration to make the delay record as a series that only contains itself, if the record is over this duration, the record is dropped.
-9. The support types of values and the functions to collect them are:
+9. The `disorder.max-tolerance.duration` is the max tolerance duration to make the delay record as a series that only contains itself, if the record is over this duration, the record is dropped.
+10. The support types of values and the functions to collect them are:
    - `INT`/`DATE`/`TIME_WITHOUT_TIME_ZONE`/`INTERVAL_YEAR_MONTH`/`INTERVAL_DAY_TIME` -> `session_int_collect`
    - `STRING`/`VARCHAR`/`CHAR` -> `session_string_collect`
    - `LONG` -> `session_long_collect`
