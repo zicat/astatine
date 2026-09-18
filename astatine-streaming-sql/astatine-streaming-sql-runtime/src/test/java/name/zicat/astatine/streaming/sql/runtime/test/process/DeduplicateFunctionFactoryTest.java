@@ -22,6 +22,7 @@ import name.zicat.astatine.streaming.sql.parser.function.FunctionFactory;
 import name.zicat.astatine.streaming.sql.parser.test.transform.TransformFactoryTestBase;
 import name.zicat.astatine.streaming.sql.parser.transform.ProcessTransformFactory;
 import name.zicat.astatine.streaming.sql.parser.transform.TransformFactory;
+import name.zicat.astatine.streaming.sql.runtime.process.DeduplicateFunction;
 import name.zicat.astatine.streaming.sql.runtime.process.DeduplicateFunctionFactory;
 import name.zicat.astatine.streaming.sql.runtime.test.utils.TimestampWatermarkGenerator;
 import org.apache.flink.api.java.functions.KeySelector;
@@ -49,7 +50,7 @@ public class DeduplicateFunctionFactoryTest extends TransformFactoryTestBase {
   @Test
   public void testDesc() throws Exception {
     final var ts = System.currentTimeMillis();
-    final var dataStream = test(ts, DeduplicateFunctionFactory.OrderType.DESC);
+    final var dataStream = test(ts, DeduplicateFunction.OrderType.DESC);
     execAndAssert(
         dataStream,
         data -> {
@@ -65,7 +66,7 @@ public class DeduplicateFunctionFactoryTest extends TransformFactoryTestBase {
   @Test
   public void testASC() throws Exception {
     final var ts = System.currentTimeMillis();
-    final var dataStream = test(ts, DeduplicateFunctionFactory.OrderType.ASC);
+    final var dataStream = test(ts, DeduplicateFunction.OrderType.ASC);
     execAndAssert(
         dataStream,
         data -> {
@@ -82,7 +83,7 @@ public class DeduplicateFunctionFactoryTest extends TransformFactoryTestBase {
         });
   }
 
-  private DataStream<?> test(long ts, DeduplicateFunctionFactory.OrderType orderType) {
+  private DataStream<?> test(long ts, DeduplicateFunction.OrderType orderType) {
     final var configuration = new Configuration();
     configuration.set(DeduplicateFunctionFactory.OPTION_EVENT_TIME, "ts");
     configuration.set(DeduplicateFunctionFactory.OPTION_ORDER_TYPE, orderType);

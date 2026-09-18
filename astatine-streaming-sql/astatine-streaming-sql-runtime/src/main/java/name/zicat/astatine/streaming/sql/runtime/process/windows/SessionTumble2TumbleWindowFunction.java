@@ -22,6 +22,7 @@ import name.zicat.astatine.streaming.sql.runtime.utils.MultiJoinedRowData;
 import org.apache.flink.api.common.state.MapState;
 import org.apache.flink.api.common.state.MapStateDescriptor;
 import org.apache.flink.api.common.typeinfo.Types;
+import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.metrics.Counter;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
@@ -58,9 +59,11 @@ public class SessionTumble2TumbleWindowFunction
   private final int[] fieldMappingInState;
   private final Long2BytesAggregationFunction timeSeriesHandle;
   private final long sessionDurationMs;
+  private final RowType.RowField[] fieldTypes;
 
   protected transient MapState<Long, RowData> windowState;
   protected transient Counter dropCounter;
+  protected transient TypeSerializer<RowData> inputStateRowSerializer;
 
   public SessionTumble2TumbleWindowFunction(
       RowData.FieldGetter eventTimeGetter,
@@ -91,10 +94,12 @@ public class SessionTumble2TumbleWindowFunction
     for (var valueRootLogicType : valueOriginTypes) {
       this.valueHandles.add(BytesAggregationFunction.createAggregationFunction(valueRootLogicType));
     }
+    this.fieldTypes = fieldTypes;
     this.returnRowType =
         createReturnRowType(eventTimeField, fieldTypes, valueFields, timeSeriesField);
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   public void open(Configuration parameters) throws Exception {
     final var context = getRuntimeContext();
@@ -102,6 +107,11 @@ public class SessionTumble2TumbleWindowFunction
         context.getMapState(
             new MapStateDescriptor<>("inputState", Types.LONG, InternalTypeInfo.of(returnRowType)));
     this.dropCounter = context.getMetricGroup().counter(LATE_ELEMENTS_DROPPED_METRIC_NAME);
+    if (getRuntimeContext().isObjectReuseEnabled()) {
+      inputStateRowSerializer =
+          InternalTypeInfo.of(new RowType(Arrays.stream(fieldTypes).toList()))
+              .createSerializer(getRuntimeContext().getExecutionConfig().getSerializerConfig());
+    }
   }
 
   @Override
@@ -161,13 +171,12 @@ public class SessionTumble2TumbleWindowFunction
         final var timeSeriesRow = new GenericRowData(1);
         final var newEventTimeRow = new GenericRowData(1);
         newEventTimeRow.setField(0, fromEpochMillis(recordWindowStart + tumbleIntervalMs - 1));
+        RowData fieldRow = ProjectedRowData.from(fieldMappingInState).replaceRow(projectedRowData);
+        if (inputStateRowSerializer != null) {
+          fieldRow = inputStateRowSerializer.copy(fieldRow);
+        }
         windowValueState =
-            new MultiJoinedRowData()
-                .replace(
-                    ProjectedRowData.from(fieldMappingInState).replaceRow(projectedRowData),
-                    newEventTimeRow,
-                    newValueRow,
-                    timeSeriesRow);
+            new MultiJoinedRowData().replace(fieldRow, newEventTimeRow, newValueRow, timeSeriesRow);
         ctx.timerService().registerEventTimeTimer(recordTrigger);
       }
       final var newValueRow = toUpdatable(windowValueState);

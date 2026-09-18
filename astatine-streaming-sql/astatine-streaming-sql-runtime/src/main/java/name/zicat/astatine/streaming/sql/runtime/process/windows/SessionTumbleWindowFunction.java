@@ -24,6 +24,7 @@ import org.apache.flink.api.common.state.MapStateDescriptor;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.common.typeinfo.Types;
+import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.api.java.typeutils.ListTypeInfo;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.metrics.Counter;
@@ -89,6 +90,7 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
   protected transient Counter dropCounter;
   protected transient Counter disorderCounter;
   protected transient boolean isHeapBackend;
+  protected transient TypeSerializer<RowData> inputStateRowSerializer;
 
   public SessionTumbleWindowFunction(
       RowData.FieldGetter eventTimeGetter,
@@ -120,6 +122,7 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
         createReturnRowType(eventTimeField, fieldTypes, valueFields, timeSeriesFieldName);
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   public void open(Configuration parameters) throws Exception {
     final var context = getRuntimeContext();
@@ -151,6 +154,11 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
     }
     this.timeSeriesHandle = createTimeSeriesHandle();
     this.isHeapBackend = (registeredTimer instanceof AbstractHeapState);
+    if (isHeapBackend && getRuntimeContext().isObjectReuseEnabled()) {
+      inputStateRowSerializer =
+          InternalTypeInfo.of(new RowType(inputStateFields()))
+              .createSerializer(getRuntimeContext().getExecutionConfig().getSerializerConfig());
+    }
   }
 
   @Override
@@ -344,6 +352,9 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
 
   private void putAndRegisterSmallestTimer(
       RowData rowData, long eventTime, TimerService timeService) throws Exception {
+    if (inputStateRowSerializer != null) {
+      rowData = inputStateRowSerializer.copy(rowData);
+    }
     var listRows = inputState.get(eventTime);
     if (listRows == null) {
       listRows = new ArrayList<>();

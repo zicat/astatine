@@ -48,7 +48,7 @@ import java.util.Comparator;
 import static name.zicat.astatine.streaming.sql.runtime.process.TemporalJoinConnectionFunctionFactory.*;
 
 /** TemporalJoinConnectionFunctionFactoryTest. */
-public class TemporalJoinConnectionFunctionFactoryTest extends TransformFactoryTestBase {
+public class  TemporalJoinConnectionFunctionFactoryTest extends TransformFactoryTestBase {
 
   @Test
   public void testDesc() throws Exception {

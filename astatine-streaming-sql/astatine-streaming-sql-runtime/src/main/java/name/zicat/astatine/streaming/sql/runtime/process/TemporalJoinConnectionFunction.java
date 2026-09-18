@@ -25,6 +25,7 @@ import org.apache.flink.api.common.state.MapStateDescriptor;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.common.typeinfo.Types;
+import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.api.java.typeutils.ListTypeInfo;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.heap.AbstractHeapState;
@@ -68,6 +69,8 @@ public class TemporalJoinConnectionFunction<T>
   protected transient RowData rightNullRow;
   protected transient JoinedRowData returnRowData;
   protected transient boolean isHeapBackend;
+  protected transient TypeSerializer<RowData> leftInputStateRowSerializer;
+  protected transient TypeSerializer<RowData> rightInputStateRowSerializer;
 
   public TemporalJoinConnectionFunction(
       InternalTypeInfo<RowData> leftReturnRowTypeInfo,
@@ -92,6 +95,7 @@ public class TemporalJoinConnectionFunction<T>
     this.orderType = orderType;
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   public void open(Configuration parameters) {
     leftState =
@@ -111,6 +115,15 @@ public class TemporalJoinConnectionFunction<T>
     rightNullRow = new GenericRowData(rightReturnIndexMapping.length);
     returnRowData = new JoinedRowData();
     isHeapBackend = (registeredTimer instanceof AbstractHeapState);
+    final var objectReuseEnabled = getRuntimeContext().isObjectReuseEnabled();
+    if (isHeapBackend && objectReuseEnabled) {
+      leftInputStateRowSerializer =
+          leftReturnRowTypeInfo.createSerializer(
+              getRuntimeContext().getExecutionConfig().getSerializerConfig());
+      rightInputStateRowSerializer =
+          rightReturnRowTypeInfo.createSerializer(
+              getRuntimeContext().getExecutionConfig().getSerializerConfig());
+    }
   }
 
   @Override
@@ -119,9 +132,13 @@ public class TemporalJoinConnectionFunction<T>
       KeyedCoProcessFunction<T, RowData, RowData, RowData>.Context context,
       Collector<RowData> collector)
       throws Exception {
+    RowData rowData = projectRow(row, leftReturnIndexMapping);
+    if (leftInputStateRowSerializer != null) {
+      rowData = leftInputStateRowSerializer.copy(rowData);
+    }
     ProcessUtils.addRowDataInListStateAndRegisterTimer(
         leftEventTimeGetter,
-        row,
+        rowData,
         leftState,
         registeredTimer,
         context.timerService(),
@@ -135,7 +152,11 @@ public class TemporalJoinConnectionFunction<T>
       Collector<RowData> collector)
       throws Exception {
     final var ts = eventTime(rightEventTimeGetter, row);
-    rightState.put(ts, projectRow(row, rightReturnIndexMapping));
+    RowData rowData = projectRow(row, rightReturnIndexMapping);
+    if (rightInputStateRowSerializer != null) {
+      rowData = rightInputStateRowSerializer.copy(rowData);
+    }
+    rightState.put(ts, rowData);
     registerSmallestTimer(registeredTimer, ts, context.timerService());
   }
 

@@ -18,83 +18,74 @@
 
 package name.zicat.astatine.streaming.sql.runtime.process;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 import org.apache.flink.api.common.state.MapState;
 import org.apache.flink.api.common.state.MapStateDescriptor;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.api.common.typeutils.TypeSerializer;
-import org.apache.flink.api.java.typeutils.ListTypeInfo;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.heap.AbstractHeapState;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
-import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
-import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.Collector;
 
-import static name.zicat.astatine.streaming.sql.runtime.utils.ProcessUtils.addRowDataInListStateAndRegisterTimer;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Map;
+
+import static name.zicat.astatine.streaming.sql.runtime.utils.ProcessUtils.eventTime;
 import static name.zicat.astatine.streaming.sql.runtime.utils.ProcessUtils.filterProcessableData;
-import static name.zicat.astatine.streaming.sql.runtime.utils.StateUtils.*;
+import static name.zicat.astatine.streaming.sql.runtime.utils.StateUtils.registerEventCleanupTimer;
+import static name.zicat.astatine.streaming.sql.runtime.utils.StateUtils.registerSmallestTimer;
+import static name.zicat.astatine.streaming.sql.runtime.utils.StateUtils.registerTimer;
 
-/**
- * FieldValueWatchChangedEmitterFunction.
- *
- * @param <T>
- */
-public class FieldValueWatchChangedEmitterFunction<T>
-    extends KeyedProcessFunction<T, RowData, RowData> {
+/** DeduplicateFunction. */
+public class DeduplicateFunction extends KeyedProcessFunction<RowData, RowData, RowData> {
 
-  protected final RowData.FieldGetter fieldGetter;
+  /** OrderType. */
+  public enum OrderType implements Serializable {
+    ASC,
+    DESC
+  }
+
   protected final RowData.FieldGetter eventTimeGetter;
-  protected final RowType.RowField fieldType;
   protected final InternalTypeInfo<RowData> rowTypeInfo;
+  protected final OrderType orderType;
   protected final long minRetentionTime;
   protected final long maxRetentionTime;
 
-  protected transient ValueState<RowData> previousRowState;
-  protected transient MapState<Long, List<RowData>> rowsState;
+  protected transient MapState<Long, RowData> valueState;
   protected transient ValueState<Long> registeredTimer;
   protected transient ValueState<Long> cleanupTimeState;
+  protected transient ValueState<RowData> lastRowState;
   protected transient TypeSerializer<RowData> inputStateRowSerializer;
 
-  public FieldValueWatchChangedEmitterFunction(
-      RowData.FieldGetter fieldGetter,
-      RowType.RowField fieldType,
+  public DeduplicateFunction(
       RowData.FieldGetter eventTimeGetter,
+      InternalTypeInfo<RowData> rowTypeInfo,
+      OrderType orderType,
       long minRetentionTime,
-      long maxRetentionTime,
-      InternalTypeInfo<RowData> rowTypeInfo) {
-    this.fieldGetter = fieldGetter;
-    this.fieldType = fieldType;
+      long maxRetentionTime) {
     this.eventTimeGetter = eventTimeGetter;
+    this.rowTypeInfo = rowTypeInfo;
+    this.orderType = orderType;
     this.minRetentionTime = minRetentionTime;
     this.maxRetentionTime = maxRetentionTime;
-    this.rowTypeInfo = rowTypeInfo;
   }
 
   @SuppressWarnings("deprecation")
   @Override
   public void open(Configuration parameters) {
-    rowsState =
+    valueState =
         getRuntimeContext()
-            .getMapState(
-                new MapStateDescriptor<>("rowState", Types.LONG, new ListTypeInfo<>(rowTypeInfo)));
+            .getMapState(new MapStateDescriptor<>("rowState", Types.LONG, rowTypeInfo));
     registeredTimer =
-        getRuntimeContext().getState(new ValueStateDescriptor<>("registeredTimer", Types.LONG));
-    previousRowState =
-        getRuntimeContext()
-            .getState(
-                new ValueStateDescriptor<>(
-                    "previousRow",
-                    InternalTypeInfo.of(new RowType(Collections.singletonList(fieldType)))));
+        getRuntimeContext().getState(new ValueStateDescriptor<>("registerTime", Types.LONG));
     cleanupTimeState =
-        getRuntimeContext().getState(new ValueStateDescriptor<>("cleanup", Types.LONG));
+        getRuntimeContext().getState(new ValueStateDescriptor<>("cleanUpTime", Types.LONG));
+    lastRowState = getRuntimeContext().getState(new ValueStateDescriptor<>("lastRow", rowTypeInfo));
     final var objectReuseEnabled = getRuntimeContext().isObjectReuseEnabled();
     if ((registeredTimer instanceof AbstractHeapState) && objectReuseEnabled) {
       inputStateRowSerializer =
@@ -104,78 +95,79 @@ public class FieldValueWatchChangedEmitterFunction<T>
   }
 
   @Override
+  public void processElement(
+      RowData rowData,
+      KeyedProcessFunction<RowData, RowData, RowData>.Context ctx,
+      Collector<RowData> out)
+      throws Exception {
+    final var ts = eventTime(eventTimeGetter, rowData);
+    if (inputStateRowSerializer != null) {
+      rowData = inputStateRowSerializer.copy(rowData);
+    }
+    valueState.put(ts, rowData);
+    registerSmallestTimer(registeredTimer, ts, ctx.timerService());
+  }
+
+  @Override
   public void onTimer(
       long timestamp,
-      KeyedProcessFunction<T, RowData, RowData>.OnTimerContext ctx,
+      KeyedProcessFunction<RowData, RowData, RowData>.OnTimerContext ctx,
       Collector<RowData> out)
       throws Exception {
     if (triggerTimeCleanup(timestamp)) {
       return;
     }
-    final var timeService = ctx.timerService();
-    final var currentWatermark = timeService.currentWatermark();
-    final var processableData = new ArrayList<Map.Entry<Long, List<RowData>>>();
+    final var timerService = ctx.timerService();
+    final var currentWatermark = timerService.currentWatermark();
+    final var processableData = new ArrayList<Map.Entry<Long, RowData>>();
     final var lastUnprocessedTime =
-        filterProcessableData(rowsState, currentWatermark, processableData::add);
-
-    processableData.sort(Map.Entry.comparingByKey());
-    var previousRow = previousRowState.value();
-    try {
-      for (var entry : processableData) {
-        final var leftStateValueList = entry.getValue();
-        for (var leftStateValue : leftStateValueList) {
-          final var key = new GenericRowData(1);
-          key.setField(0, fieldGetter.getFieldOrNull(leftStateValue));
-          if (previousRow == null || !previousRow.equals(key)) {
-            previousRow = key;
-            out.collect(leftStateValue);
-          }
-        }
-      }
-    } finally {
-      previousRowState.update(previousRow);
-    }
-
+        filterProcessableData(valueState, currentWatermark, processableData::add);
     if (lastUnprocessedTime < Long.MAX_VALUE) {
-      registerTimer(registeredTimer, lastUnprocessedTime, timeService);
+      registerTimer(registeredTimer, lastUnprocessedTime, timerService);
     } else {
       registeredTimer.clear();
     }
     registerEventCleanupTimer(
         lastUnprocessedTime == Long.MAX_VALUE ? currentWatermark : lastUnprocessedTime,
-        timeService,
+        timerService,
         cleanupTimeState,
         minRetentionTime,
         maxRetentionTime);
-  }
-
-  @Override
-  public void processElement(
-      RowData rowData,
-      KeyedProcessFunction<T, RowData, RowData>.Context context,
-      Collector<RowData> collector)
-      throws Exception {
-    if (inputStateRowSerializer != null) {
-      rowData = inputStateRowSerializer.copy(rowData);
+    if (processableData.isEmpty()) {
+      return;
     }
-    addRowDataInListStateAndRegisterTimer(
-        eventTimeGetter, rowData, rowsState, registeredTimer, context.timerService(), true);
+    processableData.sort(Map.Entry.comparingByKey());
+    final var processEntry =
+        orderType == OrderType.ASC
+            ? processableData.get(0)
+            : processableData.get(processableData.size() - 1);
+    final var processRow = processEntry.getValue();
+    final var rowInState = lastRowState.value();
+    if (rowInState == null) {
+      lastRowState.update(processRow);
+      out.collect(processRow);
+      return;
+    }
+
+    final var rowTs = processEntry.getKey();
+    final var eventTimeInState = eventTime(eventTimeGetter, rowInState);
+    if (orderType == OrderType.ASC && rowTs < eventTimeInState) {
+      lastRowState.update(processRow);
+      out.collect(processRow);
+    } else if (orderType == OrderType.DESC && rowTs > eventTimeInState) {
+      lastRowState.update(processRow);
+      out.collect(processRow);
+    }
   }
 
-  /**
-   * check if trigger processing time cleanup.
-   *
-   * @return true if triggered
-   * @throws Exception Exception
-   */
-  protected boolean triggerTimeCleanup(long timestamp) throws Exception {
+  private boolean triggerTimeCleanup(long timestamp) throws Exception {
     final var cleanupTimestamp = cleanupTimeState.value();
     if (cleanupTimestamp != null && cleanupTimestamp == timestamp) {
+      lastRowState.clear();
       cleanupTimeState.clear();
-      previousRowState.clear();
       if (registeredTimer.value() == null) {
+        valueState.clear();
         registeredTimer.clear();
-        rowsState.clear();
         return true;
       }
     }
