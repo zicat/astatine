@@ -46,8 +46,7 @@ import java.util.List;
 import java.util.Map;
 
 import static name.zicat.astatine.streaming.sql.parser.utils.Types.fieldGetter;
-import static name.zicat.astatine.streaming.sql.runtime.utils.ProcessUtils.addRowDataInListStateAndRegisterTimer;
-import static name.zicat.astatine.streaming.sql.runtime.utils.ProcessUtils.filterProcessableData;
+import static name.zicat.astatine.streaming.sql.runtime.utils.ProcessUtils.*;
 import static name.zicat.astatine.streaming.sql.runtime.utils.StateUtils.registerTimer;
 
 /** DisorderDiscardFunctionFactory. */
@@ -97,7 +96,7 @@ public class DisorderDiscardFunctionFactory
                   Collector<RowData> collector)
                   throws Exception {
                 if (!addRowDataInListStateAndRegisterTimer(
-                    eventTimeGetter,
+                    eventTime(eventTimeGetter, rowData),
                     rowData,
                     valueState,
                     registeredTimer,

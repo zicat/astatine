@@ -75,7 +75,7 @@ public class ProcessUtils {
   /**
    * add row data in state and register timer.
    *
-   * @param eventTimeGetter eventTimeGetter
+   * @param eventTime eventTime
    * @param rowData rowData
    * @param valueState valueState
    * @param registeredTimer registeredTimer
@@ -83,7 +83,7 @@ public class ProcessUtils {
    * @throws Exception Exception
    */
   public static void addRowDataInListStateAndRegisterTimer(
-      RowData.FieldGetter eventTimeGetter,
+      long eventTime,
       RowData rowData,
       MapState<Long, List<RowData>> valueState,
       ValueState<Long> registeredTimer,
@@ -91,13 +91,13 @@ public class ProcessUtils {
       boolean isHeadState)
       throws Exception {
     addRowDataInListStateAndRegisterTimer(
-        eventTimeGetter, rowData, valueState, registeredTimer, timerService, false, isHeadState);
+        eventTime, rowData, valueState, registeredTimer, timerService, false, isHeadState);
   }
 
   /**
    * add row data in state and register timer.
    *
-   * @param eventTimeGetter eventTimeGetter
+   * @param eventTime eventTime
    * @param rowData rowData
    * @param valueState valueState
    * @param registeredTimer registeredTimer
@@ -105,7 +105,7 @@ public class ProcessUtils {
    * @throws Exception Exception
    */
   public static boolean addRowDataInListStateAndRegisterTimer(
-      RowData.FieldGetter eventTimeGetter,
+      long eventTime,
       RowData rowData,
       MapState<Long, List<RowData>> valueState,
       ValueState<Long> registeredTimer,
@@ -113,7 +113,6 @@ public class ProcessUtils {
       boolean discardDisorder,
       boolean isHeapState)
       throws Exception {
-    final var eventTime = eventTime(eventTimeGetter, rowData);
     if (discardDisorder && eventTime < timerService.currentWatermark()) {
       return false;
     }

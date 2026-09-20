@@ -36,8 +36,7 @@ import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.Collector;
 
-import static name.zicat.astatine.streaming.sql.runtime.utils.ProcessUtils.addRowDataInListStateAndRegisterTimer;
-import static name.zicat.astatine.streaming.sql.runtime.utils.ProcessUtils.filterProcessableData;
+import static name.zicat.astatine.streaming.sql.runtime.utils.ProcessUtils.*;
 import static name.zicat.astatine.streaming.sql.runtime.utils.StateUtils.*;
 
 /**
@@ -146,7 +145,12 @@ public class FieldValueWatchChangedEmitterFunction<T>
       Collector<RowData> collector)
       throws Exception {
     addRowDataInListStateAndRegisterTimer(
-        eventTimeGetter, rowData, rowsState, registeredTimer, context.timerService(), true);
+        eventTime(eventTimeGetter, rowData),
+        rowData,
+        rowsState,
+        registeredTimer,
+        context.timerService(),
+        true);
   }
 
   /**

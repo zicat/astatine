@@ -120,8 +120,8 @@ public class TemporalJoinConnectionFunction<T>
       Collector<RowData> collector)
       throws Exception {
     ProcessUtils.addRowDataInListStateAndRegisterTimer(
-        leftEventTimeGetter,
-        row,
+        eventTime(leftEventTimeGetter, row),
+        projectRow(row, leftReturnIndexMapping),
         leftState,
         registeredTimer,
         context.timerService(),

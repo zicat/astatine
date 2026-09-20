@@ -60,7 +60,18 @@ public class TemporalJoinConnectionFunctionFactoryTest extends TransformFactoryT
     test(Order.FIRST);
   }
 
+  @Test
+  public void testLeftProjection() throws Exception {
+    test(Order.LAST, "tag AS left_tag");
+  }
+
   private void test(TemporalJoinConnectionFunctionFactory.Order order) throws Exception {
+    test(order, "*");
+  }
+
+  private void test(
+      TemporalJoinConnectionFunctionFactory.Order order, String leftSelectFields)
+      throws Exception {
     final var ts = System.currentTimeMillis();
 
     final var leftRow1 = new GenericRowData(3);
@@ -124,7 +135,7 @@ public class TemporalJoinConnectionFunctionFactoryTest extends TransformFactoryT
     configuration.set(OPTION_LEFT_EVENTTIME, "ts");
     configuration.set(OPTION_RIGHT_EVENTTIME, "ts");
     configuration.set(OPTION_JOIN_TYPE, JoinType.INNER);
-    configuration.set(OPTION_LEFT_SELECT_FIELDS, "*");
+    configuration.set(OPTION_LEFT_SELECT_FIELDS, leftSelectFields);
     configuration.set(OPTION_RIGHT_SELECT_FIELDS, "tag AS right_tag");
     configuration.set(FunctionFactory.OPTION_FUNCTION_IDENTITY, IDENTIFY);
     configuration.set(ExecutionConfigOptions.IDLE_STATE_RETENTION, Duration.ofHours(1));
@@ -140,26 +151,46 @@ public class TemporalJoinConnectionFunctionFactoryTest extends TransformFactoryT
 
     final var rowType =
         (RowType) ((DataTypeQueryable) resultStream.getType()).getDataType().getLogicalType();
-    Assert.assertEquals(rowType.getFieldNames().get(0), "name");
-    Assert.assertEquals(rowType.getFieldNames().get(1), "ts");
-    Assert.assertEquals(rowType.getFieldNames().get(2), "tag");
-    Assert.assertEquals(rowType.getFieldNames().get(3), "right_tag");
+    if ("*".equals(leftSelectFields)) {
+      Assert.assertEquals(rowType.getFieldNames().get(0), "name");
+      Assert.assertEquals(rowType.getFieldNames().get(1), "ts");
+      Assert.assertEquals(rowType.getFieldNames().get(2), "tag");
+      Assert.assertEquals(rowType.getFieldNames().get(3), "right_tag");
+    } else {
+      Assert.assertEquals(rowType.getFieldNames().get(0), "left_tag");
+      Assert.assertEquals(rowType.getFieldNames().get(1), "right_tag");
+    }
 
     TransformFactoryTestBase.execAndAssert(
         resultStream,
         data -> {
           Assert.assertEquals(3, data.size());
-          data.sort(
-              Comparator.comparingLong(o -> ((RowData) o).getTimestamp(1, 3).getMillisecond()));
+          if ("*".equals(leftSelectFields)) {
+            data.sort(
+                Comparator.comparingLong(
+                    o -> ((RowData) o).getTimestamp(1, 3).getMillisecond()));
+          } else {
+            data.sort(Comparator.comparing(o -> ((RowData) o).getString(0).toString()));
+          }
           for (int i = 0; i < data.size(); i++) {
             final var rowData = (RowData) data.get(i);
-            Assert.assertEquals(rowData.getString(0).toString(), "name1");
-            Assert.assertEquals(rowData.getTimestamp(1, 3).getMillisecond(), ts + 1000L * (i + 1));
-            Assert.assertEquals(rowData.getString(2).toString(), "leftTag" + (i + 1));
-            if (i == 0 || order == TemporalJoinConnectionFunctionFactory.Order.FIRST) {
-              Assert.assertEquals(rowData.getString(3).toString(), "rightTag1");
+            if ("*".equals(leftSelectFields)) {
+              Assert.assertEquals(rowData.getString(0).toString(), "name1");
+              Assert.assertEquals(
+                  rowData.getTimestamp(1, 3).getMillisecond(), ts + 1000L * (i + 1));
+              Assert.assertEquals(rowData.getString(2).toString(), "leftTag" + (i + 1));
+              if (i == 0 || order == TemporalJoinConnectionFunctionFactory.Order.FIRST) {
+                Assert.assertEquals(rowData.getString(3).toString(), "rightTag1");
+              } else {
+                Assert.assertEquals(rowData.getString(3).toString(), "rightTag2");
+              }
             } else {
-              Assert.assertEquals(rowData.getString(3).toString(), "rightTag2");
+              Assert.assertEquals(rowData.getString(0).toString(), "leftTag" + (i + 1));
+              if (i == 0) {
+                Assert.assertEquals(rowData.getString(1).toString(), "rightTag1");
+              } else {
+                Assert.assertEquals(rowData.getString(1).toString(), "rightTag2");
+              }
             }
           }
         });
