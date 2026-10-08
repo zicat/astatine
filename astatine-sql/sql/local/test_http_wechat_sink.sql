@@ -12,7 +12,7 @@ CREATE TABLE wechat_sink (
     request\.type = 'POST'
     read\.timeout = '30s'
     connect\.timeout = '30s'
-    code\.ignore = 'true' />
+    response\.process\-mode\.default\.ignore = 'true' />
 
 INSERT INTO wechat_sink
 SELECT MAP['Content-Type', 'application/json']

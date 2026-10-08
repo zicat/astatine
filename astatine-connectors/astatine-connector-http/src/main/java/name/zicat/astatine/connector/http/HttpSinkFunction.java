@@ -24,6 +24,8 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.flink.table.data.RowData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.ProxySelector;
@@ -40,8 +42,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 /** HttpSinkFunction. */
+@SuppressWarnings("deprecation")
 public class HttpSinkFunction extends RichSinkFunction<RowData> {
 
+  private static final Logger LOG = LoggerFactory.getLogger(HttpSinkFunction.class);
   private static final HttpResponse.BodyHandler<Void> DISCARD_BODY_HANDLER =
       HttpResponse.BodyHandlers.discarding();
   private final int[] metadataPositions;
@@ -53,7 +57,6 @@ public class HttpSinkFunction extends RichSinkFunction<RowData> {
   private transient HttpClient client;
   private transient volatile AtomicReference<Exception> state;
   private transient Function<HttpResponse<Void>, Void> responseHandler;
-  private transient HttpSinkMetric metric;
 
   public HttpSinkFunction(int[] metadataPositions, ReadableConfig tableOptions) {
     this.metadataPositions = metadataPositions;
@@ -69,22 +72,9 @@ public class HttpSinkFunction extends RichSinkFunction<RowData> {
     if (retryCount < 0) {
       retryCount = 0;
     }
-    final var codeIgnore = tableOptions.get(CODE_IGNORE);
-    this.metric = new HttpSinkMetric(getRuntimeContext());
-    responseHandler =
-        response -> {
-          final var code = response.statusCode();
-          if (codeIgnore) {
-            if (code >= 400) {
-              metric.writeFailInc(code);
-            }
-            return response.body();
-          }
-          if (code >= 400) {
-            throw new RuntimeException("Unexpected code " + code);
-          }
-          return response.body();
-        };
+    final var responseProcessMode = ResponseProcessMode.create(tableOptions);
+    LOG.info("create response process mode {} success", responseProcessMode.type());
+    responseHandler = responseProcessMode.createResponseHandler(getRuntimeContext(), tableOptions);
     state = new AtomicReference<>();
     client = createHttpClient();
   }

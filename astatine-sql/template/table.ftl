@@ -68,7 +68,8 @@ WITH (
     async\.queue\.size = '1024'
     async\.threads = '5'
     sink\.parallelism = '1'
-    code\.ignore = 'false'>
+    response\.process\-mode = 'default'
+    dynamic_key_value... >
 WITH (
     'connector' = 'http',
     'request.type' = '${request\.type}',
@@ -80,7 +81,10 @@ WITH (
     'async.queue.size' = '${async\.queue\.size}',
     'async.threads' = '${async\.threads}',
     'sink.parallelism' = '${sink\.parallelism}',
-    'code.ignore' = '${code\.ignore}'
+    <#list dynamic_key_value?keys as p>
+    '${p}' = '${dynamic_key_value[p]}',
+    </#list>
+    'response.process-mode' = '${response\.process\-mode}'
 );
 </#macro>
 

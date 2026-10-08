@@ -47,7 +47,8 @@ public class HttpDynamicTableFactory implements DynamicTableSinkFactory {
     final FactoryUtil.TableFactoryHelper helper =
         FactoryUtil.createTableFactoryHelper(this, autoCompleteSchemaRegistrySubject(context));
     final ReadableConfig tableOptions = helper.getOptions();
-    FactoryUtil.validateFactoryOptions(this, tableOptions);
+    helper.validate();
+    ResponseProcessMode.create(tableOptions);
     return new HttpDynamicSink(physicalDataType, physicalDataType, tableOptions);
   }
 
@@ -75,6 +76,9 @@ public class HttpDynamicTableFactory implements DynamicTableSinkFactory {
     options.add(RETRY_COUNT);
     options.add(ASYNC_QUEUE_SIZE);
     options.add(ASYNC_THREADS);
+    options.add(RESPONSE_PROCESS_MODE);
+    options.add(RESPONSE_DEFAULT_IGNORE);
+    options.add(RESPONSE_SPECIFIC_MODE_SUCCESS_CODES);
     return options;
   }
 

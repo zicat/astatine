@@ -72,11 +72,26 @@ public class HttpTableOptions {
           .defaultValue(5)
           .withDescription("set async thread count, default 5");
 
-  public static final ConfigOption<Boolean> CODE_IGNORE =
-          ConfigOptions.key("code.ignore")
-                  .booleanType()
-                  .defaultValue(false)
-                  .withDescription("ignore server response code");
+  public static final ConfigOption<String> RESPONSE_PROCESS_MODE =
+      ConfigOptions.key("response.process-mode")
+          .stringType()
+          .defaultValue("default")
+          .withDescription("set response process mode, support 'default','specific_code'");
+
+  public static final ConfigOption<Boolean> RESPONSE_DEFAULT_IGNORE =
+      ConfigOptions.key("response.process-mode." + ResponseProcessMode.DEFAULT.type() + ".ignore")
+          .booleanType()
+          .defaultValue(false)
+          .withDescription("ignore all server response code if set true, else fail if code >= 400");
+
+  public static final ConfigOption<String> RESPONSE_SPECIFIC_MODE_SUCCESS_CODES =
+      ConfigOptions.key(
+              "response.process-mode."
+                  + ResponseProcessMode.SPECIFIC_CODE.type()
+                  + ".success-codes")
+          .stringType()
+          .defaultValue("200")
+          .withDescription("successful HTTP status codes, separated by commas, default 200");
 
   /** RequestType. */
   public enum RequestType {
