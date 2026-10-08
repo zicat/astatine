@@ -96,7 +96,7 @@ public class ProtobufRowDataDeserializationFactoryV2
       DynamicTableFactory.Context context, ReadableConfig formatOptions) {
     // protobuf_v2 using flink protobuf to support encoding format
     FactoryUtil.validateFactoryOptions(this, formatOptions);
-    return new PbEncodingFormat(buildConfig(formatOptions));
+    return new PbEncodingFormatV2(buildConfig(formatOptions));
   }
 
   @Override
