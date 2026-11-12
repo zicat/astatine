@@ -172,7 +172,8 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
       return;
     }
     rowData = projectInputRowData(rowData, eventTimestampData);
-    var rowInState = valueState.value();
+    final var oldRowInState = valueState.value();
+    var rowInState = oldRowInState;
     if (rowInState == null) {
       if (eventTime < currentWatermark) {
         processDisorderData(rowData, eventTimestampData, collector, currentWatermark);
@@ -188,8 +189,10 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
       processDisorderData(rowData, eventTimestampData, collector, currentWatermark);
     } else {
       // in-order accumulate values and time series directly
-      valueState.update(
-          accumulateValuesTimeSeries(toUpdatable(rowInState), rowData, eventTimestampData));
+      rowInState = accumulateValuesTimeSeries(toUpdatable(rowInState), rowData, eventTimestampData);
+      if (!isHeapBackend || oldRowInState != rowInState) {
+        valueState.update(rowInState);
+      }
     }
   }
 
@@ -199,10 +202,12 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
     disorderCounter.inc();
     var disorderRow = initStateRowData(rowData, eventTime, eventTime);
     disorderRow = accumulateValuesTimeSeries(disorderRow, rowData, timestampData);
-    long end =
-        watermark == Long.MIN_VALUE
-            ? eventTime + sessionMillis
-            : Math.min(watermark, eventTime + sessionMillis);
+    final long end;
+    if (watermark == Long.MIN_VALUE) {
+      end = eventTime + sessionMillis;
+    } else {
+      end = Math.min(watermark, eventTime + sessionMillis);
+    }
     collectIfNeed(disorderRow, end, collector);
   }
 
@@ -213,36 +218,38 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
       Collector<RowData> out)
       throws Exception {
 
-    UpdatableRowData stateRow = toUpdatable(valueState.value());
-    if (stateRow != null && getStartTime(stateRow) + sessionMillis == timestamp) {
-      stateRow =
-          collectIfNeed(stateRow, timestamp, out)
-              ? initStateRowData(stateRow, timestamp, timestamp)
-              : null;
+    final var oldRowInState = valueState.value();
+    var updateRow = toUpdatable(oldRowInState);
+    if (updateRow != null && getStartTime(updateRow) + sessionMillis == timestamp) {
+      if (collectIfNeed(updateRow, timestamp, out)) {
+        updateRow = initStateRowData(updateRow, timestamp, timestamp);
+      } else {
+        updateRow = null;
+      }
     }
 
     final var timerService = ctx.timerService();
     final var processableRows = processableSortedRows(timerService.currentWatermark());
     final var processableInputRows = processableRows.processableRows;
 
-    var windowEnd = stateRow != null ? getStartTime(stateRow) + sessionMillis : null;
+    var windowEnd = updateRow != null ? getStartTime(updateRow) + sessionMillis : null;
     for (var entry : processableInputRows) {
       final var eventTime = entry.getKey();
       for (var row : entry.getValue()) {
         if (windowEnd == null) {
-          stateRow = initStateRowData(row, eventTime, eventTime);
+          updateRow = initStateRowData(row, eventTime, eventTime);
           windowEnd = eventTime + sessionMillis;
         } else if (windowEnd <= eventTime) {
-          final var notEmpty = collectIfNeed(stateRow, windowEnd, out);
+          final var notEmpty = collectIfNeed(updateRow, windowEnd, out);
           if (notEmpty && eventTime < windowEnd + sessionMillis) {
-            stateRow = initStateRowData(row, eventTime, windowEnd);
+            updateRow = initStateRowData(row, eventTime, windowEnd);
             windowEnd = windowEnd + sessionMillis;
           } else {
-            stateRow = initStateRowData(row, eventTime, eventTime);
+            updateRow = initStateRowData(row, eventTime, eventTime);
             windowEnd = eventTime + sessionMillis;
           }
         }
-        stateRow = accumulateValuesTimeSeries(stateRow, row, fromEpochMillis(eventTime));
+        updateRow = accumulateValuesTimeSeries(updateRow, row, fromEpochMillis(eventTime));
       }
     }
 
@@ -251,10 +258,16 @@ public class SessionTumbleWindowFunction extends KeyedProcessFunction<RowData, R
       cleanUpdateState();
       return;
     }
-    final var nextEventTime =
-        windowEnd == null ? lastUnprocessedTime : Math.min(windowEnd, lastUnprocessedTime);
+    final long nextEventTime;
+    if (windowEnd == null) {
+      nextEventTime = lastUnprocessedTime;
+    } else {
+      nextEventTime = Math.min(windowEnd, lastUnprocessedTime);
+    }
     registerTimer(registeredTimer, nextEventTime, timerService);
-    valueState.update(stateRow);
+    if (!isHeapBackend || oldRowInState != updateRow) {
+      valueState.update(updateRow);
+    }
   }
 
   private ProcessableRows processableSortedRows(long watermark) throws Exception {
